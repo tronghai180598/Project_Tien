@@ -5,8 +5,16 @@
   "cleanUrls": false,
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/",
+      "dest": "/experiment_stroop.html"
+    },
+    {
+      "src": "/tien3.html",
       "dest": "/tien3.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
