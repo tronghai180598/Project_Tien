@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задача Струпа - Интерактивная</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen p {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Instructions Screen */
+        .instructions-screen {
+            text-align: center;
+        }
+
+        .instructions-screen h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .instructions-screen .instruction-text {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 1.05em;
+            color: #333;
+            line-height: 1.8;
+            text-align: left;
+        }
+
+        .color-guide {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .color-item {
+            padding: 15px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            text-align: center;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .trial-counter {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .word-display {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 40px 0;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 5px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 30px;
+        }
+
+        .feedback.correct {
+            color: #4caf50;
+        }
+
+        .feedback.wrong {
+            color: #f44336;
+        }
+
+        .feedback.timeout {
+            color: #ff9800;
+        }
+
+        .keys-hint {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            font-size: 1.05em;
+            color: #333;
+        }
+
+        .keys-hint strong {
+            color: #667eea;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            text-align: center;
+        }
+
+        .results-screen h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .result-item {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item .label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .result-item .value {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+        .accuracy {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.3em;
+        }
+
+        .accuracy .percentage {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .word-display {
+                font-size: 2.5em;
+            }
+
+            .color-guide {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Задача Струпа</h1>
+
+        <!-- Start Screen -->
+        <div class="screen active start-screen">
+            <p>Добро пожаловать в интерактивную задачу Струпа!</p>
+            <p>Нажмите кнопку ниже, чтобы начать.</p>
+            <button class="btn" onclick="goToInstructions()">Кнопка старта</button>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div class="screen instructions-screen">
+            <h2>Инструкция задачи</h2>
+            <div class="instruction-text">
+                <p>В данной задаче вы будете смотреть разные названия цветов, которые напечатаны разными цветами.</p>
+                <p style="margin-top: 15px;">Вы должны реагировать на <strong>печатный цвет</strong> слова, а не на само слово.</p>
+                <p style="margin-top: 15px; color: #f44336; font-weight: bold;">Например: если видите слово "Красный" напечатанное синим цветом, вы должны нажать клавишу "С" (Синий), а не "К" (Красный).</p>
+            </div>
+
+            <h3 style="color: #667eea; margin: 25px 0 15px 0;">Используйте эти клавиши:</h3>
+            <div class="color-guide">
+                <div class="color-item" style="background-color: #ff4444; color: white;">
+                    <div>🔴 Красный</div>
+                    <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: К</div>
+                </div>
+                <div class="color-item" style="background-color: #4444ff; color: white;">
+                    <div>🔵 Синий</div>
+                    <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: С</div>
+                </div>
+                <div class="color-item" style="background-color: #ffcc00; color: #333;">
+                    <div>🟡 Жёлтый</div>
+                    <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: Ж</div>
+                </div>
+                <div class="color-item" style="background-color: #44aa44; color: white;">
+                    <div>🟢 Зелёный</div>
+                    <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: З</div>
+                </div>
+            </div>
+
+            <p style="margin-top: 30px; color: #666;">
+                U vậy sẽ có <strong>2 giây</strong> cho mỗi câu trả lời.<br>
+                Tổng cộng <strong>20 câu hỏi</strong>.<br>
+                Nấn nút dưới để bắt đầu.
+            </p>
+
+            <button class="btn" onclick="startGame()" style="margin-top: 30px;">Начать игру</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen game-screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="trial-counter">
+                <span id="trialCounter">1</span> / 20
+            </div>
+            <div class="word-display" id="wordDisplay"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="keys-hint">
+                К <strong style="margin: 0 10px;">|</strong>
+                С <strong style="margin: 0 10px;">|</strong>
+                Ж <strong style="margin: 0 10px;">|</strong>
+                З
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen results-screen">
+            <h2>Результаты</h2>
+            <div class="result-item">
+                <span class="label">Всего ответов:</span>
+                <span class="value" id="totalTrials">0</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Правильные ответы:</span>
+                <span class="value" id="correctCount">0</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Неправильные ответы:</span>
+                <span class="value" id="wrongCount">0</span>
+            </div>
+            <div class="accuracy">
+                <div>Точность:</div>
+                <div class="percentage" id="accuracy">0%</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="restartGame()">Начать заново</button>
+                <button class="btn btn-secondary" onclick="goHome()">На главную</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WORDS = ['Красный', 'Синий', 'Жёлтый', 'Зелёный'];
+        const COLORS = {
+            'Красный': '#ff4444',
+            'Синий': '#4444ff',
+            'Жёлтый': '#ffcc00',
+            'Зелёный': '#44aa44'
+        };
+        const KEY_MAP = {
+            'к': 'Красный',
+            'К': 'Красный',
+            'с': 'Синий',
+            'С': 'Синий',
+            'ж': 'Жёлтый',
+            'Ж': 'Жёлтый',
+            'з': 'Зелёный',
+            'З': 'Зелёный'
+        };
+
+        let gameState = {
+            currentTrial: 0,
+            totalTrials: 20,
+            correct: 0,
+            wrong: 0,
+            isWaiting: false,
+            currentWord: '',
+            currentColor: '',
+            timeoutId: null
+        };
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.querySelector('.' + screenName).classList.add('active');
+        }
+
+        function goToInstructions() {
+            showScreen('instructions-screen');
+        }
+
+        function startGame() {
+            gameState = {
+                currentTrial: 0,
+                totalTrials: 20,
+                correct: 0,
+                wrong: 0,
+                isWaiting: false,
+                currentWord: '',
+                currentColor: '',
+                timeoutId: null
+            };
+            showScreen('game-screen');
+            document.addEventListener('keydown', handleKeyPress);
+            showNextTrial();
+        }
+
+        function getRandomWord() {
+            return WORDS[Math.floor(Math.random() * WORDS.length)];
+        }
+
+        function getRandomColor() {
+            const colorNames = Object.keys(COLORS);
+            return colorNames[Math.floor(Math.random() * colorNames.length)];
+        }
+
+        function showNextTrial() {
+            if (gameState.currentTrial >= gameState.totalTrials) {
+                endGame();
+                return;
+            }
+
+            gameState.currentTrial++;
+            gameState.isWaiting = true;
+
+            // Get random word and color
+            gameState.currentWord = getRandomWord();
+            gameState.currentColor = getRandomColor();
+
+            // Update display
+            const wordDisplay = document.getElementById('wordDisplay');
+            wordDisplay.textContent = gameState.currentWord;
+            wordDisplay.style.color = COLORS[gameState.currentColor];
+
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('trialCounter').textContent = gameState.currentTrial;
+            document.getElementById('progressFill').style.width = (gameState.currentTrial / gameState.totalTrials) * 100 + '%';
+
+            // Auto-advance after 2 seconds WITHOUT response
+            gameState.timeoutId = setTimeout(() => {
+                if (gameState.isWaiting) {
+                    document.getElementById('feedback').textContent = 'Время истекло!';
+                    document.getElementById('feedback').className = 'feedback timeout';
+                    gameState.wrong++;
+                    gameState.isWaiting = false;
+                    setTimeout(showNextTrial, 1500);
+                }
+            }, 2000);
+        }
+
+        function handleKeyPress(event) {
+            if (!gameState.isWaiting) return;
+
+            const key = event.key;
+            if (!KEY_MAP[key]) return;
+
+            event.preventDefault();
+
+            clearTimeout(gameState.timeoutId);
+            gameState.isWaiting = false;
+
+            const selectedColor = KEY_MAP[key];
+            const feedback = document.getElementById('feedback');
+
+            if (selectedColor === gameState.currentColor) {
+                feedback.textContent = '✓ Правильно!';
+                feedback.className = 'feedback correct';
+                gameState.correct++;
+            } else {
+                feedback.textContent = '✗ Неправильно!';
+                feedback.className = 'feedback wrong';
+                gameState.wrong++;
+            }
+
+            setTimeout(showNextTrial, 1500);
+        }
+
+        function endGame() {
+            document.removeEventListener('keydown', handleKeyPress);
+            const accuracy = Math.round((gameState.correct / gameState.totalTrials) * 100);
+
+            document.getElementById('totalTrials').textContent = gameState.totalTrials;
+            document.getElementById('correctCount').textContent = gameState.correct;
+            document.getElementById('wrongCount').textContent = gameState.wrong;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+
+            showScreen('results-screen');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function goHome() {
+            showScreen('start-screen');
+        }
+    </script>
+</body>
+</html>
