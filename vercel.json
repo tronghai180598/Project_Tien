@@ -1,0 +1,12 @@
+{
+  "buildCommand": "echo 'Static site'",
+  "outputDirectory": ".",
+  "public": true,
+  "cleanUrls": false,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/tien3.html"
+    }
+  ]
+}
