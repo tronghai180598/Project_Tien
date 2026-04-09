@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Задача Струпа</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -378,6 +378,95 @@
     @media (hover: none) and (pointer: coarse) {
       .short-swipe-hint-mobile {
         display: block;
+      }
+    }
+    /* Stage 1 short feed: почти на весь экран телефона; свайп не прокручивает страницу */
+    @media (hover: none) and (pointer: coarse) {
+      .stage[data-stage="1"].is-open .stage-body {
+        overflow-x: hidden;
+      }
+      .stage[data-stage="1"].is-open .video-series {
+        width: 100vw;
+        max-width: 100vw;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 0.35rem;
+      }
+      .stage[data-stage="1"].is-open .video-panel.video-panel-short {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.35rem 0 max(0.65rem, env(safe-area-inset-bottom, 0px));
+        min-height: calc(100svh - 3.75rem);
+        max-height: none;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        overscroll-behavior-y: contain;
+      }
+      .stage[data-stage="1"] .stage1-short-title {
+        padding: 0 0.75rem;
+        margin-bottom: 0.35rem;
+        flex-shrink: 0;
+      }
+      .stage[data-stage="1"] .short-feed-wrap {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        overscroll-behavior-y: contain;
+      }
+      .stage[data-stage="1"] .short-feed.short-feed-one {
+        flex: 1 1 auto;
+        min-height: min(78svh, calc(100svh - 5rem));
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        overscroll-behavior-y: contain;
+      }
+      .stage[data-stage="1"] .short-one-inner {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: none;
+        width: 100%;
+        min-height: min(78svh, calc(100svh - 5rem));
+        touch-action: none;
+      }
+      .stage[data-stage="1"] .short-slide-inner {
+        max-width: none;
+        width: 100%;
+        align-self: stretch;
+        min-height: min(78svh, calc(100svh - 5rem));
+      }
+      .stage[data-stage="1"] .short-feed-video {
+        width: 100%;
+        height: 100%;
+        min-height: min(78svh, calc(100svh - 5rem));
+        max-height: none;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 0;
+        touch-action: manipulation;
+        -webkit-touch-callout: none;
+      }
+      .stage[data-stage="1"] .short-swipe-hint-mobile {
+        padding: 0 0.75rem;
+        flex-shrink: 0;
+      }
+      .stage[data-stage="1"] .stage1-goto-long-video {
+        max-width: none;
+        margin-left: 0.75rem;
+        margin-right: 0.75rem;
       }
     }
     .placeholder-msg {
@@ -1652,6 +1741,7 @@
         function loadIndex(i, opts) {
           opts = opts || {};
           var keepDone = opts.keepDoneUI === true;
+          var scrollLock = window.scrollY;
           ignoreEndedUntil = Date.now() + 520;
           current = Math.max(0, Math.min(SHORT_TOTAL - 1, i));
           if (!keepDone) {
@@ -1676,11 +1766,39 @@
             }
             if (video.readyState >= 1) seekToNearEnd();
             else video.addEventListener("loadedmetadata", seekToNearEnd, { once: true });
-          } else {
-            video.play().catch(function () {
-              video.muted = true;
-              video.play().catch(function () {});
+            requestAnimationFrame(function () {
+              window.scrollTo(0, scrollLock);
             });
+          } else {
+            function restoreScrollAfterClip() {
+              requestAnimationFrame(function () {
+                window.scrollTo(0, scrollLock);
+              });
+            }
+            var playP;
+            try {
+              playP = video.play();
+            } catch (err) {
+              playP = null;
+            }
+            if (playP && typeof playP.then === "function") {
+              playP
+                .catch(function () {
+                  video.muted = true;
+                  try {
+                    return video.play();
+                  } catch (e2) {
+                    return Promise.resolve();
+                  }
+                })
+                .then(restoreScrollAfterClip, restoreScrollAfterClip);
+            } else {
+              try {
+                video.muted = true;
+                video.play();
+              } catch (e3) {}
+              restoreScrollAfterClip();
+            }
           }
         }
 
@@ -1731,26 +1849,51 @@
         });
 
         var touchY0 = null;
+        var swipeTrack = null;
         touchEl.addEventListener(
           "touchstart",
           function (e) {
-            if (e.changedTouches && e.changedTouches[0]) {
-              touchY0 = e.changedTouches[0].screenY;
+            if (!e.targetTouches || e.targetTouches.length !== 1) {
+              touchY0 = null;
+              swipeTrack = null;
+              return;
             }
+            var t = e.targetTouches[0];
+            touchY0 = t.clientY;
+            swipeTrack = { x0: t.clientX, y0: t.clientY };
           },
           { passive: true }
         );
         touchEl.addEventListener(
-          "touchend",
+          "touchmove",
           function (e) {
-            if (touchY0 == null || !e.changedTouches || !e.changedTouches[0]) {
-              touchY0 = null;
-              return;
+            if (!swipeTrack || !e.targetTouches || e.targetTouches.length !== 1) return;
+            var t = e.targetTouches[0];
+            var dy = t.clientY - swipeTrack.y0;
+            var dx = t.clientX - swipeTrack.x0;
+            if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+              e.preventDefault();
             }
-            var dy = touchY0 - e.changedTouches[0].screenY;
+          },
+          { passive: false }
+        );
+        function onShortTouchEnd(e) {
+          swipeTrack = null;
+          if (touchY0 == null || !e.changedTouches || !e.changedTouches[0]) {
             touchY0 = null;
-            if (dy > SWIPE_MIN) goNext();
-            else if (dy < -SWIPE_MIN) goPrev();
+            return;
+          }
+          var dy = touchY0 - e.changedTouches[0].clientY;
+          touchY0 = null;
+          if (dy > SWIPE_MIN) goNext();
+          else if (dy < -SWIPE_MIN) goPrev();
+        }
+        touchEl.addEventListener("touchend", onShortTouchEnd, { passive: true });
+        touchEl.addEventListener(
+          "touchcancel",
+          function () {
+            swipeTrack = null;
+            touchY0 = null;
           },
           { passive: true }
         );
