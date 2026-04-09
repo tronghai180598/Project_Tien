@@ -510,6 +510,11 @@
         margin-left: auto;
         margin-right: auto;
       }
+      /* Вкладка этапов: прокрутка страницы с жеста по всей области видео */
+      #stage1-short-fs-shell:not(.stage1-short-fs-shell--open) .short-one-inner,
+      #stage1-short-fs-shell:not(.stage1-short-fs-shell--open) .short-feed-video {
+        touch-action: pan-y pinch-zoom;
+      }
     }
     .placeholder-msg {
       text-align: center;
@@ -1540,6 +1545,11 @@
         }
       }
 
+      function isStage1ShortFullscreenOpen() {
+        var shell = document.getElementById("stage1-short-fs-shell");
+        return !!(shell && shell.classList.contains("stage1-short-fs-shell--open"));
+      }
+
       function tryEnterStage1ShortFullscreen() {
         if (!isStage1TouchFullscreenDevice()) return;
         if (hasStage1ShortsCompleted()) return;
@@ -2034,6 +2044,7 @@
         touchEl.addEventListener(
           "touchmove",
           function (e) {
+            if (!isStage1ShortFullscreenOpen()) return;
             if (!swipeTrack || !e.targetTouches || e.targetTouches.length !== 1) return;
             var t = e.targetTouches[0];
             var dy = t.clientY - swipeTrack.y0;
@@ -2052,6 +2063,7 @@
           }
           var dy = touchY0 - e.changedTouches[0].clientY;
           touchY0 = null;
+          if (!isStage1ShortFullscreenOpen()) return;
           if (dy > SWIPE_MIN) goNext();
           else if (dy < -SWIPE_MIN) goPrev();
         }
