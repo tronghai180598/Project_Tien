@@ -440,6 +440,28 @@
     .crt-feedback.crt-correct { color: #1b6b3a; }
     .crt-feedback.crt-wrong { color: #a32020; }
     .crt-feedback.crt-neutral { color: var(--muted); font-weight: 500; }
+    .crt-score-summary {
+      margin-top: 1.25rem;
+      padding: 1rem 1.1rem;
+      border-radius: 8px;
+      background: #f0ece6;
+      border: 1px solid var(--border);
+    }
+    .crt-score-summary[hidden] {
+      display: none !important;
+    }
+    .crt-score-summary .crt-score-main {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .crt-score-summary .crt-score-detail {
+      margin: 0.4rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
     .crt-complete { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
     .crt-complete[hidden] { display: none !important; }
     .crt-q[hidden] { display: none !important; }
@@ -751,17 +773,17 @@
 
   <template id="tpl-stage2-inner">
     <div class="crt-test">
-      <p class="crt-intro">Тест CRT (когнитивная рефлексия). Три задания. После отправки ответа вы увидите, верно ли он, и откроется следующее задание.</p>
+      <p class="crt-intro">Тест CRT (когнитивная рефлексия). Три задания: выберите вариант и нажмите «Далее» или «Готово». Во время заданий верность не показывается. После третьего ответа отображается только общий счёт (верно / неверно), затем нажмите «Завершить второй этап», чтобы открыть этап 3.</p>
 
       <div class="crt-q" data-question="1">
         <p class="crt-label">Задание 1</p>
         <p class="crt-stem">Бейсбольная бита и мяч стоят вместе $1.10 (1 доллар и 10 центов). Бита стоит на 1 доллар больше, чем мяч. Сколько стоит мяч (в центах)?</p>
         <div class="crt-options" role="radiogroup" aria-label="Задание 1">
-          <label class="crt-option"><input type="radio" name="crt-q1" value="wrong-a"> 6%</label>
-          <label class="crt-option"><input type="radio" name="crt-q1" value="wrong-b"> 7%</label>
-          <label class="crt-option"><input type="radio" name="crt-q1" value="correct"> 5%</label>
+          <label class="crt-option"><input type="radio" name="crt-q1" value="a"> 6%</label>
+          <label class="crt-option"><input type="radio" name="crt-q1" value="b"> 7%</label>
+          <label class="crt-option"><input type="radio" name="crt-q1" value="c"> 5%</label>
         </div>
-        <button type="button" class="btn-primary crt-send" data-question="1">Отправить ответ</button>
+        <button type="button" class="btn-primary crt-send" data-question="1">Далее</button>
         <p class="crt-feedback" id="crt-fb-1" hidden></p>
       </div>
 
@@ -769,11 +791,11 @@
         <p class="crt-label">Задание 2</p>
         <p class="crt-stem">5 машин производят 5 штуковин за 5 минут. За какое время (в минутах) 100 машин произведут 100 штуковин?</p>
         <div class="crt-options" role="radiogroup" aria-label="Задание 2">
-          <label class="crt-option"><input type="radio" name="crt-q2" value="correct"> 5 мин</label>
-          <label class="crt-option"><input type="radio" name="crt-q2" value="wrong-a"> 6 мин</label>
-          <label class="crt-option"><input type="radio" name="crt-q2" value="wrong-b"> 7 мин</label>
+          <label class="crt-option"><input type="radio" name="crt-q2" value="a"> 5 мин</label>
+          <label class="crt-option"><input type="radio" name="crt-q2" value="b"> 6 мин</label>
+          <label class="crt-option"><input type="radio" name="crt-q2" value="c"> 7 мин</label>
         </div>
-        <button type="button" class="btn-primary crt-send" data-question="2">Отправить ответ</button>
+        <button type="button" class="btn-primary crt-send" data-question="2">Далее</button>
         <p class="crt-feedback" id="crt-fb-2" hidden></p>
       </div>
 
@@ -781,17 +803,19 @@
         <p class="crt-label">Задание 3</p>
         <p class="crt-stem">В озере есть участок, зарастающий кувшинками. Каждый день заросший участок увеличивается в 2 раза. Если за 48 дней кувшинки покроют всё озеро полностью, то сколько дней потребуется, чтобы кувшинки заняли половину озера?</p>
         <div class="crt-options" role="radiogroup" aria-label="Задание 3">
-          <label class="crt-option"><input type="radio" name="crt-q3" value="wrong-a"> 50 мин</label>
-          <label class="crt-option"><input type="radio" name="crt-q3" value="correct"> 47 дней</label>
-          <label class="crt-option"><input type="radio" name="crt-q3" value="wrong-b"> 40 мин</label>
+          <label class="crt-option"><input type="radio" name="crt-q3" value="a"> 50 мин</label>
+          <label class="crt-option"><input type="radio" name="crt-q3" value="b"> 47 дней</label>
+          <label class="crt-option"><input type="radio" name="crt-q3" value="c"> 40 мин</label>
         </div>
-        <button type="button" class="btn-primary crt-send" data-question="3">Отправить ответ</button>
+        <button type="button" class="btn-primary crt-send" data-question="3">Готово</button>
         <p class="crt-feedback" id="crt-fb-3" hidden></p>
       </div>
 
+      <div class="crt-score-summary" id="crt-score-summary" hidden role="region" aria-label="Итог теста CRT"></div>
+
       <div class="complete-row crt-complete" hidden>
         <button type="button" class="btn-primary btn-complete" data-stage="2">Завершить второй этап</button>
-        <span class="hint">После прохождения теста нажмите, чтобы открыть этап 3.</span>
+        <span class="hint">После просмотра итога нажмите, чтобы открыть этап 3 (перерыв).</span>
       </div>
     </div>
   </template>
@@ -900,7 +924,7 @@
         </div>
         <div class="sidebarblock">
           <div class="content">
-            <div class="title"><span class="icon red"><i class="fa fa-flag-checkered fa-2x"></i></span></div>
+            <div class="title"><span class="icon red"><img src="/x1.png" alt="Cat" style="width:2.2em;height:2.2em;border-radius:6px;object-fit:cover"></span></div>
             <div class="paragraph text-center">
               <p><a href="experiment_stroop.html" target="_blank" rel="noopener">Нажмите здесь, чтобы запустить демонстрацию задачи Струпа</a></p>
             </div>
@@ -1170,28 +1194,46 @@
         }
         if (!raw) {
           el.innerHTML =
-            '<p class="placeholder-stage" style="margin:0">После прохождения теста CRT на этапе 2 здесь появятся: число верных ответов и время до щелчка по варианту ответа (мс) по каждому заданию.</p>';
+            '<p class="placeholder-stage" style="margin:0">После этапа 2 здесь появятся: общий итог (верно / неверно), варианты ответов и время реакции по заданиям.</p>';
           return;
         }
         var d = JSON.parse(raw);
-        var html =
-          '<h3 class="crt-metrics-title">Собранные данные (тест CRT, этап 2)</h3>' +
-          "<p><strong>Верных ответов:</strong> " +
-          d.correctCount +
-          " из " +
-          d.total +
-          "</p>" +
-          "<p><strong>Время до щелчка по ответу (рефлекс), мс:</strong></p>" +
-          '<ul class="crt-metrics-list">';
+        var html = '<h3 class="crt-metrics-title">Собранные данные (тест CRT, этап 2)</h3>';
+        if (d.correctCount != null) {
+          var w =
+            d.wrongCount != null
+              ? d.wrongCount
+              : Math.max(0, (d.total != null ? d.total : 3) - d.correctCount);
+          html +=
+            "<p><strong>Верных ответов:</strong> " +
+            d.correctCount +
+            " из " +
+            (d.total != null ? d.total : 3) +
+            ". <strong>Неверных:</strong> " +
+            w +
+            ".</p>";
+        } else {
+          html +=
+            "<p><strong>Ответы зафиксированы</strong> (" +
+            (d.total != null ? d.total : 3) +
+            " задания).</p>";
+        }
+        html += "<p><strong>Время до щелчка по ответу (рефлекс), мс:</strong></p>" + '<ul class="crt-metrics-list">';
         (d.byQuestion || []).forEach(function (x) {
+          var choice =
+            x.choice != null
+              ? x.choice
+              : x.correct !== undefined
+                ? "(старый формат)"
+                : "—";
           html +=
             "<li>Задание " +
             x.q +
             ": " +
             (x.reactionMs != null ? x.reactionMs + " мс" : "—") +
-            "; " +
-            (x.correct ? "верно" : "неверно") +
-            "</li>";
+            "; вариант <strong>" +
+            choice +
+            "</strong></li>";
         });
         html += "</ul>";
         if (d.at) html += '<p class="hint">Запись: ' + d.at + "</p>";
@@ -1693,11 +1735,21 @@
           return;
         }
 
+        var CRT_ANSWER_KEY = ["c", "a", "b"];
+
         var qMetrics = {
           t0: [null, null, null],
           firstClickMs: [null, null, null],
-          correct: [null, null, null]
+          choice: [null, null, null]
         };
+
+        function scoreCRTChoices(choices) {
+          var correct = 0;
+          for (var i = 0; i < 3; i++) {
+            if (choices[i] === CRT_ANSWER_KEY[i]) correct++;
+          }
+          return { correct: correct, wrong: 3 - correct };
+        }
 
         function markQuestionStart(idx) {
           if (idx < 0 || idx > 2) return;
@@ -1711,21 +1763,26 @@
           qMetrics.firstClickMs[idx] = Math.round(performance.now() - qMetrics.t0[idx]);
         }
 
-        function persistCRTMetrics() {
-          var correctCount = 0;
-          for (var c = 0; c < 3; c++) {
-            if (qMetrics.correct[c] === true) correctCount++;
+        function persistCRTMetrics(score) {
+          var byQ = [];
+          for (var i = 0; i < 3; i++) {
+            var ch = qMetrics.choice[i];
+            var ok = ch === CRT_ANSWER_KEY[i];
+            byQ.push({
+              q: i + 1,
+              choice: ch,
+              isCorrect: ok,
+              reactionMs: qMetrics.firstClickMs[i]
+            });
           }
           var data = {
             at: new Date().toISOString(),
-            correctCount: correctCount,
             total: 3,
+            correctCount: score.correct,
+            wrongCount: score.wrong,
             reactionMs: [qMetrics.firstClickMs[0], qMetrics.firstClickMs[1], qMetrics.firstClickMs[2]],
-            byQuestion: [
-              { q: 1, correct: qMetrics.correct[0] === true, reactionMs: qMetrics.firstClickMs[0] },
-              { q: 2, correct: qMetrics.correct[1] === true, reactionMs: qMetrics.firstClickMs[1] },
-              { q: 3, correct: qMetrics.correct[2] === true, reactionMs: qMetrics.firstClickMs[2] }
-            ]
+            choices: [qMetrics.choice[0], qMetrics.choice[1], qMetrics.choice[2]],
+            byQuestion: byQ
           };
           try {
             localStorage.setItem(CRT_METRICS_KEY, JSON.stringify(data));
@@ -1760,14 +1817,12 @@
             if (!sel) {
               fb.hidden = false;
               fb.className = "crt-feedback crt-neutral";
-              fb.textContent = "Выберите один из ответов.";
+              fb.textContent = "Выберите один из вариантов.";
               return;
             }
-            var ok = sel.value === "correct";
-            qMetrics.correct[idx] = ok;
-            fb.hidden = false;
-            fb.className = "crt-feedback " + (ok ? "crt-correct" : "crt-wrong");
-            fb.textContent = ok ? "Верно." : "Неверно.";
+            qMetrics.choice[idx] = sel.value;
+            fb.hidden = true;
+            fb.textContent = "";
             block.querySelectorAll('input[type="radio"]').forEach(function (inp) {
               inp.disabled = true;
             });
@@ -1777,19 +1832,20 @@
               markQuestionStart(n);
             }
             if (n === 3 && complete) {
-              complete.hidden = false;
-              persistCRTMetrics();
-              var cc = 0;
-              for (var ci = 0; ci < 3; ci++) {
-                if (qMetrics.correct[ci] === true) cc++;
+              var score = scoreCRTChoices(qMetrics.choice);
+              var scoreBox = root.querySelector("#crt-score-summary");
+              if (scoreBox) {
+                scoreBox.hidden = false;
+                scoreBox.innerHTML =
+                  '<p class="crt-score-main">Верных ответов: ' +
+                  score.correct +
+                  " из 3. Неверных: " +
+                  score.wrong +
+                  ".</p>" +
+                  '<p class="crt-score-detail">Нажмите «Завершить второй этап» ниже, чтобы перейти к этапу 3.</p>';
               }
-              showCelebrationOverlay({
-                headline: cc + " / 3",
-                sublines: [
-                  "Верных ответов в тесте CRT",
-                  "Фейерверк — 3 секунды. Дальше можно завершить этап."
-                ]
-              });
+              complete.hidden = false;
+              persistCRTMetrics(score);
             }
           });
         }
