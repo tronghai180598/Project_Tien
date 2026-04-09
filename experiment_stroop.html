@@ -180,10 +180,60 @@
             margin-top: 30px;
             font-size: 1.05em;
             color: #333;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .keys-hint strong {
             color: #667eea;
+        }
+
+        .color-button {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 2px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            color: #333;
+        }
+
+        .color-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .color-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .color-button.red {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .color-button.blue {
+            border-color: #4444ff;
+            color: #4444ff;
+        }
+
+        .color-button.yellow {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .color-button.green {
+            border-color: #44aa44;
+            color: #44aa44;
         }
 
         /* Results Screen */
@@ -309,9 +359,9 @@
             </div>
 
             <p style="margin-top: 30px; color: #666;">
-                U vậy sẽ có <strong>2 giây</strong> cho mỗi câu trả lời.<br>
-                Tổng cộng <strong>20 câu hỏi</strong>.<br>
-                Nấn nút dưới để bắt đầu.
+                 У вас всего <strong>2 сек</strong> на 1 вопрос.<br>
+                Всего <strong>20 вопросов</strong>.<br>
+                Нажмите кнопку ниже, чтобы начать.
             </p>
 
             <button class="btn" onclick="startGame()" style="margin-top: 30px;">Начать игру</button>
@@ -328,10 +378,10 @@
             <div class="word-display" id="wordDisplay"></div>
             <div class="feedback" id="feedback"></div>
             <div class="keys-hint">
-                К <strong style="margin: 0 10px;">|</strong>
-                С <strong style="margin: 0 10px;">|</strong>
-                Ж <strong style="margin: 0 10px;">|</strong>
-                З
+                <button class="color-button red" id="btnRed" onclick="handleButtonPress('Красный')">🔴 К</button>
+                <button class="color-button blue" id="btnBlue" onclick="handleButtonPress('Синий')">🔵 С</button>
+                <button class="color-button yellow" id="btnYellow" onclick="handleButtonPress('Жёлтый')">🟡 Ж</button>
+                <button class="color-button green" id="btnGreen" onclick="handleButtonPress('Зелёный')">🟢 З</button>
             </div>
         </div>
 
@@ -469,10 +519,19 @@
 
             event.preventDefault();
 
+            const selectedColor = KEY_MAP[key];
+            processAnswer(selectedColor);
+        }
+
+        function handleButtonPress(colorName) {
+            if (!gameState.isWaiting) return;
+            processAnswer(colorName);
+        }
+
+        function processAnswer(selectedColor) {
             clearTimeout(gameState.timeoutId);
             gameState.isWaiting = false;
 
-            const selectedColor = KEY_MAP[key];
             const feedback = document.getElementById('feedback');
 
             if (selectedColor === gameState.currentColor) {
