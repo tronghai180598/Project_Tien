@@ -388,37 +388,60 @@
         display: block;
       }
     }
-    /* Stage 1 short feed: почти на весь экран телефона; свайп не прокручивает страницу */
+    .stage1-short-fs-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      align-items: stretch;
+    }
+    /* Телефон: отдельный полноэкранный слой для коротких роликов (вне списка этапов) */
     @media (hover: none) and (pointer: coarse) {
-      .stage[data-stage="1"].is-open .stage-body {
-        overflow-x: hidden;
+      body.stage1-short-fs-active {
+        overflow: hidden;
+        touch-action: none;
       }
-      .stage[data-stage="1"].is-open .video-series {
-        width: 100vw;
-        max-width: 100vw;
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-top: 0.35rem;
-      }
-      .stage[data-stage="1"].is-open .video-panel.video-panel-short {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open {
+        position: fixed;
+        inset: 0;
+        z-index: 999998;
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        padding: 0.35rem 0 max(0.65rem, env(safe-area-inset-bottom, 0px));
-        min-height: calc(100svh - 3.75rem);
-        max-height: none;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+          max(0.35rem, env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px);
+        box-sizing: border-box;
+        background: #000;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
+      }
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .stage1-short-title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .video-panel.video-panel-short {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0;
+        border: none;
         border-radius: 0;
-        border-left: none;
-        border-right: none;
+        background: transparent;
         overscroll-behavior-y: contain;
       }
-      .stage[data-stage="1"] .stage1-short-title {
-        padding: 0 0.75rem;
-        margin-bottom: 0.35rem;
-        flex-shrink: 0;
-      }
-      .stage[data-stage="1"] .short-feed-wrap {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-feed-wrap {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
@@ -428,38 +451,40 @@
         margin: 0;
         overscroll-behavior-y: contain;
       }
-      .stage[data-stage="1"] .short-feed.short-feed-one {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-feed.short-feed-one {
         flex: 1 1 auto;
-        min-height: min(78svh, calc(100svh - 5rem));
+        min-height: 0;
         display: flex;
         align-items: stretch;
         justify-content: center;
         padding: 0;
+        border: none;
         border-radius: 0;
-        border-left: none;
-        border-right: none;
+        background: #000;
         overscroll-behavior-y: contain;
       }
-      .stage[data-stage="1"] .short-one-inner {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-one-inner {
         flex: 1 1 auto;
         display: flex;
         align-items: center;
         justify-content: center;
         max-width: none;
         width: 100%;
-        min-height: min(78svh, calc(100svh - 5rem));
+        min-height: 0;
         touch-action: none;
       }
-      .stage[data-stage="1"] .short-slide-inner {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-slide-inner {
         max-width: none;
         width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
         align-self: stretch;
-        min-height: min(78svh, calc(100svh - 5rem));
       }
-      .stage[data-stage="1"] .short-feed-video {
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-feed-video {
         width: 100%;
         height: 100%;
-        min-height: min(78svh, calc(100svh - 5rem));
+        min-height: 0;
+        flex: 1 1 auto;
         max-height: none;
         object-fit: cover;
         object-position: center;
@@ -467,14 +492,23 @@
         touch-action: manipulation;
         -webkit-touch-callout: none;
       }
-      .stage[data-stage="1"] .short-swipe-hint-mobile {
-        padding: 0 0.75rem;
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-swipe-hint-mobile {
         flex-shrink: 0;
+        padding: 0.35rem 0.75rem 0;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.78rem;
       }
-      .stage[data-stage="1"] .stage1-goto-long-video {
-        max-width: none;
-        margin-left: 0.75rem;
-        margin-right: 0.75rem;
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .stage1-goto-long-video {
+        display: none;
+      }
+      .stage[data-stage="1"].is-open .stage-body {
+        overflow-x: hidden;
+      }
+      .stage[data-stage="1"] .stage1-goto-long-video:not([hidden]) {
+        max-width: min(100%, 420px);
+        margin-left: auto;
+        margin-right: auto;
       }
     }
     .placeholder-msg {
@@ -987,48 +1021,52 @@
   <template id="tpl-stage1-inner">
     <div class="stage1-inner">
       <div class="video-series" data-series="stage1">
-        <h2 class="stage1-short-title">Короткий видеоролик</h2>
-        <div
-          class="video-panel video-panel-short is-active"
-          data-series="stage1"
-          data-panel="short"
-          role="region"
-          aria-label="Короткий видеоролик"
-        >
-          <div class="short-feed-wrap">
-            <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–7 по очереди">
-              <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
-                <video
-                  id="stage1-short-video"
-                  class="short-feed-video"
-                  controls
-                  playsinline
-                  preload="auto"
-                ></video>
-                <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                <span class="short-slide-badge" id="stage1-short-badge">1 / 7</span>
-                <button
-                  type="button"
-                  class="short-next-hint"
-                  id="stage1-short-next-hint"
-                  hidden
-                  aria-label="Следующее видео"
-                  title="Следующее видео"
-                >
-                  <span class="short-next-hint-arrow" aria-hidden="true">▼</span>
-                </button>
+        <div id="stage1-short-fs-mount" class="stage1-short-fs-mount">
+          <div id="stage1-short-fs-shell" class="stage1-short-fs-shell">
+            <h2 class="stage1-short-title">Короткий видеоролик</h2>
+            <div
+              class="video-panel video-panel-short is-active"
+              data-series="stage1"
+              data-panel="short"
+              role="region"
+              aria-label="Короткий видеоролик"
+            >
+              <div class="short-feed-wrap">
+                <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–7 по очереди">
+                  <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
+                    <video
+                      id="stage1-short-video"
+                      class="short-feed-video"
+                      controls
+                      playsinline
+                      preload="auto"
+                    ></video>
+                    <p class="short-video-missing" id="stage1-short-miss" hidden></p>
+                    <span class="short-slide-badge" id="stage1-short-badge">1 / 7</span>
+                    <button
+                      type="button"
+                      class="short-next-hint"
+                      id="stage1-short-next-hint"
+                      hidden
+                      aria-label="Следующее видео"
+                      title="Следующее видео"
+                    >
+                      <span class="short-next-hint-arrow" aria-hidden="true">▼</span>
+                    </button>
+                  </div>
+                </div>
+                <p class="short-swipe-hint-mobile">Свайп вверх — следующее видео · свайп вниз — предыдущее</p>
               </div>
+              <button
+                type="button"
+                class="btn-primary stage1-goto-long-video"
+                id="stage1-goto-long-video"
+                hidden
+              >
+                Перейти в длинный видеоролик
+              </button>
             </div>
-            <p class="short-swipe-hint-mobile">Свайп вверх — следующее видео · свайп вниз — предыдущее</p>
           </div>
-          <button
-            type="button"
-            class="btn-primary stage1-goto-long-video"
-            id="stage1-goto-long-video"
-            hidden
-          >
-            Перейти в длинный видеоролик
-          </button>
         </div>
         <div class="video-panel video-panel-long" data-series="stage1" data-panel="long" role="region" aria-label="Длинный видеоролик">
           <div class="long-video-wrap">
@@ -1340,6 +1378,11 @@
           if (sid === "3") maybeStartStage3Timer();
           if (sid === "5") maybeStartStage5Timer();
           if (sid === "2") crtOnStage2Open();
+          if (sid === "1") {
+            requestAnimationFrame(function () {
+              tryEnterStage1ShortFullscreen();
+            });
+          }
         }, 0);
       }
 
@@ -1460,6 +1503,67 @@
         try {
           localStorage.setItem(STAGE1_LONG_KEY, "1");
         } catch (err) {}
+      }
+
+      var stage1ShortFsScrollY = 0;
+
+      function isStage1TouchFullscreenDevice() {
+        try {
+          return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function exitStage1ShortFullscreen() {
+        var wasFs = document.body.classList.contains("stage1-short-fs-active");
+        var shell = document.getElementById("stage1-short-fs-shell");
+        var mount = document.getElementById("stage1-short-fs-mount");
+        if (shell && shell.classList.contains("stage1-short-fs-shell--open")) {
+          shell.classList.remove("stage1-short-fs-shell--open");
+          shell.removeAttribute("aria-modal");
+          shell.removeAttribute("role");
+          shell.removeAttribute("aria-label");
+        }
+        if (shell && mount && shell.parentNode === document.body) {
+          mount.appendChild(shell);
+        }
+        document.body.classList.remove("stage1-short-fs-active");
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        document.body.style.touchAction = "";
+        if (wasFs) {
+          window.scrollTo(0, stage1ShortFsScrollY);
+        }
+      }
+
+      function tryEnterStage1ShortFullscreen() {
+        if (!isStage1TouchFullscreenDevice()) return;
+        if (hasStage1ShortsCompleted()) return;
+        var st = document.querySelector('.stage[data-stage="1"]');
+        if (!st || st.classList.contains("is-locked") || !st.classList.contains("is-open")) return;
+        var shortPanel = st.querySelector('.video-panel[data-panel="short"]');
+        if (!shortPanel || !shortPanel.classList.contains("is-active")) return;
+        var shell = document.getElementById("stage1-short-fs-shell");
+        var mount = document.getElementById("stage1-short-fs-mount");
+        if (!shell || !mount) return;
+        if (shell.classList.contains("stage1-short-fs-shell--open")) return;
+
+        shell.classList.add("stage1-short-fs-shell--open");
+        shell.setAttribute("role", "dialog");
+        shell.setAttribute("aria-modal", "true");
+        shell.setAttribute("aria-label", "Короткие видео");
+        document.body.appendChild(shell);
+        stage1ShortFsScrollY = window.scrollY || window.pageYOffset || 0;
+        document.body.classList.add("stage1-short-fs-active");
+        document.body.style.position = "fixed";
+        document.body.style.top = -stage1ShortFsScrollY + "px";
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
       }
 
       /** maxUnlocked — номер последнего открытого этапа; этап N доступен только при maxUnlocked ≥ N. */
@@ -1767,6 +1871,7 @@
 
         function showShortsFinishedUI() {
           if (shortsFinishUIShown) return;
+          exitStage1ShortFullscreen();
           shortsFinishUIShown = true;
           gotoLongBtn.hidden = false;
           nextHint.hidden = true;
@@ -1968,9 +2073,15 @@
         } else {
           loadIndex(0);
         }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            tryEnterStage1ShortFullscreen();
+          });
+        });
       }
 
       function render() {
+        exitStage1ShortFullscreen();
         var maxUnlocked = getMaxUnlocked();
         var root = document.getElementById("stages");
         root.innerHTML = "";
@@ -2510,9 +2621,13 @@
         document.querySelectorAll(".stage:not(.is-locked) .stage-head").forEach(function (head) {
           head.addEventListener("click", function () {
             var stage = head.closest(".stage");
+            var sid = stage.dataset.stage;
             var open = stage.classList.toggle("is-open");
             head.setAttribute("aria-expanded", open ? "true" : "false");
-            if (open) notifyStageOpened(stage.dataset.stage);
+            if (sid === "1" && !open) {
+              exitStage1ShortFullscreen();
+            }
+            if (open) notifyStageOpened(sid);
           });
         });
       }
@@ -2540,7 +2655,9 @@
       function bindStage1GotoLong() {
         document.querySelectorAll(".stage1-goto-long-video").forEach(function (btn) {
           btn.addEventListener("click", function () {
-            var series = btn.closest(".video-series");
+            var series =
+              btn.closest(".video-series") ||
+              document.querySelector('.video-series[data-series="stage1"]');
             if (!series) return;
             var shortPanel = series.querySelector('.video-panel[data-panel="short"]');
             var longPanel = series.querySelector('.video-panel[data-panel="long"]');
