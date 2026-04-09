@@ -1164,12 +1164,20 @@
       /** maxUnlocked — номер последнего открытого этапа; этап N доступен только при maxUnlocked ≥ N. */
       function updateCompleteButtonsState() {
         var max = getMaxUnlocked();
+        var crtScoreEl = document.getElementById("crt-score-summary");
         document.querySelectorAll(".btn-complete").forEach(function (btn) {
           var s = parseInt(btn.getAttribute("data-stage"), 10);
           if (!isFinite(s)) return;
           var disabled = s < max;
           if (!disabled && s === 1 && max === 1) {
             disabled = !hasStage1LongVideoVisited();
+          }
+          if (s === 2) {
+            if (max < 2) disabled = true;
+            else if (max > 2) disabled = true;
+            else {
+              disabled = !(crtScoreEl && !crtScoreEl.hidden);
+            }
           }
           btn.disabled = disabled;
           if (s === 1 && max === 1 && !hasStage1LongVideoVisited()) {
@@ -1846,6 +1854,7 @@
               }
               complete.hidden = false;
               persistCRTMetrics(score);
+              updateCompleteButtonsState();
             }
           });
         }
