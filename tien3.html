@@ -38,11 +38,14 @@
       font-weight: 600;
       margin: 0 0 0.25rem;
       letter-spacing: -0.02em;
+      text-align: center;
     }
     .subtitle {
       color: var(--muted);
       font-size: 0.95rem;
-      margin-bottom: 1.75rem;
+      margin: 0 auto 1.75rem;
+      text-align: center;
+      max-width: 40rem;
     }
     .stage-list {
       display: flex;
@@ -321,6 +324,24 @@
     }
     .stroop-embed .sidebarblock .title { text-align: center; margin-bottom: 0.5rem; }
     .stroop-embed .sidebarblock .paragraph { margin: 0; }
+    .stroop-embed .stroop-launch-wrap {
+      text-align: center;
+      margin: 0.25rem 0 0.5rem;
+    }
+    .stroop-embed .stroop-launch-img {
+      display: block;
+      margin: 0 auto 0.85rem;
+      max-width: min(100%, 320px);
+      width: auto;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .stroop-embed .stroop-launch-link {
+      margin: 0;
+      font-size: 0.98rem;
+      line-height: 1.45;
+    }
     .stroop-embed .sidebarblock a {
       color: var(--accent);
       font-weight: 600;
@@ -595,8 +616,21 @@
       line-height: 1.55;
     }
     .gng-results h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+    .gng-results h4 { margin: 1rem 0 0.35rem; font-size: 1rem; font-weight: 600; }
     .gng-results p { margin: 0.35rem 0; }
+    .gng-results .gng-error-intro { margin-top: 0.25rem; font-size: 0.88rem; color: var(--muted); }
+    .gng-results .gng-error-list { margin: 0.4rem 0 0; padding-left: 1.25rem; }
+    .gng-results .gng-error-list li { margin: 0.35rem 0; }
+    .gng-results .gng-no-errors { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
     .gng-stage-complete { margin-top: 1.25rem; }
+    .gng-practice-break {
+      margin-top: 1.25rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #faf9f7;
+    }
+    .gng-practice-break .gng-start-main { margin-top: 1rem; }
     .gng-hidden { display: none !important; }
     .celebration-overlay {
       position: fixed;
@@ -841,13 +875,12 @@
       <div class="gng-desc">
         <h2>Игра на внимание и торможение</h2>
         <p>Нажмите кнопку <strong>«Готовы?»</strong> — затем пойдёт обратный отсчёт: <strong>3, 2, 1</strong>, после чего начнутся попытки.</p>
-        <p>В каждой попытке случайная цифра от <strong>1</strong> до <strong>9</strong> показывается <strong>0,5 секунды</strong>. Потом цифра пропадает, и на том же месте появляется знак <strong>×</strong> внутри круга (× перекрывает область цифры).</p>
+        <p>В каждой попытке случайная цифра от <strong>1</strong> до <strong>9</strong> показывается <strong>0,5 секунды</strong>, затем на том же месте появляется знак <strong>×</strong> в круге ещё <strong>0,5 секунды</strong>. Ответ засчитывается за всё это время до появления следующей цифры.</p>
         <ul>
-          <li>Если цифра <strong>не 3</strong>: после исчезновения цифры (пока виден × в круге) нажмите <strong>Пробел</strong> в течение <strong>0,5 секунды</strong>. Успех — круг станет <span class="gng-green-text">зелёным</span>.</li>
-          <li>Если цифра <strong>3</strong>: <strong>не нажимайте</strong> Пробел. Нажатие Пробела — ошибка, круг станет <span class="gng-red-text">красным</span>.</li>
-          <li>Пробел, пока ещё видна только цифра (до появления ×), всегда считается <strong>ошибкой</strong>.</li>
+          <li>Если цифра <strong>не 3</strong>: нажмите <strong>Пробел</strong> в любой момент, пока видна эта цифра <strong>или</strong> пока виден × (до следующей попытки). Успех — круг станет <span class="gng-green-text">зелёным</span>. Если не нажали — ошибка.</li>
+          <li>Если цифра <strong>3</strong>: <strong>не нажимайте</strong> Пробел, пока на экране эта попытка (цифра или ×). Любое нажатие Пробела — ошибка, круг станет <span class="gng-red-text">красным</span>.</li>
         </ul>
-        <p>Сначала <strong>25 пробных</strong> попыток, затем <strong>10 основных</strong>. В конце отображается число верных и неверных ответов и процент успеха по каждому блоку.</p>
+        <p>Сначала идут <strong>25 пробных</strong> попыток — после них показывается сводка и список ошибок. Затем нажмите <strong>«Готов к настоящему?»</strong>, чтобы начать <strong>10 основных</strong> попыток. После основного блока снова отображаются итог и ошибки, затем — фейерверк.</p>
       </div>
       <button type="button" class="btn-primary gng-ready">Готовы?</button>
       <div class="gng-countdown-overlay gng-hidden" aria-live="polite"><span class="gng-count-num">3</span></div>
@@ -857,6 +890,10 @@
           <div class="gng-mask" aria-hidden="true"><span class="gng-x" aria-hidden="true">×</span></div>
         </div>
         <p class="gng-trial-label"></p>
+      </div>
+      <div class="gng-practice-break gng-hidden">
+        <div class="gng-practice-report" aria-live="polite"></div>
+        <button type="button" class="btn-primary gng-start-main">Готов к настоящему?</button>
       </div>
       <div class="gng-results gng-hidden"></div>
       <div class="complete-row gng-stage-complete gng-hidden">
@@ -924,9 +961,16 @@
         </div>
         <div class="sidebarblock">
           <div class="content">
-            <div class="title"><span class="icon red"><img src="/x1.png" alt="Cat" style="width:2.2em;height:2.2em;border-radius:6px;object-fit:cover"></span></div>
-            <div class="paragraph text-center">
-              <p><a href="experiment_stroop.html" target="_blank" rel="noopener">Нажмите здесь, чтобы запустить демонстрацию задачи Струпа</a></p>
+            <div class="stroop-launch-wrap">
+              <img
+                class="stroop-launch-img"
+                src="x1.png"
+                alt="Иллюстрация к демонстрации Струпа"
+                decoding="async"
+              />
+              <p class="stroop-launch-link">
+                <a href="experiment_stroop.html" target="_blank" rel="noopener">Нажмите здесь, чтобы запустить демонстрацию задачи Струпа</a>
+              </p>
             </div>
           </div>
         </div>
@@ -1574,6 +1618,9 @@
         var maskEl = root.querySelector(".gng-mask");
         var trialLabel = root.querySelector(".gng-trial-label");
         var resultsEl = root.querySelector(".gng-results");
+        var practiceBreakEl = root.querySelector(".gng-practice-break");
+        var practiceReportEl = root.querySelector(".gng-practice-report");
+        var startMainBtn = root.querySelector(".gng-start-main");
         var completeRow = root.querySelector(".gng-stage-complete");
 
         var timeouts = [];
@@ -1604,6 +1651,7 @@
         }
 
         var stats = { pC: 0, pW: 0, mC: 0, mW: 0 };
+        var trialLog = [];
 
         function record(correct, isPractice) {
           if (isPractice) {
@@ -1615,8 +1663,57 @@
           }
         }
 
+        function errRuText(kind) {
+          return kind === "extra"
+            ? "лишнее нажатие Пробела (для цифры 3 нажимать нельзя)"
+            : "пропуск Пробела (для этой цифры нужно было нажать)";
+        }
+
+        function buildErrorSection(errors, blockLabel, blockSize) {
+          if (errors.length === 0) {
+            return (
+              "<h4>Ошибки по попыткам</h4>" +
+              '<p class="gng-no-errors">Неверных ответов не было — все попытки в этом блоке верны.</p>'
+            );
+          }
+          var errItems = errors
+            .map(function (t) {
+              return (
+                "<li><strong>" +
+                blockLabel +
+                " попытка " +
+                t.indexInBlock +
+                " / " +
+                blockSize +
+                '</strong>: цифра <strong>' +
+                t.digit +
+                "</strong> — " +
+                errRuText(t.errorKind) +
+                ".</li>"
+              );
+            })
+            .join("");
+          return (
+            "<h4>Ошибки по попыткам</h4>" +
+            '<p class="gng-error-intro">Неверные ответы в этом блоке:</p>' +
+            '<ul class="gng-error-list">' +
+            errItems +
+            "</ul>"
+          );
+        }
+
         readyBtn.addEventListener("click", function () {
           readyBtn.disabled = true;
+          trialLog = [];
+          stats.pC = 0;
+          stats.pW = 0;
+          stats.mC = 0;
+          stats.mW = 0;
+          practiceBreakEl.classList.add("gng-hidden");
+          practiceReportEl.innerHTML = "";
+          resultsEl.classList.add("gng-hidden");
+          resultsEl.innerHTML = "";
+          completeRow.classList.add("gng-hidden");
           cdOverlay.classList.remove("gng-hidden");
           cdNum.textContent = "3";
           pushT(function () {
@@ -1637,11 +1734,6 @@
           offKey();
           clearTimers();
 
-          if (idx >= TOTAL) {
-            endGame();
-            return;
-          }
-
           var d = 1 + Math.floor(Math.random() * 9);
           var isPractice = idx < PRACTICE;
           trialLabel.textContent = isPractice
@@ -1649,8 +1741,7 @@
             : "Основная попытка " + (idx + 1 - PRACTICE) + " / " + MAIN;
 
           var ctx = { phase: "digit" };
-          var pressedDigit = false;
-          var pressedMask = false;
+          var spacePressed = false;
 
           maskEl.classList.remove("gng-ok", "gng-bad", "is-visible");
           digitEl.textContent = String(d);
@@ -1660,8 +1751,7 @@
             if (e.code !== "Space" && e.key !== " ") return;
             e.preventDefault();
             e.stopPropagation();
-            if (ctx.phase === "digit") pressedDigit = true;
-            else if (ctx.phase === "mask") pressedMask = true;
+            if (ctx.phase === "digit" || ctx.phase === "mask") spacePressed = true;
           };
           window.addEventListener("keydown", keyHandler, true);
 
@@ -1675,7 +1765,16 @@
               ctx.phase = "done";
               offKey();
 
-              var ok = d === 3 ? !pressedDigit && !pressedMask : !pressedDigit && pressedMask;
+              var ok = d === 3 ? !spacePressed : spacePressed;
+
+              trialLog.push({
+                overall: idx + 1,
+                isPractice: isPractice,
+                indexInBlock: isPractice ? idx + 1 : idx + 1 - PRACTICE,
+                digit: d,
+                correct: ok,
+                errorKind: ok ? null : d === 3 ? "extra" : "miss"
+              });
 
               record(ok, isPractice);
               if (ok) maskEl.classList.add("gng-ok");
@@ -1684,13 +1783,54 @@
               pushT(function () {
                 maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
                 digitEl.style.visibility = "visible";
-                runTrial(idx + 1);
+                var nextIdx = idx + 1;
+                if (nextIdx === PRACTICE) {
+                  endPracticePhase();
+                } else if (nextIdx >= TOTAL) {
+                  endMainPhase();
+                } else {
+                  runTrial(nextIdx);
+                }
               }, FEEDBACK_MS);
             }, RESPONSE_MS);
           }, DIGIT_MS);
         }
 
-        function endGame() {
+        function endPracticePhase() {
+          offKey();
+          clearTimers();
+          maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
+          digitEl.textContent = "";
+          arenaWrap.classList.add("gng-hidden");
+
+          var pt = stats.pC + stats.pW;
+          var pp = pt ? Math.round((100 * stats.pC) / pt) : 0;
+          var practiceErrors = trialLog.filter(function (t) {
+            return t.isPractice && !t.correct;
+          });
+          practiceReportEl.innerHTML =
+            "<h3>Пробный блок завершён</h3>" +
+            "<p><strong>Пробные попытки (" +
+            PRACTICE +
+            "):</strong> верно — " +
+            stats.pC +
+            ", ошибок — " +
+            stats.pW +
+            ", процент верных — " +
+            pp +
+            "%</p>" +
+            buildErrorSection(practiceErrors, "Пробная", PRACTICE);
+          practiceBreakEl.classList.remove("gng-hidden");
+        }
+
+        startMainBtn.addEventListener("click", function () {
+          practiceBreakEl.classList.add("gng-hidden");
+          arenaWrap.classList.remove("gng-hidden");
+          clearTimers();
+          runTrial(PRACTICE);
+        });
+
+        function endMainPhase() {
           offKey();
           clearTimers();
           maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
@@ -1701,18 +1841,12 @@
           var mt = stats.mC + stats.mW;
           var pp = pt ? Math.round((100 * stats.pC) / pt) : 0;
           var mp = mt ? Math.round((100 * stats.mC) / mt) : 0;
+          var mainErrors = trialLog.filter(function (t) {
+            return !t.isPractice && !t.correct;
+          });
 
           resultsEl.innerHTML =
-            "<h3>Результаты</h3>" +
-            "<p><strong>Пробные попытки (" +
-            PRACTICE +
-            "):</strong> верно — " +
-            stats.pC +
-            ", ошибок — " +
-            stats.pW +
-            ", процент верных — " +
-            pp +
-            "%</p>" +
+            "<h3>Основной блок завершён</h3>" +
             "<p><strong>Основные попытки (" +
             MAIN +
             "):</strong> верно — " +
@@ -1721,18 +1855,28 @@
             stats.mW +
             ", процент верных — " +
             mp +
-            "%</p>";
+            "%</p>" +
+            buildErrorSection(mainErrors, "Основная", MAIN) +
+            "<p class=\"gng-error-intro\" style=\"margin-top:1rem\"><strong>Пробный блок (справочно):</strong> " +
+            stats.pC +
+            " верно из " +
+            pt +
+            " (" +
+            pp +
+            "%).</p>";
           resultsEl.classList.remove("gng-hidden");
           completeRow.classList.remove("gng-hidden");
 
-          showCelebrationOverlay({
-            headline: stats.mC + " из " + mt,
-            sublines: [
-              "Верно в основном блоке — " + mp + "%",
-              "Пробные: " + stats.pC + " из " + pt + " (" + pp + "%)",
-              "Фейерверк 3 с — затем завершите этап."
-            ]
-          });
+          setTimeout(function () {
+            showCelebrationOverlay({
+              headline: stats.mC + " из " + mt,
+              sublines: [
+                "Верно в основном блоке — " + mp + "%",
+                "Пробные: " + stats.pC + " из " + pt + " (" + pp + "%)",
+                "Фейерверк — затем завершите этап."
+              ]
+            });
+          }, 450);
         }
       }
 
