@@ -50,7 +50,7 @@
     .stage-list {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 1.75rem;
     }
     .stage {
       background: var(--surface);
@@ -188,79 +188,30 @@
       padding: 1rem;
     }
     .video-panel.is-active { display: flex; }
-    .video-panel.video-panel-scroll {
+    .video-panel.video-panel-short {
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
       justify-content: flex-start;
-      min-height: 240px;
-      max-height: min(70vh, 520px);
-      overflow-y: auto;
+      padding: 0.65rem 0.85rem 1rem;
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
     }
     .video-panel.video-panel-long {
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
     }
-    .stage1-short-actions {
-      margin-top: 1rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
+    .long-video-wrap {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
     }
-    .stage1-short-actions .hint {
-      display: block;
-      margin-top: 0.35rem;
-    }
-    .stage1-long-complete {
-      margin-top: 1.25rem;
-      flex-shrink: 0;
-    }
-    .video-panel video,
-    .video-panel iframe {
-      max-width: 100%;
-      border-radius: 6px;
-    }
-    .short-video-intro,
     .long-video-intro {
       font-size: 0.9rem;
       color: var(--muted);
       line-height: 1.45;
       margin: 0 0 0.75rem;
-    }
-    .short-video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-      gap: 0.5rem;
-      width: 100%;
-    }
-    .short-video-slot {
-      aspect-ratio: 16 / 9;
-      border: 1px dashed var(--border);
-      border-radius: 6px;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.2rem;
-      padding: 0.35rem;
-      text-align: center;
-    }
-    .short-video-num {
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--text);
-      line-height: 1;
-    }
-    .short-video-ph {
-      font-size: 0.65rem;
-      color: var(--muted);
-      line-height: 1.2;
-    }
-    .long-video-wrap {
-      width: 100%;
-      max-width: 720px;
-      margin: 0 auto;
     }
     .long-video-slot {
       aspect-ratio: 16 / 9;
@@ -279,6 +230,144 @@
     .long-video-slot strong {
       font-size: 1.05rem;
       color: var(--text);
+    }
+    .stage1-long-complete {
+      margin-top: 1.25rem;
+      flex-shrink: 0;
+    }
+    .video-panel video,
+    .video-panel iframe {
+      max-width: 100%;
+      border-radius: 6px;
+    }
+    .short-feed-wrap {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: min(100%, 420px);
+      margin: 0 auto;
+    }
+    .short-feed {
+      flex: 0 0 auto;
+      min-height: 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0d0d0d;
+    }
+    .short-feed.short-feed-one {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow: visible;
+      padding: 0.65rem;
+      box-sizing: border-box;
+    }
+    .short-one-inner {
+      position: relative;
+      width: 100%;
+      max-width: min(100%, 420px);
+      display: block;
+      touch-action: pan-y;
+    }
+    .short-slide-inner {
+      position: relative;
+      width: 100%;
+      max-width: min(100%, 360px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .short-feed-video {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      object-position: center center;
+      border-radius: 8px;
+      background: #000;
+      vertical-align: top;
+    }
+    .stage1-goto-long-video {
+      margin-top: 0.75rem;
+      width: 100%;
+      max-width: min(100%, 420px);
+      align-self: center;
+      box-sizing: border-box;
+    }
+    .short-slide-badge {
+      position: absolute;
+      top: 0.35rem;
+      right: 0.35rem;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .short-video-missing {
+      margin: 0;
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      background: #1a1a1a;
+      border-radius: 8px;
+      width: 100%;
+    }
+    .short-next-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 0.55rem;
+      transform: translateX(-50%);
+      z-index: 4;
+      width: 3.25rem;
+      height: 3.25rem;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a1a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+      padding: 0;
+      animation: short-next-blink 1s ease-in-out infinite;
+    }
+    .short-next-hint:hover {
+      background: #fff;
+    }
+    .short-next-hint-arrow {
+      font-size: 1.35rem;
+      line-height: 1;
+      font-weight: 700;
+      display: block;
+      margin-top: 2px;
+    }
+    @keyframes short-next-blink {
+      0%, 100% { opacity: 0.55; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 1; transform: translateX(-50%) translateY(4px); }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .short-next-hint {
+        display: none !important;
+      }
+    }
+    .short-swipe-hint-mobile {
+      display: none;
+      margin: 0.5rem 0 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .short-swipe-hint-mobile {
+        display: block;
+      }
     }
     .placeholder-msg {
       text-align: center;
@@ -772,33 +861,63 @@
 
   <template id="tpl-stage1-inner">
     <div class="stage1-inner">
-      <p class="placeholder-stage">Сначала короткие ролики (примерно 15–60 с), затем один длинный (около 15 мин). Файлы подключат позже. Завершить этап можно после раздела с длинным видео.</p>
-
       <div class="video-series" data-series="stage1">
-        <div class="series-label">Выберите раздел</div>
-        <div class="tab-row" role="tablist">
+        <div class="tab-row" role="tablist" aria-label="Разделы первого этапа">
           <button type="button" class="tab" role="tab" aria-selected="true" data-series="stage1" data-tab="short">Короткий видеоролик</button>
           <button type="button" class="tab" role="tab" aria-selected="false" data-series="stage1" data-tab="long">Длинный видеоролик</button>
         </div>
-        <div class="video-panel video-panel-scroll is-active" data-series="stage1" data-panel="short" role="tabpanel">
-          <p class="short-video-intro">60 коротких роликов (длительность каждого планируется от 15 до 60 секунд). Пока без файлов — слоты пронумерованы от 1 до 60.</p>
-          <div class="short-video-grid" id="stage1-short-grid" aria-label="Слоты коротких видео 1–60"></div>
-          <div class="complete-row stage1-short-actions">
-            <button type="button" class="btn-primary stage1-goto-long">Перейти на Длиный видеоролик</button>
-            <span class="hint">После просмотра коротких роликов перейдите к длинному видео. Завершить этап можно только там.</span>
+        <div
+          class="video-panel video-panel-short is-active"
+          data-series="stage1"
+          data-panel="short"
+          role="tabpanel"
+          aria-label="Короткий видеоролик"
+        >
+          <div class="short-feed-wrap">
+            <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–7 по очереди">
+              <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
+                <video
+                  id="stage1-short-video"
+                  class="short-feed-video"
+                  controls
+                  playsinline
+                  preload="auto"
+                ></video>
+                <p class="short-video-missing" id="stage1-short-miss" hidden></p>
+                <span class="short-slide-badge" id="stage1-short-badge">1 / 7</span>
+                <button
+                  type="button"
+                  class="short-next-hint"
+                  id="stage1-short-next-hint"
+                  hidden
+                  aria-label="Следующее видео"
+                  title="Следующее видео"
+                >
+                  <span class="short-next-hint-arrow" aria-hidden="true">▼</span>
+                </button>
+              </div>
+            </div>
+            <p class="short-swipe-hint-mobile">Свайп вверх — следующее видео · свайп вниз — предыдущее</p>
           </div>
+          <button
+            type="button"
+            class="btn-primary stage1-goto-long-video"
+            id="stage1-goto-long-video"
+            hidden
+          >
+            Перейти в длинный видеоролик
+          </button>
         </div>
-        <div class="video-panel video-panel-long" data-series="stage1" data-panel="long" role="tabpanel">
+        <div class="video-panel video-panel-long" data-series="stage1" data-panel="long" role="tabpanel" aria-label="Длинный видеоролик">
           <div class="long-video-wrap">
-            <p class="long-video-intro">Один длинный ролик — ориентир около 15 минут. Видеофайл добавят позже.</p>
+            <p class="long-video-intro">Длинный ролик будет здесь. Пока файл не подключён.</p>
             <div class="long-video-slot" role="img" aria-label="Место для длинного видео">
-              <strong>Длинный ролик</strong>
-              <span>~15 мин · файл не подключён</span>
+              <strong>Длинный видеоролик</strong>
+              <span>Файл добавят позже</span>
             </div>
           </div>
           <div class="complete-row stage1-long-complete">
             <button type="button" class="btn-primary btn-complete" data-stage="1">Завершить первый этап</button>
-            <span class="hint">Просмотрите длинный ролик; кнопка активируется после открытия этой вкладки. Затем нажмите — откроется только этап 2, остальные по очереди.</span>
           </div>
         </div>
       </div>
@@ -1054,6 +1173,7 @@
   <script>
     (function () {
       var STORAGE_KEY = "courseMaxUnlockedStage";
+      var STAGE1_SHORTS_DONE_KEY = "courseStage1AllShortsWatched";
       var STAGE1_LONG_KEY = "courseStage1LongVideoVisited";
       var CRT_METRICS_KEY = "courseCRTMetricsLast";
       var crtOnStage2Open = function () {};
@@ -1191,6 +1311,20 @@
         localStorage.setItem(STORAGE_KEY, String(Math.min(7, Math.max(1, n))));
       }
 
+      function hasStage1ShortsCompleted() {
+        try {
+          return localStorage.getItem(STAGE1_SHORTS_DONE_KEY) === "1";
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function markStage1ShortsCompleted() {
+        try {
+          localStorage.setItem(STAGE1_SHORTS_DONE_KEY, "1");
+        } catch (err) {}
+      }
+
       function hasStage1LongVideoVisited() {
         try {
           return localStorage.getItem(STAGE1_LONG_KEY) === "1";
@@ -1214,7 +1348,7 @@
           if (!isFinite(s)) return;
           var disabled = s < max;
           if (!disabled && s === 1 && max === 1) {
-            disabled = !hasStage1LongVideoVisited();
+            disabled = !hasStage1ShortsCompleted() || !hasStage1LongVideoVisited();
           }
           if (s === 2) {
             if (max < 2) disabled = true;
@@ -1224,11 +1358,20 @@
             }
           }
           btn.disabled = disabled;
-          if (s === 1 && max === 1 && !hasStage1LongVideoVisited()) {
-            btn.setAttribute(
-              "title",
-              "Сначала откройте раздел «Длинный видеоролик» и просмотрите материал, затем нажмите сюда."
-            );
+          if (s === 1 && max === 1) {
+            if (!hasStage1ShortsCompleted()) {
+              btn.setAttribute(
+                "title",
+                "Сначала просмотрите все семь коротких роликов."
+              );
+            } else if (!hasStage1LongVideoVisited()) {
+              btn.setAttribute(
+                "title",
+                "Откройте вкладку «Длинный видеоролик», затем нажмите эту кнопку."
+              );
+            } else {
+              btn.removeAttribute("title");
+            }
           } else {
             btn.removeAttribute("title");
           }
@@ -1451,25 +1594,167 @@
         requestAnimationFrame(frame);
       }
 
-      function fillStage1ShortVideoGrid(host) {
-        var grid = host.querySelector("#stage1-short-grid");
-        if (!grid || grid.childElementCount) return;
-        var frag = document.createDocumentFragment();
-        for (var n = 1; n <= 60; n++) {
-          var slot = document.createElement("div");
-          slot.className = "short-video-slot";
-          slot.setAttribute("data-index", String(n));
-          var numEl = document.createElement("span");
-          numEl.className = "short-video-num";
-          numEl.textContent = String(n);
-          var ph = document.createElement("span");
-          ph.className = "short-video-ph";
-          ph.textContent = "Видео";
-          slot.appendChild(numEl);
-          slot.appendChild(ph);
-          frag.appendChild(slot);
+      function bindStage1ShortFeed() {
+        var video = document.getElementById("stage1-short-video");
+        var feed = document.getElementById("stage1-short-feed");
+        var touchEl = document.getElementById("stage1-short-touch");
+        var miss = document.getElementById("stage1-short-miss");
+        var badge = document.getElementById("stage1-short-badge");
+        var gotoLongBtn = document.getElementById("stage1-goto-long-video");
+        var nextHint = document.getElementById("stage1-short-next-hint");
+        if (!video || !feed || !touchEl || !miss || !badge || !nextHint || !gotoLongBtn) return;
+
+        var SHORT_TOTAL = 7;
+        var current = 0;
+        var NEAR_END_SEC = 3.5;
+        var SWIPE_MIN = 52;
+        var ignoreEndedUntil = 0;
+        var shortsFinishUIShown = false;
+
+        function showShortsFinishedUI() {
+          if (shortsFinishUIShown) return;
+          shortsFinishUIShown = true;
+          gotoLongBtn.hidden = false;
+          nextHint.hidden = true;
+          markStage1ShortsCompleted();
+          updateCompleteButtonsState();
         }
-        grid.appendChild(frag);
+
+        function syncNextHint() {
+          var hasNext = current < SHORT_TOTAL - 1;
+          if (!hasNext || !video.duration || !isFinite(video.duration)) {
+            nextHint.hidden = true;
+            return;
+          }
+          var left = video.duration - video.currentTime;
+          nextHint.hidden = left > NEAR_END_SEC || video.ended;
+        }
+
+        function onVideoTimeUpdate() {
+          syncNextHint();
+          if (Date.now() < ignoreEndedUntil) return;
+          if (current !== SHORT_TOTAL - 1) return;
+          if (!video.duration || !isFinite(video.duration)) return;
+          var r = video.duration - video.currentTime;
+          if (video.ended || r <= 0.18) {
+            showShortsFinishedUI();
+          }
+        }
+
+        function loadIndex(i, opts) {
+          opts = opts || {};
+          var keepDone = opts.keepDoneUI === true;
+          ignoreEndedUntil = Date.now() + 520;
+          current = Math.max(0, Math.min(SHORT_TOTAL - 1, i));
+          if (!keepDone) {
+            gotoLongBtn.hidden = true;
+            shortsFinishUIShown = false;
+          }
+          miss.hidden = true;
+          nextHint.hidden = true;
+          video.style.display = "";
+          video.pause();
+          video.src = "short_video/" + (current + 1) + ".mp4";
+          video.load();
+          badge.textContent = current + 1 + " / " + SHORT_TOTAL;
+          if (opts.autoplay === false) {
+            function seekToNearEnd() {
+              if (video.duration && isFinite(video.duration)) {
+                try {
+                  video.currentTime = Math.max(0, video.duration - 0.08);
+                } catch (err) {}
+              }
+              video.pause();
+            }
+            if (video.readyState >= 1) seekToNearEnd();
+            else video.addEventListener("loadedmetadata", seekToNearEnd, { once: true });
+          } else {
+            video.play().catch(function () {
+              video.muted = true;
+              video.play().catch(function () {});
+            });
+          }
+        }
+
+        function goNext() {
+          if (current < SHORT_TOTAL - 1) loadIndex(current + 1);
+        }
+
+        function goPrev() {
+          if (current > 0) loadIndex(current - 1);
+        }
+
+        video.addEventListener("ended", function () {
+          if (Date.now() < ignoreEndedUntil) return;
+          if (current < SHORT_TOTAL - 1) {
+            loadIndex(current + 1);
+          } else {
+            showShortsFinishedUI();
+          }
+        });
+
+        video.addEventListener("timeupdate", onVideoTimeUpdate);
+        video.addEventListener("loadedmetadata", syncNextHint);
+        video.addEventListener("play", syncNextHint);
+
+        nextHint.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+        });
+        nextHint.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          goNext();
+        });
+
+        video.addEventListener("error", function () {
+          miss.textContent =
+            "Файл short_video/" +
+            (current + 1) +
+            ".mp4 не найден или не воспроизводится. Через 2 с — переход к следующему (если есть).";
+          miss.hidden = false;
+          nextHint.hidden = true;
+          if (current < SHORT_TOTAL - 1) {
+            setTimeout(function () {
+              loadIndex(current + 1);
+            }, 2000);
+          } else {
+            showShortsFinishedUI();
+          }
+        });
+
+        var touchY0 = null;
+        touchEl.addEventListener(
+          "touchstart",
+          function (e) {
+            if (e.changedTouches && e.changedTouches[0]) {
+              touchY0 = e.changedTouches[0].screenY;
+            }
+          },
+          { passive: true }
+        );
+        touchEl.addEventListener(
+          "touchend",
+          function (e) {
+            if (touchY0 == null || !e.changedTouches || !e.changedTouches[0]) {
+              touchY0 = null;
+              return;
+            }
+            var dy = touchY0 - e.changedTouches[0].screenY;
+            touchY0 = null;
+            if (dy > SWIPE_MIN) goNext();
+            else if (dy < -SWIPE_MIN) goPrev();
+          },
+          { passive: true }
+        );
+
+        if (hasStage1ShortsCompleted()) {
+          shortsFinishUIShown = true;
+          loadIndex(SHORT_TOTAL - 1, { keepDoneUI: true, autoplay: false });
+          gotoLongBtn.hidden = false;
+          updateCompleteButtonsState();
+        } else {
+          loadIndex(0);
+        }
       }
 
       function render() {
@@ -1529,7 +1814,6 @@
               '<p class="stage-locked-msg" role="status">Этап закрыт. Сначала завершите все предыдущие этапы — он откроется автоматически.</p>';
           } else if (i === 0) {
             body.appendChild(tplStage1.content.cloneNode(true));
-            fillStage1ShortVideoGrid(body);
           } else if (i === 1) {
             body.appendChild(tplStage2.content.cloneNode(true));
           } else if (i === 2) {
@@ -1569,6 +1853,7 @@
         bindStageToggles();
         bindTabs();
         bindStage1GotoLong();
+        bindStage1ShortFeed();
         bindCRT();
         bindGoNogoGame();
         bindStage7Form();
@@ -2040,7 +2325,7 @@
       }
 
       function bindStage1GotoLong() {
-        document.querySelectorAll(".stage1-goto-long").forEach(function (btn) {
+        document.querySelectorAll(".stage1-goto-long-video").forEach(function (btn) {
           btn.addEventListener("click", function () {
             var series = btn.closest(".video-series");
             if (!series) return;
@@ -2060,7 +2345,13 @@
             if (!isFinite(s)) return;
             var max = getMaxUnlocked();
             if (s !== max) return;
-            if (s === 1 && max === 1 && !hasStage1LongVideoVisited()) return;
+            if (
+              s === 1 &&
+              max === 1 &&
+              (!hasStage1ShortsCompleted() || !hasStage1LongVideoVisited())
+            ) {
+              return;
+            }
             if (s < 7) setMaxUnlocked(max + 1);
             render();
           });
@@ -2072,6 +2363,7 @@
         clearStage5BreakTimer();
         localStorage.removeItem(STORAGE_KEY);
         try {
+          localStorage.removeItem(STAGE1_SHORTS_DONE_KEY);
           localStorage.removeItem(STAGE1_LONG_KEY);
         } catch (err) {}
         try {
