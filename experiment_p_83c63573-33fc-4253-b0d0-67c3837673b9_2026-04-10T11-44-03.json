@@ -1,0 +1,1009 @@
+{
+  "schemaVersion": 1,
+  "participantId": "p_83c63573-33fc-4253-b0d0-67c3837673b9",
+  "exportedAt": "2026-04-10T11:44:03.208Z",
+  "stage1": {
+    "videoBranch": "long",
+    "allShortsWatched": false,
+    "maxUnlockedStage": 7
+  },
+  "stage2": {
+    "answers": [
+      {
+        "q": 1,
+        "selected": "c",
+        "correct": true,
+        "time_ms": 1241
+      },
+      {
+        "q": 2,
+        "selected": "a",
+        "correct": true,
+        "time_ms": 1720
+      },
+      {
+        "q": 3,
+        "selected": "b",
+        "correct": true,
+        "time_ms": 1016
+      }
+    ],
+    "wrong_count": 0
+  },
+  "stage4": {
+    "correct_count": 20,
+    "wrong_count": 0,
+    "reaction_times": [
+      1261,
+      813,
+      623,
+      1199,
+      658,
+      699,
+      1124,
+      1018,
+      1077,
+      1019,
+      1021,
+      798,
+      923,
+      1105,
+      667,
+      1584,
+      1005,
+      649,
+      1059,
+      885
+    ],
+    "click_details": [
+      {
+        "expected": "Красный",
+        "clicked": "Красный",
+        "correct": true,
+        "time_ms": 1261,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 813,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 623,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 1199,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 658,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 699,
+        "timeout": false
+      },
+      {
+        "expected": "Красный",
+        "clicked": "Красный",
+        "correct": true,
+        "time_ms": 1124,
+        "timeout": false
+      },
+      {
+        "expected": "Жёлтый",
+        "clicked": "Жёлтый",
+        "correct": true,
+        "time_ms": 1018,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 1077,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 1019,
+        "timeout": false
+      },
+      {
+        "expected": "Жёлтый",
+        "clicked": "Жёлтый",
+        "correct": true,
+        "time_ms": 1021,
+        "timeout": false
+      },
+      {
+        "expected": "Жёлтый",
+        "clicked": "Жёлтый",
+        "correct": true,
+        "time_ms": 798,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 923,
+        "timeout": false
+      },
+      {
+        "expected": "Красный",
+        "clicked": "Красный",
+        "correct": true,
+        "time_ms": 1105,
+        "timeout": false
+      },
+      {
+        "expected": "Красный",
+        "clicked": "Красный",
+        "correct": true,
+        "time_ms": 667,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 1584,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 1005,
+        "timeout": false
+      },
+      {
+        "expected": "Зелёный",
+        "clicked": "Зелёный",
+        "correct": true,
+        "time_ms": 649,
+        "timeout": false
+      },
+      {
+        "expected": "Синий",
+        "clicked": "Синий",
+        "correct": true,
+        "time_ms": 1059,
+        "timeout": false
+      },
+      {
+        "expected": "Жёлтый",
+        "clicked": "Жёлтый",
+        "correct": true,
+        "time_ms": 885,
+        "timeout": false
+      }
+    ]
+  },
+  "stage6": {
+    "correct_count": 8,
+    "wrong_count": 2,
+    "reaction_times": [
+      null,
+      965,
+      404,
+      826,
+      753,
+      440,
+      703,
+      null,
+      53,
+      460
+    ],
+    "click_details": [
+      {
+        "showed": 6,
+        "pressed_space": false,
+        "correct": false,
+        "time_ms": null,
+        "errorKind": "miss"
+      },
+      {
+        "showed": 9,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 965,
+        "errorKind": null
+      },
+      {
+        "showed": 4,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 404,
+        "errorKind": null
+      },
+      {
+        "showed": 6,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 826,
+        "errorKind": null
+      },
+      {
+        "showed": 8,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 753,
+        "errorKind": null
+      },
+      {
+        "showed": 4,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 440,
+        "errorKind": null
+      },
+      {
+        "showed": 8,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 703,
+        "errorKind": null
+      },
+      {
+        "showed": 7,
+        "pressed_space": false,
+        "correct": false,
+        "time_ms": null,
+        "errorKind": "miss"
+      },
+      {
+        "showed": 7,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 53,
+        "errorKind": null
+      },
+      {
+        "showed": 2,
+        "pressed_space": true,
+        "correct": true,
+        "time_ms": 460,
+        "errorKind": null
+      }
+    ]
+  },
+  "stage7": {
+    "answers": {
+      "fio": "Hai",
+      "fields": {
+        "s7_gender": "F",
+        "s7_edu": "bachelor",
+        "s7_course": "2",
+        "s7_shorts_daily": "lt30",
+        "s7_shorts_study": "rarely",
+        "s7_age": "18",
+        "s7_spec": "Матиматика",
+        "s7_short_days": "2"
+      },
+      "asst": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "3",
+        "5": "2",
+        "6": "2",
+        "7": "3",
+        "8": "2",
+        "9": "3",
+        "10": "3",
+        "11": "2",
+        "12": "3",
+        "13": "3",
+        "14": "4",
+        "15": "3",
+        "16": "3",
+        "17": "2",
+        "18": "1",
+        "19": "2",
+        "20": "3"
+      },
+      "caq": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "4",
+        "7": "3",
+        "8": "2",
+        "9": "1",
+        "10": "2",
+        "11": "3",
+        "12": "4",
+        "13": "5",
+        "14": "4",
+        "15": "3",
+        "16": "2",
+        "17": "1",
+        "18": "2",
+        "19": "3",
+        "20": "4",
+        "21": "5",
+        "22": "4",
+        "23": "3",
+        "24": "2"
+      }
+    },
+    "savedAt": "2026-04-10T11:43:56.917Z"
+  },
+  "_raw": {
+    "crt": {
+      "at": "2026-04-10T11:37:49.062Z",
+      "total": 3,
+      "correctCount": 3,
+      "wrongCount": 0,
+      "reactionMs": [
+        1241,
+        1720,
+        1016
+      ],
+      "choices": [
+        "c",
+        "a",
+        "b"
+      ],
+      "byQuestion": [
+        {
+          "q": 1,
+          "choice": "c",
+          "isCorrect": true,
+          "reactionMs": 1241
+        },
+        {
+          "q": 2,
+          "choice": "a",
+          "isCorrect": true,
+          "reactionMs": 1720
+        },
+        {
+          "q": 3,
+          "choice": "b",
+          "isCorrect": true,
+          "reactionMs": 1016
+        }
+      ]
+    },
+    "stroop": {
+      "at": "2026-04-10T11:40:16.175Z",
+      "fromCourse": true,
+      "totalTrials": 20,
+      "correctCount": 20,
+      "wrongCount": 0,
+      "trials": [
+        {
+          "trialIndex": 1,
+          "word": "Красный",
+          "inkColor": "Красный",
+          "selected": "Красный",
+          "correct": true,
+          "reactionMs": 1261,
+          "timeout": false
+        },
+        {
+          "trialIndex": 2,
+          "word": "Красный",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 813,
+          "timeout": false
+        },
+        {
+          "trialIndex": 3,
+          "word": "Зелёный",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 623,
+          "timeout": false
+        },
+        {
+          "trialIndex": 4,
+          "word": "Красный",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 1199,
+          "timeout": false
+        },
+        {
+          "trialIndex": 5,
+          "word": "Жёлтый",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 658,
+          "timeout": false
+        },
+        {
+          "trialIndex": 6,
+          "word": "Жёлтый",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 699,
+          "timeout": false
+        },
+        {
+          "trialIndex": 7,
+          "word": "Синий",
+          "inkColor": "Красный",
+          "selected": "Красный",
+          "correct": true,
+          "reactionMs": 1124,
+          "timeout": false
+        },
+        {
+          "trialIndex": 8,
+          "word": "Синий",
+          "inkColor": "Жёлтый",
+          "selected": "Жёлтый",
+          "correct": true,
+          "reactionMs": 1018,
+          "timeout": false
+        },
+        {
+          "trialIndex": 9,
+          "word": "Жёлтый",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 1077,
+          "timeout": false
+        },
+        {
+          "trialIndex": 10,
+          "word": "Зелёный",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 1019,
+          "timeout": false
+        },
+        {
+          "trialIndex": 11,
+          "word": "Жёлтый",
+          "inkColor": "Жёлтый",
+          "selected": "Жёлтый",
+          "correct": true,
+          "reactionMs": 1021,
+          "timeout": false
+        },
+        {
+          "trialIndex": 12,
+          "word": "Зелёный",
+          "inkColor": "Жёлтый",
+          "selected": "Жёлтый",
+          "correct": true,
+          "reactionMs": 798,
+          "timeout": false
+        },
+        {
+          "trialIndex": 13,
+          "word": "Синий",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 923,
+          "timeout": false
+        },
+        {
+          "trialIndex": 14,
+          "word": "Синий",
+          "inkColor": "Красный",
+          "selected": "Красный",
+          "correct": true,
+          "reactionMs": 1105,
+          "timeout": false
+        },
+        {
+          "trialIndex": 15,
+          "word": "Синий",
+          "inkColor": "Красный",
+          "selected": "Красный",
+          "correct": true,
+          "reactionMs": 667,
+          "timeout": false
+        },
+        {
+          "trialIndex": 16,
+          "word": "Зелёный",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 1584,
+          "timeout": false
+        },
+        {
+          "trialIndex": 17,
+          "word": "Жёлтый",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 1005,
+          "timeout": false
+        },
+        {
+          "trialIndex": 18,
+          "word": "Жёлтый",
+          "inkColor": "Зелёный",
+          "selected": "Зелёный",
+          "correct": true,
+          "reactionMs": 649,
+          "timeout": false
+        },
+        {
+          "trialIndex": 19,
+          "word": "Красный",
+          "inkColor": "Синий",
+          "selected": "Синий",
+          "correct": true,
+          "reactionMs": 1059,
+          "timeout": false
+        },
+        {
+          "trialIndex": 20,
+          "word": "Жёлтый",
+          "inkColor": "Жёлтый",
+          "selected": "Жёлтый",
+          "correct": true,
+          "reactionMs": 885,
+          "timeout": false
+        }
+      ]
+    },
+    "gng": {
+      "at": "2026-04-10T11:42:37.897Z",
+      "practice": {
+        "correctCount": 20,
+        "wrongCount": 5,
+        "trials": [
+          {
+            "overall": 1,
+            "isPractice": true,
+            "indexInBlock": 1,
+            "digit": 4,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 536,
+            "errorKind": null
+          },
+          {
+            "overall": 2,
+            "isPractice": true,
+            "indexInBlock": 2,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 174,
+            "errorKind": null
+          },
+          {
+            "overall": 3,
+            "isPractice": true,
+            "indexInBlock": 3,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 253,
+            "errorKind": null
+          },
+          {
+            "overall": 4,
+            "isPractice": true,
+            "indexInBlock": 4,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 253,
+            "errorKind": null
+          },
+          {
+            "overall": 5,
+            "isPractice": true,
+            "indexInBlock": 5,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 250,
+            "errorKind": null
+          },
+          {
+            "overall": 6,
+            "isPractice": true,
+            "indexInBlock": 6,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 82,
+            "errorKind": null
+          },
+          {
+            "overall": 7,
+            "isPractice": true,
+            "indexInBlock": 7,
+            "digit": 5,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 304,
+            "errorKind": null
+          },
+          {
+            "overall": 8,
+            "isPractice": true,
+            "indexInBlock": 8,
+            "digit": 3,
+            "correct": false,
+            "spacePressed": true,
+            "reactionMs": 319,
+            "errorKind": "extra"
+          },
+          {
+            "overall": 9,
+            "isPractice": true,
+            "indexInBlock": 9,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 37,
+            "errorKind": null
+          },
+          {
+            "overall": 10,
+            "isPractice": true,
+            "indexInBlock": 10,
+            "digit": 3,
+            "correct": false,
+            "spacePressed": true,
+            "reactionMs": 251,
+            "errorKind": "extra"
+          },
+          {
+            "overall": 11,
+            "isPractice": true,
+            "indexInBlock": 11,
+            "digit": 4,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 20,
+            "errorKind": null
+          },
+          {
+            "overall": 12,
+            "isPractice": true,
+            "indexInBlock": 12,
+            "digit": 9,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 440,
+            "errorKind": null
+          },
+          {
+            "overall": 13,
+            "isPractice": true,
+            "indexInBlock": 13,
+            "digit": 5,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 206,
+            "errorKind": null
+          },
+          {
+            "overall": 14,
+            "isPractice": true,
+            "indexInBlock": 14,
+            "digit": 9,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 357,
+            "errorKind": null
+          },
+          {
+            "overall": 15,
+            "isPractice": true,
+            "indexInBlock": 15,
+            "digit": 6,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 451,
+            "errorKind": null
+          },
+          {
+            "overall": 16,
+            "isPractice": true,
+            "indexInBlock": 16,
+            "digit": 9,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 858,
+            "errorKind": null
+          },
+          {
+            "overall": 17,
+            "isPractice": true,
+            "indexInBlock": 17,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 626,
+            "errorKind": null
+          },
+          {
+            "overall": 18,
+            "isPractice": true,
+            "indexInBlock": 18,
+            "digit": 5,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 352,
+            "errorKind": null
+          },
+          {
+            "overall": 19,
+            "isPractice": true,
+            "indexInBlock": 19,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 103,
+            "errorKind": null
+          },
+          {
+            "overall": 20,
+            "isPractice": true,
+            "indexInBlock": 20,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 646,
+            "errorKind": null
+          },
+          {
+            "overall": 21,
+            "isPractice": true,
+            "indexInBlock": 21,
+            "digit": 6,
+            "correct": false,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": "miss"
+          },
+          {
+            "overall": 22,
+            "isPractice": true,
+            "indexInBlock": 22,
+            "digit": 5,
+            "correct": false,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": "miss"
+          },
+          {
+            "overall": 23,
+            "isPractice": true,
+            "indexInBlock": 23,
+            "digit": 3,
+            "correct": true,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": null
+          },
+          {
+            "overall": 24,
+            "isPractice": true,
+            "indexInBlock": 24,
+            "digit": 4,
+            "correct": false,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": "miss"
+          },
+          {
+            "overall": 25,
+            "isPractice": true,
+            "indexInBlock": 25,
+            "digit": 1,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 248,
+            "errorKind": null
+          }
+        ]
+      },
+      "main": {
+        "correctCount": 8,
+        "wrongCount": 2,
+        "trials": [
+          {
+            "overall": 26,
+            "isPractice": false,
+            "indexInBlock": 1,
+            "digit": 6,
+            "correct": false,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": "miss"
+          },
+          {
+            "overall": 27,
+            "isPractice": false,
+            "indexInBlock": 2,
+            "digit": 9,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 965,
+            "errorKind": null
+          },
+          {
+            "overall": 28,
+            "isPractice": false,
+            "indexInBlock": 3,
+            "digit": 4,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 404,
+            "errorKind": null
+          },
+          {
+            "overall": 29,
+            "isPractice": false,
+            "indexInBlock": 4,
+            "digit": 6,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 826,
+            "errorKind": null
+          },
+          {
+            "overall": 30,
+            "isPractice": false,
+            "indexInBlock": 5,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 753,
+            "errorKind": null
+          },
+          {
+            "overall": 31,
+            "isPractice": false,
+            "indexInBlock": 6,
+            "digit": 4,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 440,
+            "errorKind": null
+          },
+          {
+            "overall": 32,
+            "isPractice": false,
+            "indexInBlock": 7,
+            "digit": 8,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 703,
+            "errorKind": null
+          },
+          {
+            "overall": 33,
+            "isPractice": false,
+            "indexInBlock": 8,
+            "digit": 7,
+            "correct": false,
+            "spacePressed": false,
+            "reactionMs": null,
+            "errorKind": "miss"
+          },
+          {
+            "overall": 34,
+            "isPractice": false,
+            "indexInBlock": 9,
+            "digit": 7,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 53,
+            "errorKind": null
+          },
+          {
+            "overall": 35,
+            "isPractice": false,
+            "indexInBlock": 10,
+            "digit": 2,
+            "correct": true,
+            "spacePressed": true,
+            "reactionMs": 460,
+            "errorKind": null
+          }
+        ]
+      }
+    },
+    "stage7Stored": {
+      "payload": {
+        "fio": "Hai",
+        "fields": {
+          "s7_gender": "F",
+          "s7_edu": "bachelor",
+          "s7_course": "2",
+          "s7_shorts_daily": "lt30",
+          "s7_shorts_study": "rarely",
+          "s7_age": "18",
+          "s7_spec": "Матиматика",
+          "s7_short_days": "2"
+        },
+        "asst": {
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "4": "3",
+          "5": "2",
+          "6": "2",
+          "7": "3",
+          "8": "2",
+          "9": "3",
+          "10": "3",
+          "11": "2",
+          "12": "3",
+          "13": "3",
+          "14": "4",
+          "15": "3",
+          "16": "3",
+          "17": "2",
+          "18": "1",
+          "19": "2",
+          "20": "3"
+        },
+        "caq": {
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "4": "4",
+          "5": "5",
+          "6": "4",
+          "7": "3",
+          "8": "2",
+          "9": "1",
+          "10": "2",
+          "11": "3",
+          "12": "4",
+          "13": "5",
+          "14": "4",
+          "15": "3",
+          "16": "2",
+          "17": "1",
+          "18": "2",
+          "19": "3",
+          "20": "4",
+          "21": "5",
+          "22": "4",
+          "23": "3",
+          "24": "2"
+        }
+      },
+      "at": "2026-04-10T11:43:56.917Z"
+    }
+  }
+}

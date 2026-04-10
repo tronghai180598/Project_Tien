@@ -1,7 +1,4 @@
 {
-  "buildCommand": "echo 'Static site'",
-  "outputDirectory": ".",
-  "public": true,
   "cleanUrls": false,
   "routes": [
     {
@@ -11,6 +8,10 @@
     {
       "src": "/tien3.html",
       "dest": "/tien3.html"
+    },
+    {
+      "src": "/research-dashboard.html",
+      "dest": "/research-dashboard.html"
     },
     {
       "src": "/(.*\\.html)$",

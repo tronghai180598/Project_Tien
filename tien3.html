@@ -801,26 +801,6 @@
       line-height: 1.2;
     }
     .break-panel.break-done .break-desc { margin-bottom: 0; color: var(--text); }
-    .crt-metrics-panel {
-      margin-bottom: 1.5rem;
-      padding: 1rem 1.1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #faf9f7;
-      font-size: 0.95rem;
-      line-height: 1.55;
-    }
-    .crt-metrics-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 0 0 0.65rem;
-    }
-    .crt-metrics-panel p { margin: 0.4rem 0; }
-    .crt-metrics-list {
-      margin: 0.35rem 0 0.5rem 1.1rem;
-      padding: 0;
-    }
-    .crt-metrics-list li { margin: 0.25rem 0; }
     .gng-game { margin-top: 0.25rem; }
     .gng-desc {
       margin-bottom: 1.25rem;
@@ -1046,18 +1026,162 @@
     }
     .s7-feedback.s7-feedback-ok { color: #1b6b3a; }
     .s7-feedback.s7-feedback-warn { color: #8b4513; }
+    .s7-intro a { color: var(--accent); }
+    .s7-req { color: #c62828; font-weight: 700; }
+    .s7-section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.35rem 0 0.5rem;
+      line-height: 1.35;
+    }
+    .s7-section-title:first-of-type { margin-top: 0.35rem; }
+    .s7-text-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin: 0 0 0.35rem;
+      line-height: 1.4;
+    }
+    .s7-text {
+      width: 100%;
+      max-width: 28rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: inherit;
+      box-sizing: border-box;
+    }
+    .s7-text--wide { max-width: 100%; }
+    .s7-likert-block {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0;
+      margin: 0 0 1rem;
+      background: #faf9f7;
+      overflow: hidden;
+    }
+    .s7-likert-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .s7-likert-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+    .s7-likert-table--asst {
+      min-width: 36rem;
+    }
+    .s7-likert-table--caq {
+      min-width: 42rem;
+    }
+    .s7-likert-table thead th {
+      background: #f0ebe4;
+      font-weight: 600;
+      color: #3d3830;
+      vertical-align: bottom;
+    }
+    .s7-likert-table th,
+    .s7-likert-table td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.4rem;
+    }
+    .s7-likert-th-q {
+      width: 34%;
+      text-align: left;
+      padding-left: 0.65rem;
+    }
+    .s7-likert-table--asst .s7-likert-th-scale {
+      width: 16.5%;
+    }
+    .s7-likert-table--caq .s7-likert-th-q {
+      width: 30%;
+    }
+    .s7-likert-table--caq .s7-likert-th-scale {
+      width: 14%;
+    }
+    .s7-likert-th-scale {
+      text-align: center;
+      font-size: 0.74rem;
+      hyphens: auto;
+      word-wrap: break-word;
+    }
+    .s7-likert-td-q {
+      text-align: left;
+      font-weight: 500;
+      vertical-align: middle;
+      padding: 0.55rem 0.65rem;
+      background: #faf9f7;
+    }
+    .s7-likert-td-opt {
+      text-align: center;
+      vertical-align: middle;
+      background: #fff;
+    }
+    .s7-likert-td-opt label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2rem;
+      min-width: 2rem;
+      cursor: pointer;
+    }
+    .s7-likert-td-opt input {
+      margin: 0;
+      width: 1.05rem;
+      height: 1.05rem;
+      cursor: pointer;
+    }
+    .s7-likert-table tbody tr:nth-child(even) .s7-likert-td-q,
+    .s7-likert-table tbody tr:nth-child(even) .s7-likert-td-opt {
+      background: #f7f5f2;
+    }
+    .s7-likert-table tbody tr:nth-child(even) .s7-likert-td-opt {
+      background: #fcfaf7;
+    }
+    .research-export-panel {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid var(--border, #ddd);
+      border-radius: 10px;
+      background: #faf9f7;
+      max-width: 52rem;
+    }
+    .research-export-panel h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+    }
+    .research-export-panel p {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      color: var(--muted, #555);
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Задача Струпа</h1>
-    <p class="subtitle">Семь этапов. Этапы 3 и 5 — перерыв ~1 минута. Этап 6 — игра «цифра / × в круге» (Пробел). Демонстрация Струпа и таблица — на этапе 4.</p>
+    <p class="subtitle">Семь этапов. Этапы 3 и 5 — перерыв ~1 минута. Этап 6 — игра «цифра / × в круге» (Пробел). Демонстрация Струпа — на этапе 4.</p>
 
     <div class="stage-list" id="stages"></div>
 
     <div class="reset-row">
       <button type="button" class="btn-ghost" id="resetProgress">Сбросить прогресс (для проверки)</button>
       <p class="reset-hint">Если все этапы выглядят открытыми, нажмите сброс: прогресс хранится в браузере (ключ <code>courseMaxUnlockedStage</code>).</p>
+    </div>
+
+    <div class="research-export-panel" id="researchExportPanel">
+      <h2>Экспорт данных исследования</h2>
+      <p>
+        После прохождения этапов нажмите кнопку ниже, чтобы скачать JSON с результатами (CRT, Струп, игра с цифрами, анкета и т.д.).
+        На опубликованном сайте те же данные <strong>автоматически отправляются на сервер</strong> при сохранении анкеты (этап 7) и при этой кнопке — если в Vercel настроены Supabase и переменные окружения (см. <code>env.example</code>).
+        Исследователь скачивает все записи на странице
+        <a href="research-dashboard.html">research-dashboard.html</a> (раздел «С сервера») или объединяет файлы вручную.
+      </p>
+      <button type="button" class="btn-primary" id="btnDownloadExperimentJson">Скачать мои данные (JSON)</button>
     </div>
   </div>
 
@@ -1267,44 +1391,173 @@
 
   <template id="tpl-stage7-inner">
     <div class="s7-wrap">
-      <h2 class="s7-title">Опрос (седьмой этап)</h2>
-      <p class="s7-intro placeholder-stage">Ниже — структура формы: позже сюда подставят точный текст вопроса и формулировки четырёх ответов. Сейчас используются заглушки.</p>
-      <form class="s7-form" id="stage7-quiz-form">
-        <p class="s7-question" id="s7-q-label">[Текст вопроса будет добавлен позже]</p>
+      <h2 class="s7-title">Опросник (седьмой этап)</h2>
+      <p class="s7-intro">
+        Те же вопросы, что в Google-форме
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSeAWlgfsEnwYxLBEDdmJPsLSm7ybOa5zLnledmVEVeOZZBjEw/viewform"
+          target="_blank"
+          rel="noopener noreferrer"
+        >«Опросник»</a>. Ответы сохраняются в браузере (локально). Поля со звёздочкой <span class="s7-req">*</span> обязательны.
+      </p>
+      <form class="s7-form" id="stage7-quiz-form" novalidate>
+        <h3 class="s7-section-title">Демографические данные</h3>
+
         <fieldset class="s7-fieldset">
-          <legend class="s7-legend">Отметьте один вариант ответа</legend>
-          <div class="s7-options" role="radiogroup" aria-labelledby="s7-q-label">
+          <label class="s7-text-label" for="s7-fio">ФИО</label>
+          <input class="s7-text" type="text" id="s7-fio" name="s7_fio" autocomplete="name" />
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <legend class="s7-legend">Пол <span class="s7-req">*</span></legend>
+          <div class="s7-options" role="radiogroup" aria-required="true">
             <label class="s7-option">
-              <input type="radio" name="stage7_answer" value="opt1">
-              <span>Вариант 1 — заглушка</span>
+              <input type="radio" name="s7_gender" value="F" required />
+              <span>Ж</span>
             </label>
             <label class="s7-option">
-              <input type="radio" name="stage7_answer" value="opt2">
-              <span>Вариант 2 — заглушка</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="stage7_answer" value="opt3">
-              <span>Вариант 3 — заглушка</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="stage7_answer" value="opt4">
-              <span>Вариант 4 — заглушка</span>
+              <input type="radio" name="s7_gender" value="M" required />
+              <span>М</span>
             </label>
           </div>
         </fieldset>
-        <button type="button" class="btn-primary s7-submit">Отправить ответ</button>
+
+        <fieldset class="s7-fieldset">
+          <label class="s7-text-label" for="s7-age">Возраст <span class="s7-req">*</span></label>
+          <input class="s7-text" type="text" id="s7-age" name="s7_age" inputmode="numeric" autocomplete="bday-year" required />
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <legend class="s7-legend">Уровень образования <span class="s7-req">*</span></legend>
+          <div class="s7-options" role="radiogroup">
+            <label class="s7-option">
+              <input type="radio" name="s7_edu" value="bachelor" required />
+              <span>Бакалавриат</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_edu" value="master" required />
+              <span>Магистратура</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_edu" value="specialist" required />
+              <span>Специально</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_edu" value="postgrad" required />
+              <span>Аспирант</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <legend class="s7-legend">Курс <span class="s7-req">*</span></legend>
+          <div class="s7-options" role="radiogroup">
+            <label class="s7-option"><input type="radio" name="s7_course" value="1" required /><span>1</span></label>
+            <label class="s7-option"><input type="radio" name="s7_course" value="2" required /><span>2</span></label>
+            <label class="s7-option"><input type="radio" name="s7_course" value="3" required /><span>3</span></label>
+            <label class="s7-option"><input type="radio" name="s7_course" value="4" required /><span>4</span></label>
+            <label class="s7-option"><input type="radio" name="s7_course" value="5" required /><span>5</span></label>
+            <label class="s7-option"><input type="radio" name="s7_course" value="6" required /><span>6</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <label class="s7-text-label" for="s7-spec">Специальность/Направление <span class="s7-req">*</span></label>
+          <input class="s7-text s7-text--wide" type="text" id="s7-spec" name="s7_spec" required />
+        </fieldset>
+
+        <h3 class="s7-section-title">Короткие видео</h3>
+
+        <fieldset class="s7-fieldset">
+          <legend class="s7-legend">
+            Сколько минут/часов в день вы тратите на просмотр коротких видео (длительностью до 60 секунд) на социальных платформах (TikTok,
+            Instagram Reels, YouTube Shorts, VK, Rutube, …)? <span class="s7-req">*</span>
+          </legend>
+          <div class="s7-options" role="radiogroup">
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="lt30" required />
+              <span>Менее 30 минут</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="30_60" required />
+              <span>30–60 минут</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="1_2h" required />
+              <span>1–2 часа</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="2_3h" required />
+              <span>2–3 часа</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="3_4h" required />
+              <span>3–4 часа</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_daily" value="gt4h" required />
+              <span>Более 4 часов</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <label class="s7-text-label" for="s7-short-days">
+            За последние недели сколько дней вы смотрели короткие видео более 1 часа? <span class="s7-req">*</span>
+          </label>
+          <input class="s7-text" type="text" id="s7-short-days" name="s7_short_days" required />
+        </fieldset>
+
+        <fieldset class="s7-fieldset">
+          <legend class="s7-legend">Как часто вы смотрели короткие видео во время учёбы или работы? <span class="s7-req">*</span></legend>
+          <div class="s7-options" role="radiogroup">
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_study" value="never" required />
+              <span>Никогда</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_study" value="rarely" required />
+              <span>Редко</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_study" value="sometimes" required />
+              <span>Иногда</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_study" value="often" required />
+              <span>Часто</span>
+            </label>
+            <label class="s7-option">
+              <input type="radio" name="s7_shorts_study" value="very_often" required />
+              <span>Очень часто</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <h3 class="s7-section-title">АССТ <span class="s7-req">*</span></h3>
+        <p class="s7-intro" style="margin-top: 0">
+          Для каждого утверждения выберите один ответ в строке — столбцы совпадают с подписями шкалы.
+        </p>
+        <div class="s7-likert-block" id="s7-asst-rows" aria-label="Шкала АССТ"></div>
+
+        <h3 class="s7-section-title">САQ <span class="s7-req">*</span></h3>
+        <p class="s7-intro" style="margin-top: 0">
+          Отметьте частоту по строкам; заголовки столбцов — варианты ответа.
+        </p>
+        <div class="s7-likert-block" id="s7-caq-rows" aria-label="Опросник САQ"></div>
+
+        <button type="button" class="btn-primary s7-submit">Отправить анкету</button>
         <p class="s7-feedback" hidden></p>
       </form>
       <div class="complete-row">
         <button type="button" class="btn-primary btn-complete" data-stage="7">Завершить седьмой этап</button>
-        <span class="hint">Курс на этом заканчивается. Сначала при желании отправьте ответ в форме выше.</span>
+        <span class="hint">После отправки анкеты нажмите, чтобы завершить курс.</span>
       </div>
     </div>
   </template>
 
   <template id="tpl-stage4-inner">
     <div class="stage4-inner">
-      <div class="crt-metrics-panel" data-crt-summary aria-live="polite"></div>
       <div class="stroop-embed">
         <h2 id="_run_the_demo">Запустить демонстрацию</h2>
         <div class="admonitionblock note">
@@ -1332,79 +1585,11 @@
                 loading="lazy"
               />
               <p class="stroop-launch-link">
-                <a href="experiment_stroop.html" target="_blank" rel="noopener">Нажмите здесь, чтобы запустить демонстрацию задачи Струпа</a>
+                <a href="experiment_stroop.html?from=course">Нажмите здесь, чтобы запустить демонстрацию задачи Струпа</a>
               </p>
             </div>
           </div>
         </div>
-
-        <h2 id="_data_output_file">Выходной файл данных</h2>
-        <div class="admonitionblock tip">
-          <table>
-            <tr>
-              <td class="icon">
-                <span class="admon-icon" title="Совет" aria-hidden="true">!</span>
-              </td>
-              <td class="content">
-                В PsyToolkit выходной файл данных — это просто текстовый файл. Строка
-                <strong>save</strong> в сценарии эксперимента PsyToolkit определяет, что
-                сохраняется в выходном файле данных. Обычно для каждого экспериментального
-                испытания у вас будет ровно одна строка в текстовом файле, и каждое
-                число/слово на этой строке дает вам информацию, необходимую для
-                анализа данных, такую как условие, скорость ответа и была ли ошибка.
-              </td>
-            </tr>
-          </table>
-        </div>
-        <div class="paragraph">
-          <p>Значение столбцов в выходном файле данных. Вам нужна эта информация для анализа данных.</p>
-        </div>
-        <table class="tableblock frame-all grid-all stretch">
-          <colgroup>
-            <col style="width: 9.0909%;">
-            <col style="width: 90.9091%;">
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="tableblock halign-left valign-top">Столбец</th>
-              <th class="tableblock halign-left valign-top">Значение</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">имя блока</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">имя слова (например, &quot;жёлтый&quot;)</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">цвет, которым напечатано слово (например, &quot;красный&quot;)</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">соответствие цвета Струпа (1=совместимо, 0=несовместимо)</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">номер строки таблицы</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">номер нажатой клавиши</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">7</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">Статус (1=правильно, 2=неправильно, 3=тайм-аут)</p></td>
-            </tr>
-            <tr>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
-              <td class="tableblock halign-left valign-top"><p class="tableblock">Время ответа (миллисекунды)</p></td>
-            </tr>
-          </tbody>
-        </table>
       </div>
 
       <div class="complete-row">
@@ -1420,7 +1605,47 @@
       var STAGE1_SHORTS_DONE_KEY = "courseStage1AllShortsWatched";
       var STAGE1_BRANCH_KEY = "courseStage1VideoBranch";
       var CRT_METRICS_KEY = "courseCRTMetricsLast";
+      var STROOP_METRICS_KEY = "courseStroopMetricsLast";
+      var GNG_METRICS_KEY = "courseGngMetricsLast";
+      var PARTICIPANT_ID_KEY = "courseParticipantId";
+      var STAGE7_SURVEY_KEY = "stage7SurveyResponse";
       var crtOnStage2Open = function () {};
+
+      function safeJsonParse(s) {
+        if (!s || typeof s !== "string") return null;
+        try {
+          return JSON.parse(s);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function newParticipantId() {
+        try {
+          if (typeof crypto !== "undefined" && crypto.randomUUID) return "p_" + crypto.randomUUID();
+        } catch (e) {}
+        return "p_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+      }
+
+      function getOrCreateParticipantId() {
+        try {
+          var id = localStorage.getItem(PARTICIPANT_ID_KEY);
+          if (id && String(id).length > 0) return id;
+          id = newParticipantId();
+          localStorage.setItem(PARTICIPANT_ID_KEY, id);
+          return id;
+        } catch (err) {
+          return newParticipantId();
+        }
+      }
+
+      function assignFreshParticipantId() {
+        var id = newParticipantId();
+        try {
+          localStorage.setItem(PARTICIPANT_ID_KEY, id);
+        } catch (e) {}
+        return id;
+      }
       var STAGE_LABELS = [
         "Первый этап",
         "Второй этап",
@@ -1439,11 +1664,40 @@
       var tplStage7 = document.getElementById("tpl-stage7-inner");
       var stage3Break = { intervalId: null };
       var stage5Break = { intervalId: null };
+      var BREAK_TICK_SRC = "tich_tac.mp3";
+      var breakTickAudio = null;
+
+      function getBreakTickAudio() {
+        if (!breakTickAudio) {
+          breakTickAudio = new Audio(BREAK_TICK_SRC);
+          breakTickAudio.preload = "auto";
+        }
+        return breakTickAudio;
+      }
+
+      function playBreakTickSound() {
+        try {
+          var a = getBreakTickAudio();
+          a.currentTime = 0;
+          var p = a.play();
+          if (p && typeof p.catch === "function") p.catch(function () {});
+        } catch (err) {}
+      }
+
+      function stopBreakTickSound() {
+        try {
+          if (breakTickAudio) {
+            breakTickAudio.pause();
+            breakTickAudio.currentTime = 0;
+          }
+        } catch (err) {}
+      }
 
       function clearStage3BreakTimer() {
         if (stage3Break.intervalId) {
           clearInterval(stage3Break.intervalId);
           stage3Break.intervalId = null;
+          stopBreakTickSound();
         }
       }
 
@@ -1451,6 +1705,7 @@
         if (stage5Break.intervalId) {
           clearInterval(stage5Break.intervalId);
           stage5Break.intervalId = null;
+          stopBreakTickSound();
         }
       }
 
@@ -1505,6 +1760,7 @@
 
         var remain = 60;
         function tick() {
+          if (remain > 0) playBreakTickSound();
           var m = Math.floor(remain / 60);
           var s = remain % 60;
           var text = m + ":" + (s < 10 ? "0" : "") + s;
@@ -1535,6 +1791,7 @@
 
         var remain = 60;
         function tick() {
+          if (remain > 0) playBreakTickSound();
           var m = Math.floor(remain / 60);
           var s = remain % 60;
           var text = m + ":" + (s < 10 ? "0" : "") + s;
@@ -1548,6 +1805,142 @@
         }
         tick();
         stage5Break.intervalId = setInterval(tick, 1000);
+      }
+
+      function buildExperimentExportBundle() {
+        getOrCreateParticipantId();
+        var crt = safeJsonParse(localStorage.getItem(CRT_METRICS_KEY));
+        var stroop = safeJsonParse(localStorage.getItem(STROOP_METRICS_KEY));
+        var gng = safeJsonParse(localStorage.getItem(GNG_METRICS_KEY));
+        var s7wrap = safeJsonParse(localStorage.getItem(STAGE7_SURVEY_KEY));
+
+        var stage2 = null;
+        if (crt && Array.isArray(crt.byQuestion)) {
+          stage2 = {
+            answers: crt.byQuestion.map(function (q) {
+              return {
+                q: q.q,
+                selected: q.choice,
+                correct: !!q.isCorrect,
+                time_ms: q.reactionMs != null ? q.reactionMs : null
+              };
+            }),
+            wrong_count: crt.wrongCount != null ? crt.wrongCount : null
+          };
+        }
+
+        var stage4 = null;
+        if (stroop && Array.isArray(stroop.trials)) {
+          stage4 = {
+            correct_count: stroop.correctCount,
+            wrong_count: stroop.wrongCount,
+            reaction_times: stroop.trials.map(function (t) {
+              return t.timeout ? null : t.reactionMs != null ? t.reactionMs : null;
+            }),
+            click_details: stroop.trials.map(function (t) {
+              return {
+                expected: t.inkColor,
+                clicked: t.selected,
+                correct: !!t.correct,
+                time_ms: t.timeout ? null : t.reactionMs != null ? t.reactionMs : null,
+                timeout: !!t.timeout
+              };
+            })
+          };
+        }
+
+        var stage6 = null;
+        if (gng && gng.main && Array.isArray(gng.main.trials)) {
+          stage6 = {
+            correct_count: gng.main.correctCount,
+            wrong_count: gng.main.wrongCount,
+            reaction_times: gng.main.trials.map(function (t) {
+              return t.reactionMs != null ? t.reactionMs : null;
+            }),
+            click_details: gng.main.trials.map(function (t) {
+              return {
+                showed: t.digit,
+                pressed_space: !!t.spacePressed,
+                correct: !!t.correct,
+                time_ms: t.reactionMs != null ? t.reactionMs : null,
+                errorKind: t.errorKind != null ? t.errorKind : null
+              };
+            })
+          };
+        }
+
+        var stage7 = null;
+        if (s7wrap && s7wrap.payload) {
+          stage7 = { answers: s7wrap.payload, savedAt: s7wrap.at || null };
+        }
+
+        return {
+          schemaVersion: 1,
+          participantId: getOrCreateParticipantId(),
+          exportedAt: new Date().toISOString(),
+          stage1: {
+            videoBranch: getStage1Branch(),
+            allShortsWatched: hasStage1ShortsCompleted(),
+            maxUnlockedStage: getMaxUnlocked()
+          },
+          stage2: stage2,
+          stage4: stage4,
+          stage6: stage6,
+          stage7: stage7,
+          _raw: {
+            crt: crt,
+            stroop: stroop,
+            gng: gng,
+            stage7Stored: s7wrap
+          }
+        };
+      }
+
+      function downloadExperimentJsonFile() {
+        var bundle = buildExperimentExportBundle();
+        var safeName =
+          "experiment_" +
+          String(bundle.participantId).replace(/[^\w.-]+/g, "_") +
+          "_" +
+          new Date().toISOString().slice(0, 19).replace(/:/g, "-") +
+          ".json";
+        var blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = safeName;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+
+      /**
+       * POST full bundle to /api/submit (same origin when deployed on Vercel).
+       * No secrets in the page — open endpoint; protect data via admin export secret only.
+       */
+      function submitExperimentToCloud(done) {
+        if (typeof fetch !== "function") {
+          if (done) done(false, "no fetch");
+          return;
+        }
+        var bundle = buildExperimentExportBundle();
+        fetch("/api/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bundle)
+        })
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { ok: r.ok, status: r.status, j: j };
+            });
+          })
+          .then(function (o) {
+            if (done) done(o.ok, o.ok ? null : (o.j && o.j.error) || "HTTP " + o.status);
+          })
+          .catch(function (e) {
+            if (done) done(false, e && e.message ? e.message : String(e));
+          });
       }
 
       function getMaxUnlocked() {
@@ -1808,63 +2201,6 @@
             btn.removeAttribute("title");
           }
         });
-      }
-
-      function fillCRTMetricsPanel(container) {
-        var el = container.querySelector("[data-crt-summary]");
-        if (!el) return;
-        var raw = null;
-        try {
-          raw = localStorage.getItem(CRT_METRICS_KEY);
-        } catch (err) {
-          raw = null;
-        }
-        if (!raw) {
-          el.innerHTML =
-            '<p class="placeholder-stage" style="margin:0">После этапа 2 здесь появятся: общий итог (верно / неверно), варианты ответов и время реакции по заданиям.</p>';
-          return;
-        }
-        var d = JSON.parse(raw);
-        var html = '<h3 class="crt-metrics-title">Собранные данные (тест CRT, этап 2)</h3>';
-        if (d.correctCount != null) {
-          var w =
-            d.wrongCount != null
-              ? d.wrongCount
-              : Math.max(0, (d.total != null ? d.total : 3) - d.correctCount);
-          html +=
-            "<p><strong>Верных ответов:</strong> " +
-            d.correctCount +
-            " из " +
-            (d.total != null ? d.total : 3) +
-            ". <strong>Неверных:</strong> " +
-            w +
-            ".</p>";
-        } else {
-          html +=
-            "<p><strong>Ответы зафиксированы</strong> (" +
-            (d.total != null ? d.total : 3) +
-            " задания).</p>";
-        }
-        html += "<p><strong>Время до щелчка по ответу (рефлекс), мс:</strong></p>" + '<ul class="crt-metrics-list">';
-        (d.byQuestion || []).forEach(function (x) {
-          var choice =
-            x.choice != null
-              ? x.choice
-              : x.correct !== undefined
-                ? "(старый формат)"
-                : "—";
-          html +=
-            "<li>Задание " +
-            x.q +
-            ": " +
-            (x.reactionMs != null ? x.reactionMs + " мс" : "—") +
-            "; вариант <strong>" +
-            choice +
-            "</strong></li>";
-        });
-        html += "</ul>";
-        if (d.at) html += '<p class="hint">Запись: ' + d.at + "</p>";
-        el.innerHTML = html;
       }
 
       function showCelebrationOverlay(opts) {
@@ -2389,7 +2725,6 @@
             }
           } else if (i === 3) {
             body.appendChild(tplStage4.content.cloneNode(true));
-            fillCRTMetricsPanel(body);
           } else if (i === 4) {
             if (maxUnlocked >= 6) {
               body.innerHTML =
@@ -2426,30 +2761,208 @@
         });
       }
 
+      var S7_ASST_ITEMS = [
+        "Мне очень трудно сосредоточиться на сложной задаче, когда вокруг шумно",
+        "Когда мне нужно сосредоточиться и решить проблему, мне трудно сфокусировать свое внимание",
+        "Когда я усердно над чем-то работаю, я все равно отвлекаюсь на происходящее вокруг.",
+        "У меня хорошая концентрация, даже если в комнате вокруг меня играет музыка",
+        "При концентрации я могу сфокусировать свое внимание так, что перестаю замечать, что происходит в комнате вокруг меня.",
+        "Когда я читаю или учусь, я легко отвлекаюсь, если в той же комнате разговаривают люди",
+        "Когда я пытаюсь сфокусировать свое внимание на чем-то, мне трудно блокировать отвлекающие мысли",
+        "Мне трудно сосредоточиться, когда я чем-то взволнован",
+        "Концентрируясь, я игнорирую чувство голода или жажды",
+        "Я могу быстро переключаться с одной задачи на другую",
+        "Мне требуется некоторое время, чтобы по-настоящему втянуться в новую задачу",
+        "Мне трудно координировать свое внимание между слушанием и письмом, которые требуются при конспектировани лекций",
+        "Я могу очень быстро заинтересовать новой темой, когда мне это нужно",
+        "Мне легко читать или писать, пока я также разговариваю по телефону",
+        "Мне трудно вести два разговора одновременно",
+        "Мне трудно быстро придумать новые идеи",
+        "После того как меня прервали или отвлекли, я могу легко переключить свое внимание обратно на то, чем занимался раньше",
+        "Когда в голову приходит отвлекающая мысль, мне легко отвлечь от нее свое внимание",
+        "Мне легко чередовать две разные задачи",
+        "Мне трудно отказаться от одного образа мыслей о чем-либо и посмотреть на это с другой точки зрения"
+      ];
+
+      var S7_CAQ_ITEMS = [
+        "Бывает ли, что вы читаете что-то и понимаете, что не думали об этом, из-за чего приходится читать снова?",
+        "Забываете ли вы, зачем перешли из одной части дома в другую?",
+        "Случается ли вам не замечать дорожные знаки?",
+        "Путаете ли вы право и лево, когда объясняете дорогу?",
+        "Сталкиваетесь ли вы с людьми?",
+        "Забывете ли вы, включили ли свет, отопление мли заперли ли дверь?",
+        "Бывает ли что вы не вслушиваетесь в имена людей при знакомстве?",
+        "Говорите ли вы что-то, а потом понимаете, что это могло прозвучать оскорбительно?",
+        "Случается ли вам не слышать, что к вам обращаются, когда вы заняты чем-то другим?",
+        "Теряете ли вы самообладание, о чем потом желаете?",
+        "Оставляете ли вы важные письма без ответа в течение нескольких дней?",
+        "Забываете ли вы, куда повернуть на дороге, которую хорошо знает, но редко используете?",
+        "Бывает ли, что вы не видите нужный товар в супермаркете (хотя он там есть)?",
+        "Задумываетесь ли вы внезапно о том, правильно ли употребили слово?",
+        "Трудно ли вам принимать решения?",
+        "Забываете ли вы о назначенных встречах?",
+        "Забываете ли вы, куда положили какую-нибудь вещь, например газету или книгу?",
+        "Случается ли вам случайно выбросить нужную вещь и оставить ту, которую хотели выкинуть (например, коробку, положив спичку в карман)?",
+        "Витаете ли вы в облаках, когда вам следует слушать?",
+        "Забываете ли вы имена людей?",
+        "Бывает ли, что вы не можете что-то вспомнить, хотя это вертится «на кончике языка»?",
+        "Забываете ли вы, что собирались купить в магазине?",
+        "Роняете ли вы вещи?",
+        "Случается ли, что вы не можете придумать, что сказать?"
+      ];
+
+      var S7_ASST_COL_LABELS = [
+        "1 — Почти никогда",
+        "2 — Иногда",
+        "3 — Часто",
+        "4 — Всегда"
+      ];
+
+      var S7_CAQ_COL_LABELS = [
+        "1 — Очень часто",
+        "2 — Довольно часто",
+        "3 — Иногда",
+        "4 — Очень редко",
+        "5 — Никогда"
+      ];
+
+      function mountStage7LikertSection(container, items, namePrefix, maxVal, columnLabels) {
+        if (!container || container.firstChild) return;
+
+        var scroll = document.createElement("div");
+        scroll.className = "s7-likert-scroll";
+
+        var table = document.createElement("table");
+        table.className =
+          "s7-likert-table " + (maxVal === 5 ? "s7-likert-table--caq" : "s7-likert-table--asst");
+
+        var thead = document.createElement("thead");
+        var headRow = document.createElement("tr");
+        var corner = document.createElement("th");
+        corner.className = "s7-likert-th-q";
+        corner.scope = "col";
+        corner.textContent = "Утверждение";
+        headRow.appendChild(corner);
+        columnLabels.forEach(function (label) {
+          var th = document.createElement("th");
+          th.className = "s7-likert-th-scale";
+          th.scope = "col";
+          th.textContent = label;
+          headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        var tbody = document.createElement("tbody");
+        items.forEach(function (text, idx) {
+          var n = idx + 1;
+          var tr = document.createElement("tr");
+          tr.setAttribute("role", "group");
+
+          var qTh = document.createElement("th");
+          qTh.className = "s7-likert-td-q";
+          qTh.scope = "row";
+          qTh.id = namePrefix + "-q-" + n;
+          qTh.textContent = n + ". " + text;
+          tr.appendChild(qTh);
+
+          for (var v = 1; v <= maxVal; v++) {
+            var td = document.createElement("td");
+            td.className = "s7-likert-td-opt";
+            var lab = document.createElement("label");
+            var inp = document.createElement("input");
+            inp.type = "radio";
+            inp.name = namePrefix + "_" + n;
+            inp.value = String(v);
+            inp.setAttribute("aria-label", columnLabels[v - 1]);
+            if (v === 1) inp.required = true;
+            lab.appendChild(inp);
+            td.appendChild(lab);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        scroll.appendChild(table);
+        container.appendChild(scroll);
+      }
+
+      function mountStage7SurveyLikert(form) {
+        var asst = form.querySelector("#s7-asst-rows");
+        var caq = form.querySelector("#s7-caq-rows");
+        mountStage7LikertSection(asst, S7_ASST_ITEMS, "s7_asst", 4, S7_ASST_COL_LABELS);
+        mountStage7LikertSection(caq, S7_CAQ_ITEMS, "s7_caq", 5, S7_CAQ_COL_LABELS);
+      }
+
+      function collectStage7FormPayload(form) {
+        var payload = { fio: "", fields: {} };
+        var fioEl = form.querySelector("#s7-fio");
+        if (fioEl) payload.fio = (fioEl.value || "").trim();
+        var names = [
+          "s7_gender",
+          "s7_edu",
+          "s7_course",
+          "s7_shorts_daily",
+          "s7_shorts_study"
+        ];
+        names.forEach(function (nm) {
+          var el = form.querySelector('input[name="' + nm + '"]:checked');
+          payload.fields[nm] = el ? el.value : "";
+        });
+        payload.fields.s7_age = (form.querySelector("#s7-age") && form.querySelector("#s7-age").value) || "";
+        payload.fields.s7_spec = (form.querySelector("#s7-spec") && form.querySelector("#s7-spec").value) || "";
+        payload.fields.s7_short_days =
+          (form.querySelector("#s7-short-days") && form.querySelector("#s7-short-days").value) || "";
+        payload.asst = {};
+        S7_ASST_ITEMS.forEach(function (_t, i) {
+          var el = form.querySelector('input[name="s7_asst_' + (i + 1) + '"]:checked');
+          payload.asst[String(i + 1)] = el ? el.value : "";
+        });
+        payload.caq = {};
+        S7_CAQ_ITEMS.forEach(function (_t, i) {
+          var el = form.querySelector('input[name="s7_caq_' + (i + 1) + '"]:checked');
+          payload.caq[String(i + 1)] = el ? el.value : "";
+        });
+        return payload;
+      }
+
       function bindStage7Form() {
         var form = document.getElementById("stage7-quiz-form");
         if (!form) return;
+        mountStage7SurveyLikert(form);
         var btn = form.querySelector(".s7-submit");
         var fb = form.querySelector(".s7-feedback");
         if (!btn || !fb) return;
         btn.addEventListener("click", function () {
-          var sel = form.querySelector('input[name="stage7_answer"]:checked');
-          if (!sel) {
+          if (!form.checkValidity()) {
             fb.hidden = false;
             fb.className = "s7-feedback s7-feedback-warn";
-            fb.textContent = "Выберите один из четырёх вариантов.";
+            fb.textContent = "Заполните обязательные поля (со звёздочкой *).";
+            if (typeof form.reportValidity === "function") form.reportValidity();
             return;
           }
-          fb.hidden = false;
-          fb.className = "s7-feedback s7-feedback-ok";
-          fb.textContent =
-            "Ответ записан (демо). Позже здесь будет проверка с правильным ключом и сохранение данных.";
+          var payload = collectStage7FormPayload(form);
           try {
             localStorage.setItem(
-              "stage7FormAnswer",
-              JSON.stringify({ choice: sel.value, at: new Date().toISOString() })
+              STAGE7_SURVEY_KEY,
+              JSON.stringify({ payload: payload, at: new Date().toISOString() })
             );
           } catch (err) {}
+          fb.hidden = false;
+          fb.className = "s7-feedback s7-feedback-ok";
+          fb.textContent = "Анкета сохранена локально. Отправка на сервер…";
+          submitExperimentToCloud(function (ok, errMsg) {
+            if (ok) {
+              fb.textContent =
+                "Анкета сохранена и отправлена на сервер. Можете завершить седьмой этап.";
+            } else {
+              fb.textContent =
+                "Анкета сохранена локально в браузере. Отправка на сервер не выполнена" +
+                (errMsg ? " (" + errMsg + ")." : ".") +
+                " Можете завершить седьмой этап или скачать JSON ниже.";
+            }
+          });
         });
       }
 
@@ -2589,6 +3102,8 @@
 
           var ctx = { phase: "digit" };
           var spacePressed = false;
+          var firstPressMsRel = null;
+          var tDigit0 = performance.now();
 
           maskEl.classList.remove("gng-ok", "gng-bad", "is-visible");
           digitEl.textContent = String(d);
@@ -2598,7 +3113,10 @@
             if (e.code !== "Space" && e.key !== " ") return;
             e.preventDefault();
             e.stopPropagation();
-            if (ctx.phase === "digit" || ctx.phase === "mask") spacePressed = true;
+            if (ctx.phase === "digit" || ctx.phase === "mask") {
+              if (!spacePressed) firstPressMsRel = Math.round(performance.now() - tDigit0);
+              spacePressed = true;
+            }
           };
           window.addEventListener("keydown", keyHandler, true);
 
@@ -2620,6 +3138,8 @@
                 indexInBlock: isPractice ? idx + 1 : idx + 1 - PRACTICE,
                 digit: d,
                 correct: ok,
+                spacePressed: spacePressed,
+                reactionMs: spacePressed ? firstPressMsRel : null,
                 errorKind: ok ? null : d === 3 ? "extra" : "miss"
               });
 
@@ -2713,6 +3233,31 @@
             "%).</p>";
           resultsEl.classList.remove("gng-hidden");
           completeRow.classList.remove("gng-hidden");
+
+          var mainTrials = trialLog.filter(function (t) {
+            return !t.isPractice;
+          });
+          var practiceTrials = trialLog.filter(function (t) {
+            return t.isPractice;
+          });
+          try {
+            localStorage.setItem(
+              GNG_METRICS_KEY,
+              JSON.stringify({
+                at: new Date().toISOString(),
+                practice: {
+                  correctCount: stats.pC,
+                  wrongCount: stats.pW,
+                  trials: practiceTrials
+                },
+                main: {
+                  correctCount: stats.mC,
+                  wrongCount: stats.mW,
+                  trials: mainTrials
+                }
+              })
+            );
+          } catch (errGng) {}
 
           setTimeout(function () {
             showCelebrationOverlay({
@@ -2916,9 +3461,33 @@
         try {
           localStorage.removeItem(CRT_METRICS_KEY);
         } catch (err) {}
+        try {
+          localStorage.removeItem(STROOP_METRICS_KEY);
+          localStorage.removeItem(GNG_METRICS_KEY);
+        } catch (errS) {}
+        try {
+          localStorage.removeItem(STAGE7_SURVEY_KEY);
+          localStorage.removeItem("stage7FormAnswer");
+        } catch (err2) {}
+        assignFreshParticipantId();
         render();
       });
 
+      var dlBtn = document.getElementById("btnDownloadExperimentJson");
+      if (dlBtn) {
+        dlBtn.addEventListener("click", function () {
+          var prev = dlBtn.textContent;
+          dlBtn.disabled = true;
+          dlBtn.textContent = "Отправка на сервер…";
+          submitExperimentToCloud(function () {
+            downloadExperimentJsonFile();
+            dlBtn.disabled = false;
+            dlBtn.textContent = prev;
+          });
+        });
+      }
+
+      getOrCreateParticipantId();
       render();
     })();
   </script>

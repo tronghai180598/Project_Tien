@@ -283,22 +283,6 @@
             font-weight: bold;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-            justify-content: center;
-        }
-
-        .btn-secondary {
-            background: #ccc;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -404,10 +388,9 @@
                 <div>Точность:</div>
                 <div class="percentage" id="accuracy">0%</div>
             </div>
-            <div class="btn-group">
-                <button class="btn" onclick="restartGame()">Начать заново</button>
-                <button class="btn btn-secondary" onclick="goHome()">На главную</button>
-            </div>
+            <p id="courseReturnHint" style="display: none; margin-top: 20px; color: #555; font-size: 1.05em;">
+                Через несколько секунд вы вернётесь к курсу — откроется <strong>пятый этап</strong>.
+            </p>
         </div>
     </div>
 
@@ -430,6 +413,10 @@
             'З': 'Зелёный'
         };
 
+        const COURSE_STORAGE_KEY = 'courseMaxUnlockedStage';
+        const STROOP_METRICS_KEY = 'courseStroopMetricsLast';
+        let courseReturnTimeoutId = null;
+
         let gameState = {
             currentTrial: 0,
             totalTrials: 20,
@@ -438,8 +425,34 @@
             isWaiting: false,
             currentWord: '',
             currentColor: '',
-            timeoutId: null
+            timeoutId: null,
+            trialStimulusTs: 0,
+            trialLog: []
         };
+
+        function isCourseStroopFlow() {
+            try {
+                return new URLSearchParams(window.location.search).get('from') === 'course';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function maybeAdvanceCourseAfterStroop() {
+            if (!isCourseStroopFlow()) return false;
+            try {
+                var n = parseInt(localStorage.getItem(COURSE_STORAGE_KEY), 10);
+                if (!isFinite(n)) n = 1;
+                if (n < 4) return false;
+                localStorage.setItem(
+                    COURSE_STORAGE_KEY,
+                    String(Math.min(7, Math.max(n, 5)))
+                );
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
 
         function showScreen(screenName) {
             document.querySelectorAll('.screen').forEach(screen => {
@@ -461,7 +474,9 @@
                 isWaiting: false,
                 currentWord: '',
                 currentColor: '',
-                timeoutId: null
+                timeoutId: null,
+                trialStimulusTs: 0,
+                trialLog: []
             };
             showScreen('game-screen');
             document.addEventListener('keydown', handleKeyPress);
@@ -499,6 +514,8 @@
             document.getElementById('trialCounter').textContent = gameState.currentTrial;
             document.getElementById('progressFill').style.width = (gameState.currentTrial / gameState.totalTrials) * 100 + '%';
 
+            gameState.trialStimulusTs = performance.now();
+
             // Auto-advance after 2 seconds WITHOUT response
             gameState.timeoutId = setTimeout(() => {
                 if (gameState.isWaiting) {
@@ -506,6 +523,15 @@
                     document.getElementById('feedback').className = 'feedback timeout';
                     gameState.wrong++;
                     gameState.isWaiting = false;
+                    gameState.trialLog.push({
+                        trialIndex: gameState.currentTrial,
+                        word: gameState.currentWord,
+                        inkColor: gameState.currentColor,
+                        selected: null,
+                        correct: false,
+                        reactionMs: null,
+                        timeout: true
+                    });
                     setTimeout(showNextTrial, 1500);
                 }
             }, 2000);
@@ -533,8 +559,10 @@
             gameState.isWaiting = false;
 
             const feedback = document.getElementById('feedback');
+            const reactionMs = Math.round(performance.now() - gameState.trialStimulusTs);
+            const isCorrect = selectedColor === gameState.currentColor;
 
-            if (selectedColor === gameState.currentColor) {
+            if (isCorrect) {
                 feedback.textContent = '✓ Правильно!';
                 feedback.className = 'feedback correct';
                 gameState.correct++;
@@ -543,6 +571,16 @@
                 feedback.className = 'feedback wrong';
                 gameState.wrong++;
             }
+
+            gameState.trialLog.push({
+                trialIndex: gameState.currentTrial,
+                word: gameState.currentWord,
+                inkColor: gameState.currentColor,
+                selected: selectedColor,
+                correct: isCorrect,
+                reactionMs: reactionMs,
+                timeout: false
+            });
 
             setTimeout(showNextTrial, 1500);
         }
@@ -557,14 +595,38 @@
             document.getElementById('accuracy').textContent = accuracy + '%';
 
             showScreen('results-screen');
-        }
 
-        function restartGame() {
-            startGame();
-        }
+            if (isCourseStroopFlow()) {
+                try {
+                    localStorage.setItem(
+                        STROOP_METRICS_KEY,
+                        JSON.stringify({
+                            at: new Date().toISOString(),
+                            fromCourse: true,
+                            totalTrials: gameState.totalTrials,
+                            correctCount: gameState.correct,
+                            wrongCount: gameState.wrong,
+                            trials: gameState.trialLog
+                        })
+                    );
+                } catch (e) {}
+            }
 
-        function goHome() {
-            showScreen('start-screen');
+            if (courseReturnTimeoutId) {
+                clearTimeout(courseReturnTimeoutId);
+                courseReturnTimeoutId = null;
+            }
+
+            var hint = document.getElementById('courseReturnHint');
+            if (hint) hint.style.display = 'none';
+
+            if (maybeAdvanceCourseAfterStroop()) {
+                if (hint) hint.style.display = 'block';
+                courseReturnTimeoutId = setTimeout(function () {
+                    courseReturnTimeoutId = null;
+                    window.location.href = 'tien3.html';
+                }, 2500);
+            }
         }
     </script>
 </body>

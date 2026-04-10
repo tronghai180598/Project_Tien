@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Сводка данных эксперимента</title>
+  <style>
+    :root {
+      --bg: #f6f4f1;
+      --card: #fff;
+      --border: #d8d2c8;
+      --text: #1a1a1a;
+      --muted: #5c574f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 1.25rem 1rem 2.5rem;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 1.35rem; margin: 0 0 0.35rem; }
+    .lead { color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    label.file-btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #2c5aa0;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    label.file-btn input { display: none; }
+    .row-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
+    button.btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button.btn-primary {
+      background: #1b6b3a;
+      color: #fff;
+      border-color: #145a30;
+    }
+    button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    #pasteArea {
+      width: 100%;
+      min-height: 100px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 0.5rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+    .stat-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      background: #faf9f7;
+    }
+    .stat-card strong { display: block; font-size: 1.15rem; }
+    .stat-card span { font-size: 0.8rem; color: var(--muted); }
+    .table-scroll {
+      overflow: auto;
+      max-height: 65vh;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table.data {
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      min-width: max-content;
+    }
+    table.data th,
+    table.data td {
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+      max-width: 14rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    table.data thead th {
+      position: sticky;
+      top: 0;
+      background: #ece8e0;
+      z-index: 1;
+    }
+    .err { color: #a32020; font-size: 0.88rem; margin-top: 0.5rem; }
+    .ok { color: #1b6b3a; font-size: 0.88rem; margin-top: 0.5rem; }
+    label.server-field {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    label.server-field input {
+      display: block;
+      width: 100%;
+      max-width: 28rem;
+      margin-top: 0.25rem;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Сводка и таблица по участникам</h1>
+    <p class="lead">
+      Загрузите один или несколько JSON-файлов, скачанных с курса (<strong>tien3.html</strong> → «Скачать мои данные»), или вставьте несколько JSON
+      подряд (по одному объекту на блок). Ниже появится сводная статистика и таблица; можно выгрузить объединённый CSV.
+    </p>
+
+    <div class="panel">
+      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>Файлы</strong></p>
+      <label class="file-btn">
+        Выбрать JSON…
+        <input type="file" id="fileInput" accept=".json,application/json" multiple />
+      </label>
+      <div class="row-actions">
+        <button type="button" class="btn btn-primary" id="btnParsePaste">Разобрать вставку из поля ниже</button>
+        <button type="button" class="btn" id="btnClear">Очистить всё</button>
+        <button type="button" class="btn btn-primary" id="btnCsv" disabled>Скачать CSV (все колонки)</button>
+      </div>
+      <p style="margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted)">
+        Вставка (несколько JSON подряд, или один за другим через пустую строку — пробуем разобрать каждый объект):
+      </p>
+      <textarea id="pasteArea" placeholder='{"schemaVersion":1,"participantId":"..."}'></textarea>
+      <div id="message"></div>
+    </div>
+
+    <div class="panel">
+      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>С сервера (после деплоя на Vercel + Supabase)</strong></p>
+      <p class="lead" style="margin: 0 0 0.75rem; font-size: 0.85rem">
+        Укажите URL вашего сайта и секрет <code>ADMIN_SECRET</code> из переменных окружения Vercel. Запрос идёт на
+        <code>/api/export</code> — ответ подставится в таблицу (как при загрузке JSON).
+      </p>
+      <label class="server-field">
+        Базовый URL
+        <input type="url" id="serverBase" placeholder="https://your-app.vercel.app" autocomplete="off" />
+      </label>
+      <label class="server-field">
+        Секрет администратора
+        <input type="password" id="serverSecret" placeholder="ADMIN_SECRET" autocomplete="off" />
+      </label>
+      <div class="row-actions" style="margin-top: 0.75rem">
+        <button type="button" class="btn btn-primary" id="btnFetchServer">Загрузить записи с сервера</button>
+      </div>
+      <div id="serverMsg" class="ok" style="min-height: 0"></div>
+    </div>
+
+    <div class="panel" id="statsPanel" hidden>
+      <p style="margin: 0 0 0.5rem"><strong>Сводка</strong></p>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="panel" id="tablePanel" hidden>
+      <p style="margin: 0 0 0.5rem"><strong>Таблица (прокрутка)</strong></p>
+      <div class="table-scroll">
+        <table class="data" id="dataTable">
+          <thead id="dataThead"></thead>
+          <tbody id="dataTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ASST_N = 20;
+      var CAQ_N = 24;
+      var STROOP_N = 20;
+      var GNG_MAIN_N = 10;
+
+      var bundles = [];
+      var flatRows = [];
+      var columns = [];
+
+      function mean(arr) {
+        var xs = arr.filter(function (x) {
+          return typeof x === "number" && isFinite(x);
+        });
+        if (!xs.length) return "";
+        var s = 0;
+        xs.forEach(function (x) {
+          s += x;
+        });
+        return Math.round((s / xs.length) * 100) / 100;
+      }
+
+      function safeNum(x) {
+        var n = typeof x === "number" ? x : parseFloat(x);
+        return isFinite(n) ? n : null;
+      }
+
+      function parseJsonObjectsFromText(text) {
+        var out = [];
+        var t = String(text || "").trim();
+        if (!t) return out;
+        var i = 0;
+        while (i < t.length) {
+          while (i < t.length && /\s/.test(t[i])) i++;
+          if (i >= t.length) break;
+          if (t[i] !== "{") {
+            var lineEnd = t.indexOf("\n", i);
+            if (lineEnd < 0) lineEnd = t.length;
+            i = lineEnd + 1;
+            continue;
+          }
+          var depth = 0;
+          var start = i;
+          var inStr = false;
+          var esc = false;
+          for (; i < t.length; i++) {
+            var c = t[i];
+            if (inStr) {
+              if (esc) esc = false;
+              else if (c === "\\") esc = true;
+              else if (c === '"') inStr = false;
+              continue;
+            }
+            if (c === '"') inStr = true;
+            else if (c === "{") depth++;
+            else if (c === "}") {
+              depth--;
+              if (depth === 0) {
+                var chunk = t.slice(start, i + 1);
+                try {
+                  out.push(JSON.parse(chunk));
+                } catch (e) {}
+                i++;
+                break;
+              }
+            }
+          }
+        }
+        return out;
+      }
+
+      function normalizeBundle(obj) {
+        if (!obj || typeof obj !== "object") return null;
+        return obj;
+      }
+
+      function stroopMeanRt(st) {
+        if (!st || !Array.isArray(st.trials)) return "";
+        var rts = st.trials
+          .filter(function (tr) {
+            return !tr.timeout && tr.reactionMs != null;
+          })
+          .map(function (tr) {
+            return tr.reactionMs;
+          });
+        return mean(rts);
+      }
+
+      function flattenBundle(b) {
+        var r = {};
+        r.server_row_id = b.server_row_id != null ? String(b.server_row_id) : "";
+        r.server_inserted_at = b.server_inserted_at != null ? String(b.server_inserted_at) : "";
+        r.participant_id = b.participantId || b.user_id || "";
+        r.exported_at = b.exportedAt || b.timestamp || "";
+
+        var s1 = b.stage1 || {};
+        r.stage1_branch = s1.videoBranch != null ? s1.videoBranch : "";
+        r.stage1_shorts_done = s1.allShortsWatched ? "1" : s1.allShortsWatched === false ? "0" : "";
+        r.max_unlocked_stage =
+          s1.maxUnlockedStage != null ? String(s1.maxUnlockedStage) : "";
+
+        var s2 = b.stage2;
+        r.crt_correct = s2 && s2.wrong_count != null && s2.answers ? 3 - s2.wrong_count : "";
+        if (s2 && typeof s2.wrong_count === "number") r.crt_wrong = s2.wrong_count;
+        else r.crt_wrong = "";
+        for (var q = 1; q <= 3; q++) {
+          r["crt_q" + q + "_ms"] = "";
+          r["crt_q" + q + "_choice"] = "";
+          r["crt_q" + q + "_correct"] = "";
+        }
+        if (s2 && Array.isArray(s2.answers)) {
+          s2.answers.forEach(function (a) {
+            var qi = a.q;
+            if (qi >= 1 && qi <= 3) {
+              r["crt_q" + qi + "_ms"] = a.time_ms != null ? a.time_ms : "";
+              r["crt_q" + qi + "_choice"] = a.selected != null ? String(a.selected) : "";
+              r["crt_q" + qi + "_correct"] = a.correct ? "1" : a.correct === false ? "0" : "";
+            }
+          });
+        }
+
+        var rawCrt = b._raw && b._raw.crt;
+        if (rawCrt && r.crt_correct === "") {
+          r.crt_correct =
+            rawCrt.correctCount != null ? rawCrt.correctCount : "";
+          r.crt_wrong = rawCrt.wrongCount != null ? rawCrt.wrongCount : "";
+        }
+
+        var s4 = b.stage4;
+        var rawSt = b._raw && b._raw.stroop;
+        var st = rawSt && rawSt.trials ? rawSt : s4 ? { trials: [] } : null;
+        if (s4) {
+          r.stroop_correct = s4.correct_count != null ? s4.correct_count : "";
+          r.stroop_wrong = s4.wrong_count != null ? s4.wrong_count : "";
+        } else if (rawSt) {
+          r.stroop_correct = rawSt.correctCount != null ? rawSt.correctCount : "";
+          r.stroop_wrong = rawSt.wrongCount != null ? rawSt.wrongCount : "";
+        } else {
+          r.stroop_correct = "";
+          r.stroop_wrong = "";
+        }
+        r.stroop_mean_rt_ms = stroopMeanRt(st || rawSt);
+
+        for (var si = 1; si <= STROOP_N; si++) {
+          r["stroop_t" + si + "_ms"] = "";
+        }
+        var trials = (st && st.trials) || (rawSt && rawSt.trials) || [];
+        if (Array.isArray(trials)) {
+          trials.forEach(function (tr, idx) {
+            if (idx < STROOP_N) {
+              r["stroop_t" + (idx + 1) + "_ms"] =
+                tr.timeout || tr.reactionMs == null ? "" : tr.reactionMs;
+            }
+          });
+        }
+
+        var s6 = b.stage6;
+        var rawG = b._raw && b._raw.gng;
+        var mainT =
+          rawG && rawG.main && rawG.main.trials
+            ? rawG.main.trials
+            : s6 && s6.click_details
+            ? s6.click_details
+            : [];
+        if (s6) {
+          r.gng_main_correct = s6.correct_count != null ? s6.correct_count : "";
+          r.gng_main_wrong = s6.wrong_count != null ? s6.wrong_count : "";
+        } else if (rawG && rawG.main) {
+          r.gng_main_correct =
+            rawG.main.correctCount != null ? rawG.main.correctCount : "";
+          r.gng_main_wrong =
+            rawG.main.wrongCount != null ? rawG.main.wrongCount : "";
+        } else {
+          r.gng_main_correct = "";
+          r.gng_main_wrong = "";
+        }
+        r.gng_mean_rt_ms = mean(
+          (Array.isArray(mainT) ? mainT : []).map(function (t) {
+            return safeNum(t.reactionMs != null ? t.reactionMs : t.time_ms);
+          })
+        );
+
+        for (var gi = 1; gi <= GNG_MAIN_N; gi++) {
+          r["gng_m" + gi + "_digit"] = "";
+          r["gng_m" + gi + "_ms"] = "";
+          r["gng_m" + gi + "_ok"] = "";
+        }
+        if (Array.isArray(mainT)) {
+          mainT.forEach(function (tr, idx) {
+            if (idx < GNG_MAIN_N) {
+              var dig = tr.digit != null ? tr.digit : tr.showed;
+              r["gng_m" + (idx + 1) + "_digit"] = dig != null ? String(dig) : "";
+              var ms = tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
+              r["gng_m" + (idx + 1) + "_ms"] = ms != null ? ms : "";
+              r["gng_m" + (idx + 1) + "_ok"] =
+                tr.correct ? "1" : tr.correct === false ? "0" : "";
+            }
+          });
+        }
+
+        var s7 = b.stage7;
+        var pay = s7 && s7.answers ? s7.answers : null;
+        var fields = (pay && pay.fields) || {};
+        r.s7_fio = pay && pay.fio != null ? String(pay.fio) : "";
+        r.s7_gender = fields.s7_gender || "";
+        r.s7_age = fields.s7_age || "";
+        r.s7_edu = fields.s7_edu || "";
+        r.s7_course = fields.s7_course || "";
+        r.s7_spec = fields.s7_spec || "";
+        r.s7_shorts_daily = fields.s7_shorts_daily || "";
+        r.s7_short_days = fields.s7_short_days || "";
+        r.s7_shorts_study = fields.s7_shorts_study || "";
+        r.s7_saved_at = s7 && s7.savedAt ? s7.savedAt : "";
+
+        for (var ai = 1; ai <= ASST_N; ai++) {
+          r["s7_asst_" + ai] =
+            pay && pay.asst && pay.asst[String(ai)] != null
+              ? String(pay.asst[String(ai)])
+              : "";
+        }
+        for (var ci = 1; ci <= CAQ_N; ci++) {
+          r["s7_caq_" + ci] =
+            pay && pay.caq && pay.caq[String(ci)] != null
+              ? String(pay.caq[String(ci)])
+              : "";
+        }
+
+        return r;
+      }
+
+      function buildColumns(rows) {
+        var set = {};
+        rows.forEach(function (row) {
+          Object.keys(row).forEach(function (k) {
+            set[k] = true;
+          });
+        });
+        var preferred = [
+          "server_row_id",
+          "server_inserted_at",
+          "participant_id",
+          "exported_at",
+          "stage1_branch",
+          "stage1_shorts_done",
+          "max_unlocked_stage",
+          "crt_correct",
+          "crt_wrong",
+          "crt_q1_ms",
+          "crt_q1_choice",
+          "crt_q1_correct",
+          "crt_q2_ms",
+          "crt_q2_choice",
+          "crt_q2_correct",
+          "crt_q3_ms",
+          "crt_q3_choice",
+          "crt_q3_correct",
+          "stroop_correct",
+          "stroop_wrong",
+          "stroop_mean_rt_ms"
+        ];
+        var rest = Object.keys(set).filter(function (k) {
+          return preferred.indexOf(k) < 0;
+        });
+        rest.sort();
+        var cols = preferred.filter(function (k) {
+          return set[k];
+        });
+        rest.forEach(function (k) {
+          if (set[k]) cols.push(k);
+        });
+        return cols;
+      }
+
+      function csvEscape(s) {
+        var x = s == null ? "" : String(s);
+        if (/[",\n\r]/.test(x)) return '"' + x.replace(/"/g, '""') + '"';
+        return x;
+      }
+
+      function toCsv(rows, cols) {
+        var lines = [cols.map(csvEscape).join(",")];
+        rows.forEach(function (row) {
+          lines.push(
+            cols
+              .map(function (c) {
+                return csvEscape(row[c]);
+              })
+              .join(",")
+          );
+        });
+        return lines.join("\r\n");
+      }
+
+      function renderStats(rows) {
+        var n = rows.length;
+        var withCrt = rows.filter(function (r) {
+          return r.crt_correct !== "" && r.crt_correct != null;
+        });
+        var crtScores = withCrt.map(function (r) {
+          return safeNum(r.crt_correct);
+        });
+        var withStroop = rows.filter(function (r) {
+          return r.stroop_correct !== "" && r.stroop_correct != null;
+        });
+        var withGng = rows.filter(function (r) {
+          return r.gng_main_correct !== "" && r.gng_main_correct != null;
+        });
+        var withS7 = rows.filter(function (r) {
+          return r.s7_gender || r.s7_age;
+        });
+
+        var genderCounts = {};
+        rows.forEach(function (r) {
+          var g = r.s7_gender || "(пусто)";
+          genderCounts[g] = (genderCounts[g] || 0) + 1;
+        });
+
+        var items = [
+          { label: "Участников (строк)", value: n },
+          {
+            label: "С анкетой (есть пол/возраст)",
+            value: withS7.length
+          },
+          {
+            label: "С данными CRT",
+            value: withCrt.length
+          },
+          {
+            label: "Среднее верных CRT (из 3)",
+            value: mean(crtScores)
+          },
+          {
+            label: "С данными Струпа",
+            value: withStroop.length
+          },
+          {
+            label: "С данными GNG (осн.)",
+            value: withGng.length
+          }
+        ];
+
+        var grid = document.getElementById("statsGrid");
+        grid.innerHTML = items
+          .map(function (it) {
+            return (
+              '<div class="stat-card"><strong>' +
+              (it.value === "" ? "—" : it.value) +
+              "</strong><span>" +
+              it.label +
+              "</span></div>"
+            );
+          })
+          .join("");
+
+        var gKeys = Object.keys(genderCounts).sort();
+        if (gKeys.length) {
+          grid.innerHTML +=
+            '<div class="stat-card" style="grid-column: 1 / -1"><strong>Пол (анкета)</strong><span>' +
+            gKeys.map(function (k) {
+              return k + ": " + genderCounts[k];
+            }).join(" · ") +
+            "</span></div>";
+        }
+
+        document.getElementById("statsPanel").hidden = n === 0;
+      }
+
+      function renderTable(rows, cols) {
+        var thead = document.getElementById("dataThead");
+        var tbody = document.getElementById("dataTbody");
+        thead.innerHTML =
+          "<tr>" +
+          cols
+            .map(function (c) {
+              return "<th>" + c.replace(/</g, "&lt;") + "</th>";
+            })
+            .join("") +
+          "</tr>";
+        tbody.innerHTML = rows
+          .map(function (row) {
+            return (
+              "<tr>" +
+              cols
+                .map(function (c) {
+                  var v = row[c];
+                  var t = v == null ? "" : String(v);
+                  if (t.length > 80) t = t.slice(0, 77) + "…";
+                  return "<td title='" + String(row[c]).replace(/'/g, "&#39;") + "'>" + t.replace(/</g, "&lt;") + "</td>";
+                })
+                .join("") +
+              "</tr>"
+            );
+          })
+          .join("");
+        document.getElementById("tablePanel").hidden = rows.length === 0;
+      }
+
+      function ingestObjects(objs) {
+        var msg = document.getElementById("message");
+        msg.className = "";
+        msg.textContent = "";
+        var added = 0;
+        objs.forEach(function (o) {
+          var b = normalizeBundle(o);
+          if (b) {
+            bundles.push(b);
+            flatRows.push(flattenBundle(b));
+            added++;
+          }
+        });
+        if (!added) {
+          msg.className = "err";
+          msg.textContent = "Не удалось разобрать ни одного JSON-объекта.";
+          return;
+        }
+        columns = buildColumns(flatRows);
+        renderStats(flatRows);
+        renderTable(flatRows, columns);
+        msg.className = "ok";
+        msg.textContent =
+          "Загружено записей: " + added + " (всего в таблице: " + flatRows.length + ").";
+        document.getElementById("btnCsv").disabled = flatRows.length === 0;
+        document.getElementById("btnParsePaste").disabled = false;
+      }
+
+      function clearAll() {
+        bundles = [];
+        flatRows = [];
+        columns = [];
+        document.getElementById("dataThead").innerHTML = "";
+        document.getElementById("dataTbody").innerHTML = "";
+        document.getElementById("statsGrid").innerHTML = "";
+        document.getElementById("statsPanel").hidden = true;
+        document.getElementById("tablePanel").hidden = true;
+        document.getElementById("message").textContent = "";
+        document.getElementById("btnCsv").disabled = true;
+        document.getElementById("fileInput").value = "";
+        var sm = document.getElementById("serverMsg");
+        if (sm) sm.textContent = "";
+      }
+
+      function bundlesFromServerRows(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows
+          .map(function (row) {
+            var p = row && row.payload;
+            if (!p || typeof p !== "object") return null;
+            try {
+              var copy = JSON.parse(JSON.stringify(p));
+              copy.server_row_id = row.id != null ? row.id : "";
+              copy.server_inserted_at = row.inserted_at != null ? row.inserted_at : "";
+              return copy;
+            } catch (e) {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+
+      if (typeof window !== "undefined" && /^https?:/i.test(window.location.protocol)) {
+        var sb0 = document.getElementById("serverBase");
+        if (sb0 && !sb0.value) sb0.value = window.location.origin;
+      }
+
+      document.getElementById("btnFetchServer").addEventListener("click", function () {
+        var baseEl = document.getElementById("serverBase");
+        var secEl = document.getElementById("serverSecret");
+        var srvMsg = document.getElementById("serverMsg");
+        var base = (baseEl && baseEl.value.trim().replace(/\/$/, "")) || "";
+        var secret = secEl ? secEl.value : "";
+        srvMsg.className = "";
+        srvMsg.textContent = "";
+        if (!base) {
+          srvMsg.className = "err";
+          srvMsg.textContent = "Укажите базовый URL.";
+          return;
+        }
+        if (!secret) {
+          srvMsg.className = "err";
+          srvMsg.textContent = "Укажите секрет.";
+          return;
+        }
+        var btnSrv = document.getElementById("btnFetchServer");
+        btnSrv.disabled = true;
+        fetch(base + "/api/export", {
+          method: "GET",
+          headers: { "x-admin-secret": secret }
+        })
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { r: r, j: j };
+            });
+          })
+          .then(function (o) {
+            btnSrv.disabled = false;
+            if (!o.r.ok) {
+              srvMsg.className = "err";
+              srvMsg.textContent =
+                (o.j && o.j.error) ||
+                "Ошибка " + o.r.status + (o.j && o.j.detail ? ": " + o.j.detail : "");
+              return;
+            }
+            var objs = bundlesFromServerRows(o.j.rows);
+            if (!objs.length) {
+              srvMsg.className = "ok";
+              srvMsg.textContent = "Записей на сервере пока нет.";
+              return;
+            }
+            ingestObjects(objs);
+            srvMsg.className = "ok";
+            srvMsg.textContent = "С сервера загружено объектов: " + objs.length + ".";
+          })
+          .catch(function (e) {
+            btnSrv.disabled = false;
+            srvMsg.className = "err";
+            srvMsg.textContent = e && e.message ? e.message : String(e);
+          });
+      });
+
+      document.getElementById("fileInput").addEventListener("change", function (e) {
+        var files = e.target.files;
+        if (!files || !files.length) return;
+        var pending = files.length;
+        var objects = [];
+        var hadErr = false;
+        Array.prototype.forEach.call(files, function (f) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            try {
+              var txt = reader.result;
+              var one = JSON.parse(txt);
+              if (Array.isArray(one)) one.forEach(function (x) { objects.push(x); });
+              else objects.push(one);
+            } catch (err) {
+              hadErr = true;
+            }
+            pending--;
+            if (pending === 0) {
+              if (hadErr && objects.length === 0) {
+                document.getElementById("message").className = "err";
+                document.getElementById("message").textContent =
+                  "Ошибка чтения JSON. Проверьте формат файла.";
+              } else ingestObjects(objects);
+            }
+          };
+          reader.readAsText(f, "UTF-8");
+        });
+      });
+
+      document.getElementById("btnParsePaste").addEventListener("click", function () {
+        var text = document.getElementById("pasteArea").value;
+        var objs = parseJsonObjectsFromText(text);
+        if (!objs.length) {
+          try {
+            var one = JSON.parse(text.trim());
+            if (Array.isArray(one)) objs = one;
+            else objs = [one];
+          } catch (e) {}
+        }
+        ingestObjects(objs);
+      });
+
+      document.getElementById("pasteArea").addEventListener("input", function () {
+        document.getElementById("btnParsePaste").disabled = false;
+      });
+
+      document.getElementById("btnClear").addEventListener("click", clearAll);
+
+      document.getElementById("btnCsv").addEventListener("click", function () {
+        if (!flatRows.length || !columns.length) return;
+        var csv = toCsv(flatRows, columns);
+        var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "experiment_aggregate_" + new Date().toISOString().slice(0, 19).replace(/:/g, "-") + ".csv";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    })();
+  </script>
+</body>
+</html>
