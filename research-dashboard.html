@@ -109,29 +109,14 @@
     }
     .err { color: #a32020; font-size: 0.88rem; margin-top: 0.5rem; }
     .ok { color: #1b6b3a; font-size: 0.88rem; margin-top: 0.5rem; }
-    label.server-field {
-      display: block;
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    label.server-field input {
-      display: block;
-      width: 100%;
-      max-width: 28rem;
-      margin-top: 0.25rem;
-      padding: 0.4rem 0.5rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Сводка и таблица по участникам</h1>
     <p class="lead">
-      <strong>Только для разработчика / исследователя.</strong> Не давайте участникам ссылку на эту страницу. Данные участники отправляют на сервер при сохранении анкеты (этап 7); здесь вы забираете их через «С сервера» или объединяете JSON, если копии получены иным путём.
+      <strong>Только для разработчика / исследователя.</strong> Не давайте участникам ссылку на эту страницу.
+      Основной поток данных: <strong>Google Таблица</strong> (см. колонку <code>payload_json</code>) — откройте файл и скачайте CSV или копируйте JSON в поле ниже.
       Можно вставить несколько JSON подряд — появится таблица и выгрузка CSV.
     </p>
 
@@ -154,23 +139,12 @@
     </div>
 
     <div class="panel">
-      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>С сервера (после деплоя на Vercel + Supabase)</strong></p>
-      <p class="lead" style="margin: 0 0 0.75rem; font-size: 0.85rem">
-        Укажите URL вашего сайта и секрет <code>ADMIN_SECRET</code> из переменных окружения Vercel. Запрос идёт на
-        <code>/api/export</code> — ответ подставится в таблицу (как при загрузке JSON).
+      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>Данные из Google Sheets</strong></p>
+      <p class="lead" style="margin: 0; font-size: 0.85rem; line-height: 1.5">
+        Откройте свою таблицу (куда пишет Apps Script). Колонка <code>payload_json</code> — полный JSON одного участника.
+        Скопируйте ячейки (по одному JSON) в поле «Вставка» выше или скачайте лист как CSV и анализируйте в Excel.
+        <br /><span style="color: var(--muted)">EN: Data is stored in your Sheet; no Supabase required for this flow.</span>
       </p>
-      <label class="server-field">
-        Базовый URL
-        <input type="url" id="serverBase" placeholder="https://your-app.vercel.app" autocomplete="off" />
-      </label>
-      <label class="server-field">
-        Секрет администратора
-        <input type="password" id="serverSecret" placeholder="ADMIN_SECRET" autocomplete="off" />
-      </label>
-      <div class="row-actions" style="margin-top: 0.75rem">
-        <button type="button" class="btn btn-primary" id="btnFetchServer">Загрузить записи с сервера</button>
-      </div>
-      <div id="serverMsg" class="ok" style="min-height: 0"></div>
     </div>
 
     <div class="panel" id="statsPanel" hidden>
@@ -627,87 +601,7 @@
         document.getElementById("message").textContent = "";
         document.getElementById("btnCsv").disabled = true;
         document.getElementById("fileInput").value = "";
-        var sm = document.getElementById("serverMsg");
-        if (sm) sm.textContent = "";
       }
-
-      function bundlesFromServerRows(rows) {
-        if (!Array.isArray(rows)) return [];
-        return rows
-          .map(function (row) {
-            var p = row && row.payload;
-            if (!p || typeof p !== "object") return null;
-            try {
-              var copy = JSON.parse(JSON.stringify(p));
-              copy.server_row_id = row.id != null ? row.id : "";
-              copy.server_inserted_at = row.inserted_at != null ? row.inserted_at : "";
-              return copy;
-            } catch (e) {
-              return null;
-            }
-          })
-          .filter(Boolean);
-      }
-
-      if (typeof window !== "undefined" && /^https?:/i.test(window.location.protocol)) {
-        var sb0 = document.getElementById("serverBase");
-        if (sb0 && !sb0.value) sb0.value = window.location.origin;
-      }
-
-      document.getElementById("btnFetchServer").addEventListener("click", function () {
-        var baseEl = document.getElementById("serverBase");
-        var secEl = document.getElementById("serverSecret");
-        var srvMsg = document.getElementById("serverMsg");
-        var base = (baseEl && baseEl.value.trim().replace(/\/$/, "")) || "";
-        var secret = secEl ? secEl.value : "";
-        srvMsg.className = "";
-        srvMsg.textContent = "";
-        if (!base) {
-          srvMsg.className = "err";
-          srvMsg.textContent = "Укажите базовый URL.";
-          return;
-        }
-        if (!secret) {
-          srvMsg.className = "err";
-          srvMsg.textContent = "Укажите секрет.";
-          return;
-        }
-        var btnSrv = document.getElementById("btnFetchServer");
-        btnSrv.disabled = true;
-        fetch(base + "/api/export", {
-          method: "GET",
-          headers: { "x-admin-secret": secret }
-        })
-          .then(function (r) {
-            return r.json().then(function (j) {
-              return { r: r, j: j };
-            });
-          })
-          .then(function (o) {
-            btnSrv.disabled = false;
-            if (!o.r.ok) {
-              srvMsg.className = "err";
-              srvMsg.textContent =
-                (o.j && o.j.error) ||
-                "Ошибка " + o.r.status + (o.j && o.j.detail ? ": " + o.j.detail : "");
-              return;
-            }
-            var objs = bundlesFromServerRows(o.j.rows);
-            if (!objs.length) {
-              srvMsg.className = "ok";
-              srvMsg.textContent = "Записей на сервере пока нет.";
-              return;
-            }
-            ingestObjects(objs);
-            srvMsg.className = "ok";
-            srvMsg.textContent = "С сервера загружено объектов: " + objs.length + ".";
-          })
-          .catch(function (e) {
-            btnSrv.disabled = false;
-            srvMsg.className = "err";
-            srvMsg.textContent = e && e.message ? e.message : String(e);
-          });
-      });
 
       document.getElementById("fileInput").addEventListener("change", function (e) {
         var files = e.target.files;

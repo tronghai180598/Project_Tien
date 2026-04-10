@@ -1,0 +1,33 @@
+CÁCH LẤY DỮ LIỆU (Google Sheet — không cần Supabase)
+==================================================
+
+Bước 1 — Tạo Google Sheet
+  - Vào https://sheets.google.com → Tạo bảng tính trống.
+
+Bước 2 — Dán Apps Script
+  - Menu: Extensions → Apps Script (Tiện ích mở rộng → Apps Script).
+  - Xóa code cũ, copy toàn bộ nội dung file Code.gs trong thư mục này vào, Lưu (Ctrl+S).
+
+Bước 3 — Triển khai Web App
+  - Nút Deploy (Triển khai) → New deployment.
+  - Biểu tượng bánh răng → Type: Web app.
+  - Execute as: Me (Tài khoản của tôi).
+  - Who has access: Anyone (Bất kỳ ai).
+  - Deploy → cho phép quyền khi được hỏi.
+  - Copy URL (dạng https://script.google.com/macros/s/.../exec).
+
+Bước 4 — Vercel
+  - Project → Settings → Environment Variables.
+  - Thêm: GOOGLE_SCRIPT_URL = URL vừa copy.
+  - (Xóa SUPABASE_* nếu bạn không dùng Supabase nữa — tùy chọn.)
+  - Save → Deployments → Redeploy.
+
+Bước 5 — Thử
+  - Mở site đã deploy, làm đến bước 7, gửi khảo sát.
+  - Mở lại Google Sheet: phải có dòng mới (cột payload_json = JSON đầy đủ).
+
+Bước 6 — Phân tích
+  - Trong Sheet: File → Download → Comma-separated values (.csv).
+  - Hoặc mở research-dashboard.html, copy nội dung cột payload_json vào ô dán JSON.
+
+Lưu ý: URL Web App chỉ bạn dùng trong Vercel, không đưa vào code frontend công khai nếu không cần.
