@@ -1141,24 +1141,6 @@
     .s7-likert-table tbody tr:nth-child(even) .s7-likert-td-opt {
       background: #fcfaf7;
     }
-    .research-export-panel {
-      margin-top: 2rem;
-      padding: 1.25rem 1.5rem;
-      border: 1px solid var(--border, #ddd);
-      border-radius: 10px;
-      background: #faf9f7;
-      max-width: 52rem;
-    }
-    .research-export-panel h2 {
-      margin: 0 0 0.5rem;
-      font-size: 1.1rem;
-    }
-    .research-export-panel p {
-      margin: 0 0 0.75rem;
-      font-size: 0.9rem;
-      color: var(--muted, #555);
-      line-height: 1.45;
-    }
   </style>
 </head>
 <body>
@@ -1173,16 +1155,6 @@
       <p class="reset-hint">Если все этапы выглядят открытыми, нажмите сброс: прогресс хранится в браузере (ключ <code>courseMaxUnlockedStage</code>).</p>
     </div>
 
-    <div class="research-export-panel" id="researchExportPanel">
-      <h2>Экспорт данных исследования</h2>
-      <p>
-        После прохождения этапов нажмите кнопку ниже, чтобы скачать JSON с результатами (CRT, Струп, игра с цифрами, анкета и т.д.).
-        На опубликованном сайте те же данные <strong>автоматически отправляются на сервер</strong> при сохранении анкеты (этап 7) и при этой кнопке — если в Vercel настроены Supabase и переменные окружения (см. <code>env.example</code>).
-        Исследователь скачивает все записи на странице
-        <a href="research-dashboard.html">research-dashboard.html</a> (раздел «С сервера») или объединяет файлы вручную.
-      </p>
-      <button type="button" class="btn-primary" id="btnDownloadExperimentJson">Скачать мои данные (JSON)</button>
-    </div>
   </div>
 
   <template id="tpl-stage1-inner">
@@ -1896,28 +1868,9 @@
         };
       }
 
-      function downloadExperimentJsonFile() {
-        var bundle = buildExperimentExportBundle();
-        var safeName =
-          "experiment_" +
-          String(bundle.participantId).replace(/[^\w.-]+/g, "_") +
-          "_" +
-          new Date().toISOString().slice(0, 19).replace(/:/g, "-") +
-          ".json";
-        var blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
-        var a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = safeName;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-      }
-
       /**
        * POST full bundle to /api/submit (same origin when deployed on Vercel).
-       * No secrets in the page — open endpoint; protect data via admin export secret only.
+       * Participants do not download raw data from the UI; only the researcher aggregates via the dashboard.
        */
       function submitExperimentToCloud(done) {
         if (typeof fetch !== "function") {
@@ -2960,7 +2913,7 @@
               fb.textContent =
                 "Анкета сохранена локально в браузере. Отправка на сервер не выполнена" +
                 (errMsg ? " (" + errMsg + ")." : ".") +
-                " Можете завершить седьмой этап или скачать JSON ниже.";
+                " Можете завершить седьмой этап.";
             }
           });
         });
@@ -3472,20 +3425,6 @@
         assignFreshParticipantId();
         render();
       });
-
-      var dlBtn = document.getElementById("btnDownloadExperimentJson");
-      if (dlBtn) {
-        dlBtn.addEventListener("click", function () {
-          var prev = dlBtn.textContent;
-          dlBtn.disabled = true;
-          dlBtn.textContent = "Отправка на сервер…";
-          submitExperimentToCloud(function () {
-            downloadExperimentJsonFile();
-            dlBtn.disabled = false;
-            dlBtn.textContent = prev;
-          });
-        });
-      }
 
       getOrCreateParticipantId();
       render();
