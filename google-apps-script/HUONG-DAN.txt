@@ -4,30 +4,44 @@ CÁCH LẤY DỮ LIỆU (Google Sheet — không cần Supabase)
 Bước 1 — Tạo Google Sheet
   - Vào https://sheets.google.com → Tạo bảng tính trống.
 
-Bước 2 — Dán Apps Script
-  - Menu: Extensions → Apps Script (Tiện ích mở rộng → Apps Script).
-  - Xóa code cũ, copy toàn bộ nội dung file Code.gs trong thư mục này vào, Lưu (Ctrl+S).
+Bước 2 — Lấy ID trang tính (BẮT BUỘC)
+  - Mở Sheet, thanh địa chỉ có dạng:
+    https://docs.google.com/spreadsheets/d/ABC...xyz/edit
+  - Copy đoạn giữa /d/ và /edit (chỉ chuỗi ID, không có /).
 
-Bước 3 — Triển khai Web App
-  - Nút Deploy (Triển khai) → New deployment.
-  - Biểu tượng bánh răng → Type: Web app.
+Bước 3 — Dán Apps Script
+  - Menu: Extensions → Apps Script.
+  - Dán code từ file Code.gs, rồi dán ID vào dòng:
+      var SPREADSHEET_ID = "ABC...xyz";
+    (giữ trong dấu ngoặc kép)
+  - Lưu (Ctrl+S).
+
+Bước 4 — Chạy thử trong Apps Script (khuyến nghị)
+  - Trong editor, chọn hàm testAppendRow → Run (Chạy).
+  - Cho phép quyền truy cập Google khi được hỏi.
+  - Mở lại Sheet: phải thấy một dòng có participant_id = TEST_MANUAL.
+  - Nếu không có dòng → kiểm tra lại SPREADSHEET_ID cho đúng.
+
+Bước 5 — Triển khai Web App
+  - Deploy → New deployment → Type: Web app.
   - Execute as: Me (Tài khoản của tôi).
   - Who has access: Anyone (Bất kỳ ai).
-  - Deploy → cho phép quyền khi được hỏi.
-  - Copy URL (dạng https://script.google.com/macros/s/.../exec).
+  - Deploy → copy URL (.../exec).
 
-Bước 4 — Vercel
-  - Project → Settings → Environment Variables.
-  - Thêm: GOOGLE_SCRIPT_URL = URL vừa copy.
-  - (Xóa SUPABASE_* nếu bạn không dùng Supabase nữa — tùy chọn.)
+Bước 6 — Vercel
+  - Settings → Environment Variables → GOOGLE_SCRIPT_URL = URL vừa copy.
   - Save → Deployments → Redeploy.
 
-Bước 5 — Thử
+Bước 7 — Thử từ website
   - Mở site đã deploy, làm đến bước 7, gửi khảo sát.
-  - Mở lại Google Sheet: phải có dòng mới (cột payload_json = JSON đầy đủ).
+  - Mở Sheet: thêm dòng mới (không phải TEST_MANUAL).
 
-Bước 6 — Phân tích
-  - Trong Sheet: File → Download → Comma-separated values (.csv).
-  - Hoặc mở research-dashboard.html, copy nội dung cột payload_json vào ô dán JSON.
+Sau khi sửa Code.gs (ví dụ đổi SPREADSHEET_ID):
+  - Deploy → Manage deployments → biểu tượng bút (sửa) → Version chọn "New version" → Deploy.
+  - Nếu không tạo version mới, web vẫn chạy code cũ.
 
-Lưu ý: URL Web App chỉ bạn dùng trong Vercel, không đưa vào code frontend công khai nếu không cần.
+Xử lý sự cố — Sheet vẫn trắng:
+  1) SPREADSHEET_ID có đúng không (copy lại từ URL).
+  2) Đã Deploy lại version mới sau khi sửa code chưa.
+  3) Vercel có biến GOOGLE_SCRIPT_URL và đã Redeploy chưa.
+  4) Trên Vercel → Functions / Logs xem /api/submit có lỗi 502 không (Google trả { ok:false, error:... }).
