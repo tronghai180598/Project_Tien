@@ -1,9 +1,36 @@
 /**
+ * POST to Google Web App; follow 302 manually so JSON body is not lost.
+ */
+async function fetchGoogleAppsScriptPost(url, bodyObj) {
+  var payload = JSON.stringify(bodyObj);
+  var headers = { "Content-Type": "application/json" };
+  var nextUrl = url;
+  var max = 8;
+  while (max-- > 0) {
+    var r = await fetch(nextUrl, {
+      method: "POST",
+      headers: headers,
+      body: payload,
+      redirect: "manual"
+    });
+    if (r.status >= 300 && r.status < 400) {
+      var loc = r.headers.get("location");
+      if (loc) {
+        nextUrl = new URL(loc, nextUrl).href;
+        continue;
+      }
+    }
+    return r;
+  }
+  throw new Error("Too many redirects to Google Apps Script");
+}
+
+/**
  * POST /api/submit — forwards participant JSON to your Google Apps Script Web App,
  * which appends one row per submission to a Google Sheet.
  *
  * Vercel → Environment Variables:
- *   GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/XXXX/exec
+ *   GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/AKfycbz8ABQ_sUwySRfWXsRkHwiwBl0NT6NOgTTPkjAO7lalGUgIFJrRRZRUVvvwzkInbdTlcg/exec
  *
  * (Optional legacy: set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to use Supabase instead.)
  */
@@ -36,12 +63,12 @@ module.exports = async function handler(req, res) {
   var gasUrl = process.env.GOOGLE_SCRIPT_URL;
   if (gasUrl && String(gasUrl).trim()) {
     try {
-      var r = await fetch(String(gasUrl).trim(), {
-        method: "POST",
-        redirect: "follow",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      /**
+       * Google often responds 302 to script.googleusercontent.com. Default fetch
+       * "follow" may turn POST into GET and drop the JSON body — Sheet gets headers only or nothing.
+       * We follow redirects manually and always re-POST the same body.
+       */
+      var r = await fetchGoogleAppsScriptPost(String(gasUrl).trim(), body);
       var text = await r.text();
       if (!r.ok) {
         return res.status(502).json({
@@ -50,6 +77,15 @@ module.exports = async function handler(req, res) {
           detail: text.slice(0, 800)
         });
       }
+      try {
+        var parsed = JSON.parse(text);
+        if (parsed && parsed.ok === false) {
+          return res.status(502).json({
+            error: "Google Apps Script reported failure",
+            detail: (parsed.error || text).slice(0, 800)
+          });
+        }
+      } catch (parseErr) {}
       return res.status(200).json({ ok: true, storage: "google_sheet" });
     } catch (err) {
       return res.status(500).json({

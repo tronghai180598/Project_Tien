@@ -21,7 +21,10 @@ function doPost(e) {
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(["timestamp", "participant_id", "payload_json"]);
     }
-    var raw = e.postData && e.postData.contents ? e.postData.contents : "{}";
+    var raw = e.postData && e.postData.contents ? String(e.postData.contents) : "{}";
+    if (!raw || !raw.trim()) {
+      raw = "{}";
+    }
     var data = JSON.parse(raw);
     var pid = data.participantId != null ? String(data.participantId) : "";
     var jsonStr = JSON.stringify(data);

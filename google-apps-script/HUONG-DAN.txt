@@ -45,3 +45,8 @@ Xử lý sự cố — Sheet vẫn trắng:
   2) Đã Deploy lại version mới sau khi sửa code chưa.
   3) Vercel có biến GOOGLE_SCRIPT_URL và đã Redeploy chưa.
   4) Trên Vercel → Functions / Logs xem /api/submit có lỗi 502 không (Google trả { ok:false, error:... }).
+
+Chỉ có dòng tiêu đề (timestamp / participant_id / payload_json) mà không có dòng dữ liệu:
+  - Thường do Google redirect (302) làm mất nội dung POST — code Vercel đã sửa để POST lại đủ body.
+  - Cập nhật code api/submit.js từ repo, Deploy lại Vercel.
+  - Cập nhật Code.gs (xử lý chuỗi JSON rỗng), Deploy → New version cho Web App.
