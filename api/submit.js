@@ -1,6 +1,93 @@
 /**
- * POST to Google Web App; follow 302 manually so JSON body is not lost.
+ * POST /api/submit — save participant JSON to Google Sheet (recommended) or legacy backends.
+ *
+ * RECOMMENDED (reliable, no Apps Script):
+ *   GOOGLE_SHEET_ID          = id from Sheet URL (between /d/ and /edit)
+ *   GOOGLE_SERVICE_ACCOUNT_B64 = base64 of the JSON key file (see google-apps-script/HUONG-DAN-SHEETS-API.txt)
+ *
+ * OPTIONAL (often flaky):
+ *   GOOGLE_SCRIPT_URL        = Apps Script web app URL
+ *
+ * OPTIONAL:
+ *   SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
  */
+
+const { google } = require("googleapis");
+
+function getServiceAccountCredentials() {
+  var b64 = process.env.GOOGLE_SERVICE_ACCOUNT_B64;
+  if (b64 && String(b64).trim()) {
+    try {
+      return JSON.parse(Buffer.from(String(b64).trim(), "base64").toString("utf8"));
+    } catch (e) {
+      throw new Error("Invalid GOOGLE_SERVICE_ACCOUNT_B64 (must be base64 of JSON key file)");
+    }
+  }
+  var raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (raw && String(raw).trim()) {
+    try {
+      return JSON.parse(String(raw).trim());
+    } catch (e) {
+      throw new Error("Invalid GOOGLE_SERVICE_ACCOUNT_JSON");
+    }
+  }
+  return null;
+}
+
+async function appendRowViaSheetsApi(body) {
+  var creds = getServiceAccountCredentials();
+  var spreadsheetId = process.env.GOOGLE_SHEET_ID;
+  if (!creds || !spreadsheetId || !String(spreadsheetId).trim()) {
+    return false;
+  }
+
+  var auth = new google.auth.GoogleAuth({
+    credentials: creds,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+  });
+  var sheets = google.sheets({ version: "v4", auth: await auth.getClient() });
+
+  var meta = await sheets.spreadsheets.get({
+    spreadsheetId: String(spreadsheetId).trim()
+  });
+  var firstSheet = meta.data.sheets[0];
+  if (!firstSheet) {
+    throw new Error("Spreadsheet has no sheets");
+  }
+  var title = firstSheet.properties.title;
+  var esc = String(title).replace(/'/g, "''");
+  var prefix = "'" + esc + "'!";
+
+  var a1 = await sheets.spreadsheets.values.get({
+    spreadsheetId: String(spreadsheetId).trim(),
+    range: prefix + "A1"
+  });
+  var firstCell = a1.data.values && a1.data.values[0] && a1.data.values[0][0];
+  if (firstCell === undefined || firstCell === null || String(firstCell).trim() === "") {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: String(spreadsheetId).trim(),
+      range: prefix + "A1:C1",
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [["timestamp", "participant_id", "payload_json"]]
+      }
+    });
+  }
+
+  var pid = body.participantId != null ? String(body.participantId) : "";
+  var jsonStr = JSON.stringify(body);
+  var row = [new Date().toISOString(), pid, jsonStr];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: String(spreadsheetId).trim(),
+    range: prefix + "A:C",
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values: [row] }
+  });
+  return true;
+}
+
 async function fetchGoogleAppsScriptPost(url, bodyObj) {
   var payload = JSON.stringify(bodyObj);
   var headers = { "Content-Type": "application/json" };
@@ -24,16 +111,6 @@ async function fetchGoogleAppsScriptPost(url, bodyObj) {
   }
   throw new Error("Too many redirects to Google Apps Script");
 }
-
-/**
- * POST /api/submit — forwards participant JSON to your Google Apps Script Web App,
- * which appends one row per submission to a Google Sheet.
- *
- * Vercel → Environment Variables:
- *   GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/AKfycbz8ABQ_sUwySRfWXsRkHwiwBl0NT6NOgTTPkjAO7lalGUgIFJrRRZRUVvvwzkInbdTlcg/exec
- *
- * (Optional legacy: set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to use Supabase instead.)
- */
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -60,14 +137,26 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Expected JSON object" });
   }
 
+  var hasSheetsApi =
+    process.env.GOOGLE_SHEET_ID &&
+    String(process.env.GOOGLE_SHEET_ID).trim() &&
+    (process.env.GOOGLE_SERVICE_ACCOUNT_B64 || process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+
+  if (hasSheetsApi) {
+    try {
+      await appendRowViaSheetsApi(body);
+      return res.status(200).json({ ok: true, storage: "google_sheets_api" });
+    } catch (err) {
+      return res.status(502).json({
+        error: "Google Sheets API failed",
+        message: err && err.message ? err.message : String(err)
+      });
+    }
+  }
+
   var gasUrl = process.env.GOOGLE_SCRIPT_URL;
   if (gasUrl && String(gasUrl).trim()) {
     try {
-      /**
-       * Google often responds 302 to script.googleusercontent.com. Default fetch
-       * "follow" may turn POST into GET and drop the JSON body — Sheet gets headers only or nothing.
-       * We follow redirects manually and always re-POST the same body.
-       */
       var r = await fetchGoogleAppsScriptPost(String(gasUrl).trim(), body);
       var text = await r.text();
       if (!r.ok) {
@@ -86,7 +175,7 @@ module.exports = async function handler(req, res) {
           });
         }
       } catch (parseErr) {}
-      return res.status(200).json({ ok: true, storage: "google_sheet" });
+      return res.status(200).json({ ok: true, storage: "google_apps_script" });
     } catch (err) {
       return res.status(500).json({
         error: "Failed to reach Google Apps Script",
@@ -135,6 +224,6 @@ module.exports = async function handler(req, res) {
   return res.status(503).json({
     error: "Storage not configured",
     hint:
-      "Set GOOGLE_SCRIPT_URL in Vercel (Google Sheet — see google-apps-script/Code.gs), or SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY."
+      "Set GOOGLE_SHEET_ID + GOOGLE_SERVICE_ACCOUNT_B64 (see HUONG-DAN-SHEETS-API.txt), or GOOGLE_SCRIPT_URL, or Supabase."
   });
 };

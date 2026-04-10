@@ -1,4 +1,8 @@
 node_modules/
+*service-account*.json
+*-key.json
+key.json
+credentials.json
 .env
 .vercel/
 *.log

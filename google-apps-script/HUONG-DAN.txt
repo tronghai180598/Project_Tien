@@ -1,4 +1,12 @@
-CÁCH LẤY DỮ LIỆU (Google Sheet — không cần Supabase)
+QUAN TRỌNG — CÁCH MỚI (ỔN ĐỊNH)
+================================
+Nếu Apps Script / Web App không ghi được dữ liệu, hãy dùng Google Sheets API:
+đọc file cùng thư mục:  HUONG-DAN-SHEETS-API.txt
+(Service Account + biến GOOGLE_SHEET_ID + GOOGLE_SERVICE_ACCOUNT_B64 trên Vercel.)
+
+----------------------------------------
+
+CÁCH CŨ (Google Apps Script — tùy chọn)
 ==================================================
 
 Bước 1 — Tạo Google Sheet

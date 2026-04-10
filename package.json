@@ -1,5 +1,8 @@
 {
   "name": "project-tien",
   "private": true,
-  "description": "Static course pages + Vercel serverless API for experiment data"
+  "description": "Static course + Vercel API (Google Sheets API)",
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
 }
