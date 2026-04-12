@@ -115,9 +115,8 @@
   <div class="wrap">
     <h1>Сводка и таблица по участникам</h1>
     <p class="lead">
-      <strong>Только для разработчика / исследователя.</strong> Не давайте участникам ссылку на эту страницу.
-      Основной поток данных: <strong>Google Таблица</strong> (см. колонку <code>payload_json</code>) — откройте файл и скачайте CSV или копируйте JSON в поле ниже.
-      Можно вставить несколько JSON подряд — появится таблица и выгрузка CSV.
+      <strong>Chỉ dành cho nhà phát triển / nhà nghiên cứu.</strong> Không cung cấp liên kết này cho những người tham gia.
+      Dữ liệu được lưu trữ một cách an toàn trên Supabase. Bạn có thể sao chép JSON và phân tích dữ liệu.
     </p>
 
     <div class="panel">
@@ -127,6 +126,12 @@
         <input type="file" id="fileInput" accept=".json,application/json" multiple />
       </label>
       <div class="row-actions">
+        <button type="button" class="btn btn-primary" id="btnLoadCloud">Загрузить из Supabase</button>
+        <button type="button" class="btn" id="btnCsvCloud">Скачать CSV с сервера</button>
+        <label style="font-size:0.85rem; color:var(--muted); display:inline-flex; align-items:center; gap:0.4rem">
+          <input type="checkbox" id="dedupeByParticipant" checked />
+          1 строка на участника
+        </label>
         <button type="button" class="btn btn-primary" id="btnParsePaste">Разобрать вставку из поля ниже</button>
         <button type="button" class="btn" id="btnClear">Очистить всё</button>
         <button type="button" class="btn btn-primary" id="btnCsv" disabled>Скачать CSV (все колонки)</button>
@@ -139,11 +144,10 @@
     </div>
 
     <div class="panel">
-      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>Данные из Google Sheets</strong></p>
+      <p style="margin: 0 0 0.5rem; font-size: 0.9rem"><strong>Dữ liệu từ Supabase</strong></p>
       <p class="lead" style="margin: 0; font-size: 0.85rem; line-height: 1.5">
-        Откройте свою таблицу (куда пишет Apps Script). Колонка <code>payload_json</code> — полный JSON одного участника.
-        Скопируйте ячейки (по одному JSON) в поле «Вставка» выше или скачайте лист как CSV и анализируйте в Excel.
-        <br /><span style="color: var(--muted)">EN: Data is stored in your Sheet; no Supabase required for this flow.</span>
+        Tất cả dữ liệu được lưu trữ an toàn trên Supabase. Bạn có thể truy cập dữ liệu thông qua Supabase dashboard.
+        <br /><span style="color: var(--muted)">EN: Data is securely stored in Supabase; no Google Sheets required for this flow.</span>
       </p>
     </div>
 
@@ -603,6 +607,84 @@
         document.getElementById("fileInput").value = "";
       }
 
+      function getTokenFromUrl() {
+        try {
+          var u = new URL(window.location.href);
+          return (u.searchParams.get("token") || "").trim();
+        } catch (err) {
+          return "";
+        }
+      }
+
+      function isDedupeEnabled() {
+        var cb = document.getElementById("dedupeByParticipant");
+        return !cb || !!cb.checked;
+      }
+
+      function cloudUrl(path) {
+        var token = getTokenFromUrl();
+        var sep = path.indexOf("?") >= 0 ? "&" : "?";
+        if (!token) return path;
+        return path + sep + "token=" + encodeURIComponent(token);
+      }
+
+      function setCloudMessage(isError, text) {
+        var messageEl = document.getElementById("message");
+        messageEl.className = isError ? "err" : "ok";
+        messageEl.textContent = text;
+      }
+
+      function replaceRows(rows, cols, noticeText) {
+        bundles = [];
+        flatRows = Array.isArray(rows) ? rows.slice() : [];
+        columns = Array.isArray(cols) && cols.length ? cols.slice() : buildColumns(flatRows);
+        renderStats(flatRows);
+        renderTable(flatRows, columns);
+        document.getElementById("btnCsv").disabled = flatRows.length === 0;
+        if (noticeText) setCloudMessage(false, noticeText);
+      }
+
+      function loadFromCloud() {
+        var btn = document.getElementById("btnLoadCloud");
+        var dedupe = isDedupeEnabled();
+        btn.disabled = true;
+        setCloudMessage(false, "Загружаем данные из Supabase...");
+        var url = cloudUrl("/api/submissions?dedupe=" + (dedupe ? "1" : "0"));
+        fetch(url)
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { ok: r.ok, status: r.status, j: j };
+            });
+          })
+          .then(function (o) {
+            if (!o.ok) {
+              throw new Error((o.j && (o.j.error || o.j.message)) || ("HTTP " + o.status));
+            }
+            var rows = (o.j && o.j.rows) || [];
+            var cols = (o.j && o.j.columns) || [];
+            replaceRows(
+              rows,
+              cols,
+              "Загружено строк: " + rows.length + " (в Supabase записей: " + ((o.j && o.j.source_rows) || 0) + ")."
+            );
+          })
+          .catch(function (err) {
+            setCloudMessage(true, "Ошибка загрузки из Supabase: " + (err && err.message ? err.message : String(err)));
+          })
+          .finally(function () {
+            btn.disabled = false;
+          });
+      }
+
+      function downloadServerCsv() {
+        var dedupe = isDedupeEnabled();
+        var url = cloudUrl("/api/export-csv?dedupe=" + (dedupe ? "1" : "0"));
+        var a = document.createElement("a");
+        a.href = url;
+        a.rel = "noopener";
+        a.click();
+      }
+
       document.getElementById("fileInput").addEventListener("change", function (e) {
         var files = e.target.files;
         if (!files || !files.length) return;
@@ -651,6 +733,8 @@
       });
 
       document.getElementById("btnClear").addEventListener("click", clearAll);
+      document.getElementById("btnLoadCloud").addEventListener("click", loadFromCloud);
+      document.getElementById("btnCsvCloud").addEventListener("click", downloadServerCsv);
 
       document.getElementById("btnCsv").addEventListener("click", function () {
         if (!flatRows.length || !columns.length) return;
@@ -662,6 +746,8 @@
         a.click();
         URL.revokeObjectURL(a.href);
       });
+
+      loadFromCloud();
     })();
   </script>
 </body>

@@ -9,3 +9,5 @@ credentials.json
 .DS_Store
 .vercel
 .env*.local
+.codex
+experiment_p_*.json

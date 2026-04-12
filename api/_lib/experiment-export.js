@@ -1,0 +1,284 @@
+var ASST_N = 20;
+var CAQ_N = 24;
+var STROOP_N = 20;
+var GNG_MAIN_N = 10;
+
+function mean(arr) {
+  var xs = arr.filter(function (x) {
+    return typeof x === "number" && isFinite(x);
+  });
+  if (!xs.length) return "";
+  var s = 0;
+  xs.forEach(function (x) {
+    s += x;
+  });
+  return Math.round((s / xs.length) * 100) / 100;
+}
+
+function safeNum(x) {
+  var n = typeof x === "number" ? x : parseFloat(x);
+  return isFinite(n) ? n : null;
+}
+
+function normalizeBundle(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  return obj;
+}
+
+function stroopMeanRt(st) {
+  if (!st || !Array.isArray(st.trials)) return "";
+  var rts = st.trials
+    .filter(function (tr) {
+      return !tr.timeout && tr.reactionMs != null;
+    })
+    .map(function (tr) {
+      return tr.reactionMs;
+    });
+  return mean(rts);
+}
+
+function flattenBundle(b) {
+  var r = {};
+  r.server_row_id = b.server_row_id != null ? String(b.server_row_id) : "";
+  r.server_inserted_at = b.server_inserted_at != null ? String(b.server_inserted_at) : "";
+  r.participant_id = b.participantId || b.user_id || "";
+  r.exported_at = b.exportedAt || b.timestamp || "";
+
+  var s1 = b.stage1 || {};
+  r.stage1_branch = s1.videoBranch != null ? s1.videoBranch : "";
+  r.stage1_shorts_done = s1.allShortsWatched ? "1" : s1.allShortsWatched === false ? "0" : "";
+  r.max_unlocked_stage = s1.maxUnlockedStage != null ? String(s1.maxUnlockedStage) : "";
+
+  var s2 = b.stage2;
+  r.crt_correct = s2 && s2.wrong_count != null && s2.answers ? 3 - s2.wrong_count : "";
+  if (s2 && typeof s2.wrong_count === "number") r.crt_wrong = s2.wrong_count;
+  else r.crt_wrong = "";
+  for (var q = 1; q <= 3; q++) {
+    r["crt_q" + q + "_ms"] = "";
+    r["crt_q" + q + "_choice"] = "";
+    r["crt_q" + q + "_correct"] = "";
+  }
+  if (s2 && Array.isArray(s2.answers)) {
+    s2.answers.forEach(function (a) {
+      var qi = a.q;
+      if (qi >= 1 && qi <= 3) {
+        r["crt_q" + qi + "_ms"] = a.time_ms != null ? a.time_ms : "";
+        r["crt_q" + qi + "_choice"] = a.selected != null ? String(a.selected) : "";
+        r["crt_q" + qi + "_correct"] = a.correct ? "1" : a.correct === false ? "0" : "";
+      }
+    });
+  }
+
+  var rawCrt = b._raw && b._raw.crt;
+  if (rawCrt && r.crt_correct === "") {
+    r.crt_correct = rawCrt.correctCount != null ? rawCrt.correctCount : "";
+    r.crt_wrong = rawCrt.wrongCount != null ? rawCrt.wrongCount : "";
+  }
+
+  var s4 = b.stage4;
+  var rawSt = b._raw && b._raw.stroop;
+  var st = rawSt && rawSt.trials ? rawSt : s4 ? { trials: [] } : null;
+  if (s4) {
+    r.stroop_correct = s4.correct_count != null ? s4.correct_count : "";
+    r.stroop_wrong = s4.wrong_count != null ? s4.wrong_count : "";
+  } else if (rawSt) {
+    r.stroop_correct = rawSt.correctCount != null ? rawSt.correctCount : "";
+    r.stroop_wrong = rawSt.wrongCount != null ? rawSt.wrongCount : "";
+  } else {
+    r.stroop_correct = "";
+    r.stroop_wrong = "";
+  }
+  r.stroop_mean_rt_ms = stroopMeanRt(st || rawSt);
+
+  for (var si = 1; si <= STROOP_N; si++) {
+    r["stroop_t" + si + "_ms"] = "";
+  }
+  var trials = (st && st.trials) || (rawSt && rawSt.trials) || [];
+  if (Array.isArray(trials)) {
+    trials.forEach(function (tr, idx) {
+      if (idx < STROOP_N) {
+        r["stroop_t" + (idx + 1) + "_ms"] = tr.timeout || tr.reactionMs == null ? "" : tr.reactionMs;
+      }
+    });
+  }
+
+  var s6 = b.stage6;
+  var rawG = b._raw && b._raw.gng;
+  var mainT =
+    rawG && rawG.main && rawG.main.trials
+      ? rawG.main.trials
+      : s6 && s6.click_details
+      ? s6.click_details
+      : [];
+  if (s6) {
+    r.gng_main_correct = s6.correct_count != null ? s6.correct_count : "";
+    r.gng_main_wrong = s6.wrong_count != null ? s6.wrong_count : "";
+  } else if (rawG && rawG.main) {
+    r.gng_main_correct = rawG.main.correctCount != null ? rawG.main.correctCount : "";
+    r.gng_main_wrong = rawG.main.wrongCount != null ? rawG.main.wrongCount : "";
+  } else {
+    r.gng_main_correct = "";
+    r.gng_main_wrong = "";
+  }
+  r.gng_mean_rt_ms = mean(
+    (Array.isArray(mainT) ? mainT : []).map(function (t) {
+      return safeNum(t.reactionMs != null ? t.reactionMs : t.time_ms);
+    })
+  );
+
+  for (var gi = 1; gi <= GNG_MAIN_N; gi++) {
+    r["gng_m" + gi + "_digit"] = "";
+    r["gng_m" + gi + "_ms"] = "";
+    r["gng_m" + gi + "_ok"] = "";
+  }
+  if (Array.isArray(mainT)) {
+    mainT.forEach(function (tr, idx) {
+      if (idx < GNG_MAIN_N) {
+        var dig = tr.digit != null ? tr.digit : tr.showed;
+        r["gng_m" + (idx + 1) + "_digit"] = dig != null ? String(dig) : "";
+        var ms = tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
+        r["gng_m" + (idx + 1) + "_ms"] = ms != null ? ms : "";
+        r["gng_m" + (idx + 1) + "_ok"] = tr.correct ? "1" : tr.correct === false ? "0" : "";
+      }
+    });
+  }
+
+  var s7 = b.stage7;
+  var pay = s7 && s7.answers ? s7.answers : null;
+  var fields = (pay && pay.fields) || {};
+  r.s7_fio = pay && pay.fio != null ? String(pay.fio) : "";
+  r.s7_gender = fields.s7_gender || "";
+  r.s7_age = fields.s7_age || "";
+  r.s7_edu = fields.s7_edu || "";
+  r.s7_course = fields.s7_course || "";
+  r.s7_spec = fields.s7_spec || "";
+  r.s7_shorts_daily = fields.s7_shorts_daily || "";
+  r.s7_short_days = fields.s7_short_days || "";
+  r.s7_shorts_study = fields.s7_shorts_study || "";
+  r.s7_saved_at = s7 && s7.savedAt ? s7.savedAt : "";
+
+  for (var ai = 1; ai <= ASST_N; ai++) {
+    r["s7_asst_" + ai] = pay && pay.asst && pay.asst[String(ai)] != null ? String(pay.asst[String(ai)]) : "";
+  }
+  for (var ci = 1; ci <= CAQ_N; ci++) {
+    r["s7_caq_" + ci] = pay && pay.caq && pay.caq[String(ci)] != null ? String(pay.caq[String(ci)]) : "";
+  }
+
+  return r;
+}
+
+function buildColumns(rows) {
+  var set = {};
+  rows.forEach(function (row) {
+    Object.keys(row).forEach(function (k) {
+      set[k] = true;
+    });
+  });
+  var preferred = [
+    "server_row_id",
+    "server_inserted_at",
+    "participant_id",
+    "exported_at",
+    "stage1_branch",
+    "stage1_shorts_done",
+    "max_unlocked_stage",
+    "crt_correct",
+    "crt_wrong",
+    "crt_q1_ms",
+    "crt_q1_choice",
+    "crt_q1_correct",
+    "crt_q2_ms",
+    "crt_q2_choice",
+    "crt_q2_correct",
+    "crt_q3_ms",
+    "crt_q3_choice",
+    "crt_q3_correct",
+    "stroop_correct",
+    "stroop_wrong",
+    "stroop_mean_rt_ms"
+  ];
+  var rest = Object.keys(set).filter(function (k) {
+    return preferred.indexOf(k) < 0;
+  });
+  rest.sort();
+  var cols = preferred.filter(function (k) {
+    return set[k];
+  });
+  rest.forEach(function (k) {
+    if (set[k]) cols.push(k);
+  });
+  return cols;
+}
+
+function csvEscape(s) {
+  var x = s == null ? "" : String(s);
+  if (/[",\n\r]/.test(x)) return '"' + x.replace(/"/g, '""') + '"';
+  return x;
+}
+
+function toCsv(rows, cols) {
+  var lines = [cols.map(csvEscape).join(",")];
+  rows.forEach(function (row) {
+    lines.push(
+      cols
+        .map(function (c) {
+          return csvEscape(row[c]);
+        })
+        .join(",")
+    );
+  });
+  return lines.join("\r\n");
+}
+
+function toBundleFromDbRow(row) {
+  var payload = row && row.payload && typeof row.payload === "object" ? row.payload : {};
+  var bundle = Object.assign({}, payload);
+  if (!bundle.participantId && row && row.participant_id != null) {
+    bundle.participantId = String(row.participant_id);
+  }
+  if (row && row.id != null) bundle.server_row_id = row.id;
+  if (row && row.inserted_at != null) bundle.server_inserted_at = row.inserted_at;
+  return bundle;
+}
+
+function dedupeByParticipant(bundles) {
+  var map = {};
+  bundles.forEach(function (b) {
+    var key = b && b.participantId ? String(b.participantId).trim() : "";
+    if (!key) return;
+    var prev = map[key];
+    if (!prev) {
+      map[key] = b;
+      return;
+    }
+    var prevAt = Date.parse(prev.server_inserted_at || prev.exportedAt || 0) || 0;
+    var curAt = Date.parse(b.server_inserted_at || b.exportedAt || 0) || 0;
+    if (curAt >= prevAt) map[key] = b;
+  });
+  return Object.keys(map)
+    .sort()
+    .map(function (k) {
+      return map[k];
+    });
+}
+
+function buildFlatRowsFromDbRows(dbRows, options) {
+  var opts = options || {};
+  var dedupe = opts.dedupeByParticipant === true;
+  var bundles = (Array.isArray(dbRows) ? dbRows : [])
+    .map(toBundleFromDbRow)
+    .map(normalizeBundle)
+    .filter(Boolean);
+
+  if (dedupe) {
+    bundles = dedupeByParticipant(bundles);
+  }
+
+  return bundles.map(flattenBundle);
+}
+
+module.exports = {
+  buildColumns: buildColumns,
+  buildFlatRowsFromDbRows: buildFlatRowsFromDbRows,
+  toCsv: toCsv
+};

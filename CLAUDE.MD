@@ -99,9 +99,10 @@ Each user session must generate a structured dataset:
 
   "stage7": {
     "answers": {
-      "age": 22,
-      "gender": "male",
-      "feedback": "..."
+      "Name":....,
+      "age": ....,
+      "gender": ".....",
+      "Answer, that users choose":......,
     }
   }
 }
