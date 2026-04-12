@@ -1740,6 +1740,8 @@
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       /** Must match short feed in bindStage1ShortFeed (short_video/1..N.mp4, badge «1 / N»). */
       var STAGE1_SHORT_FEED_COUNT = 7;
+      /** After render(), open this stage (not always max unlocked) so the page does not jump to the next stage. */
+      var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
 
       function safeJsonParse(s) {
@@ -1990,6 +1992,7 @@
       function finishStage3Break() {
         clearStage3BreakTimer();
         setMaxUnlocked(Math.max(getMaxUnlocked(), 4));
+        pendingExpandStageAfterRender = 3;
         render();
       }
 
@@ -2021,6 +2024,7 @@
       function finishStage5Break() {
         clearStage5BreakTimer();
         setMaxUnlocked(Math.max(getMaxUnlocked(), 6));
+        pendingExpandStageAfterRender = 5;
         render();
       }
 
@@ -3101,8 +3105,27 @@
         bindStage7Form();
         bindComplete();
         updateCompleteButtonsState();
+        var expandTarget = pendingExpandStageAfterRender;
+        pendingExpandStageAfterRender = null;
+        if (expandTarget == null || !isFinite(expandTarget)) {
+          expandTarget = getMaxUnlocked();
+        } else {
+          expandTarget = Math.floor(expandTarget);
+        }
         requestAnimationFrame(function () {
-          expandStageByNumber(String(getMaxUnlocked()));
+          requestAnimationFrame(function () {
+            expandStageByNumber(String(expandTarget));
+            if (expandTarget > 0) {
+              var stEl = document.querySelector('.stage[data-stage="' + expandTarget + '"]');
+              if (stEl && typeof stEl.scrollIntoView === "function") {
+                try {
+                  stEl.scrollIntoView({ block: "nearest", behavior: "instant" });
+                } catch (eScroll) {
+                  stEl.scrollIntoView(true);
+                }
+              }
+            }
+          });
         });
       }
 
@@ -3852,7 +3875,10 @@
               render();
               return;
             }
-            if (s < 7) setMaxUnlocked(max + 1);
+            if (s < 7) {
+              setMaxUnlocked(max + 1);
+              pendingExpandStageAfterRender = s;
+            }
             render();
           });
         });
