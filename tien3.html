@@ -3733,6 +3733,39 @@
         });
       }
 
+      function clearPrestartFormFields() {
+        var form = document.getElementById("prestartForm");
+        if (!form) return;
+        var fio = form.querySelector("#pre-fio");
+        var age = form.querySelector("#pre-age");
+        var spec = form.querySelector("#pre-spec");
+        if (fio) fio.value = "";
+        if (age) age.value = "";
+        if (spec) spec.value = "";
+        form.querySelectorAll('input[name="pre_gender"]').forEach(function (el) {
+          el.checked = false;
+        });
+      }
+
+      function clearLocalExperimentStorageAndTimers() {
+        clearStage3BreakTimer();
+        clearStage5BreakTimer();
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(STAGE1_SHORTS_DONE_KEY);
+          localStorage.removeItem(STAGE1_BRANCH_KEY);
+          localStorage.removeItem("courseStage1LongVideoVisited");
+          localStorage.removeItem(STAGE1_METRICS_KEY);
+          localStorage.removeItem(CRT_METRICS_KEY);
+          localStorage.removeItem(STROOP_METRICS_KEY);
+          localStorage.removeItem(GNG_METRICS_KEY);
+          localStorage.removeItem(STAGE7_SURVEY_KEY);
+          localStorage.removeItem("stage7FormAnswer");
+          localStorage.removeItem(PRESTART_PROFILE_KEY);
+        } catch (err) {}
+        assignFreshParticipantId();
+      }
+
       function bindComplete() {
         document.querySelectorAll(".btn-complete").forEach(function (btn) {
           btn.addEventListener("click", function () {
@@ -3746,6 +3779,23 @@
               if (brc === "short" && !hasStage1ShortsCompleted()) return;
               if (brc === "long") finalizeStage1LongWatch();
             }
+            if (s === 7) {
+              clearLocalExperimentStorageAndTimers();
+              clearPrestartFormFields();
+              var fbDone = document.getElementById("prestartFeedback");
+              if (fbDone) {
+                fbDone.className = "prestart-feedback ok";
+                fbDone.textContent =
+                  "Спасибо за участие! Локальные данные очищены — следующий участник может заполнить профиль заново.";
+              }
+              try {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              } catch (eScroll) {
+                window.scrollTo(0, 0);
+              }
+              render();
+              return;
+            }
             if (s < 7) setMaxUnlocked(max + 1);
             render();
           });
@@ -3753,26 +3803,14 @@
       }
 
       document.getElementById("resetProgress").addEventListener("click", function () {
-        clearStage3BreakTimer();
-        clearStage5BreakTimer();
-        localStorage.removeItem(STORAGE_KEY);
+        clearLocalExperimentStorageAndTimers();
+        clearPrestartFormFields();
+        syncPrestartPanelState();
         try {
-          localStorage.removeItem(STAGE1_SHORTS_DONE_KEY);
-          localStorage.removeItem(STAGE1_BRANCH_KEY);
-          localStorage.removeItem("courseStage1LongVideoVisited");
-        } catch (err) {}
-        try {
-          localStorage.removeItem(CRT_METRICS_KEY);
-        } catch (err) {}
-        try {
-          localStorage.removeItem(STROOP_METRICS_KEY);
-          localStorage.removeItem(GNG_METRICS_KEY);
-        } catch (errS) {}
-        try {
-          localStorage.removeItem(STAGE7_SURVEY_KEY);
-          localStorage.removeItem("stage7FormAnswer");
-        } catch (err2) {}
-        assignFreshParticipantId();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (eScr) {
+          window.scrollTo(0, 0);
+        }
         render();
       });
 
