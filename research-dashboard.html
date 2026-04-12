@@ -80,6 +80,59 @@
     }
     .stat-card strong { display: block; font-size: 1.15rem; }
     .stat-card span { font-size: 0.8rem; color: var(--muted); }
+    .viz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+    .viz-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: #faf9f7;
+    }
+    .viz-card h3 {
+      margin: 0 0 0.55rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .viz-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .viz-bar-row {
+      display: grid;
+      grid-template-columns: 86px 1fr auto;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+    .viz-label {
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .viz-track {
+      height: 0.65rem;
+      border-radius: 999px;
+      background: #ece8e0;
+      overflow: hidden;
+    }
+    .viz-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3f7f5f, #6fb28f);
+      min-width: 2px;
+    }
+    .viz-value { font-variant-numeric: tabular-nums; color: var(--text); }
+    .viz-note {
+      margin-top: 0.45rem;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
     .table-scroll {
       overflow: auto;
       max-height: 65vh;
@@ -154,6 +207,11 @@
     <div class="panel" id="statsPanel" hidden>
       <p style="margin: 0 0 0.5rem"><strong>Сводка</strong></p>
       <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="panel" id="visualPanel" hidden>
+      <p style="margin: 0 0 0.5rem"><strong>Visual Analytics</strong></p>
+      <div class="viz-grid" id="visualGrid"></div>
     </div>
 
     <div class="panel" id="tablePanel" hidden>
@@ -535,6 +593,149 @@
         document.getElementById("statsPanel").hidden = n === 0;
       }
 
+      function meanFromRows(rows, key) {
+        return mean(
+          rows.map(function (r) {
+            return safeNum(r[key]);
+          })
+        );
+      }
+
+      function countBy(rows, key, emptyLabel) {
+        var map = {};
+        rows.forEach(function (r) {
+          var raw = r[key];
+          var k = raw == null || String(raw).trim() === "" ? emptyLabel : String(raw).trim();
+          map[k] = (map[k] || 0) + 1;
+        });
+        return map;
+      }
+
+      function ageBucket(ageRaw) {
+        var age = safeNum(ageRaw);
+        if (age == null) return "Unknown";
+        if (age < 18) return "<18";
+        if (age <= 20) return "18-20";
+        if (age <= 24) return "21-24";
+        if (age <= 30) return "25-30";
+        return "31+";
+      }
+
+      function buildAgeDistribution(rows) {
+        var map = {};
+        rows.forEach(function (r) {
+          var bucket = ageBucket(r.s7_age);
+          map[bucket] = (map[bucket] || 0) + 1;
+        });
+        var order = ["<18", "18-20", "21-24", "25-30", "31+", "Unknown"];
+        return order
+          .filter(function (k) {
+            return map[k] != null;
+          })
+          .map(function (k) {
+            return { label: k, value: map[k] };
+          });
+      }
+
+      function mapToItems(mapObj) {
+        return Object.keys(mapObj)
+          .sort()
+          .map(function (k) {
+            return { label: k, value: mapObj[k] };
+          });
+      }
+
+      function buildAccuracyItems(rows) {
+        var crt = meanFromRows(rows, "crt_correct");
+        var stroop = meanFromRows(rows, "stroop_correct");
+        var gng = meanFromRows(rows, "gng_main_correct");
+        return [
+          { label: "CRT /3", value: crt === "" ? 0 : crt, display: crt === "" ? "—" : crt, max: 3 },
+          { label: "Stroop /20", value: stroop === "" ? 0 : stroop, display: stroop === "" ? "—" : stroop, max: 20 },
+          { label: "GoNoGo /10", value: gng === "" ? 0 : gng, display: gng === "" ? "—" : gng, max: 10 }
+        ];
+      }
+
+      function buildReactionItems(rows) {
+        var st = meanFromRows(rows, "stroop_mean_rt_ms");
+        var gg = meanFromRows(rows, "gng_mean_rt_ms");
+        return [
+          { label: "Stroop RT", value: st === "" ? 0 : st, display: st === "" ? "—" : Math.round(st) + " ms" },
+          { label: "GoNoGo RT", value: gg === "" ? 0 : gg, display: gg === "" ? "—" : Math.round(gg) + " ms" }
+        ];
+      }
+
+      function toBarRows(items, maxValue) {
+        var max = safeNum(maxValue);
+        if (max == null || max <= 0) {
+          max = 0;
+          items.forEach(function (it) {
+            var v = safeNum(it.value);
+            if (v != null && v > max) max = v;
+          });
+        }
+        if (max <= 0) max = 1;
+        return items.map(function (it) {
+          var v = safeNum(it.value);
+          var ratio = v == null ? 0 : Math.max(0, Math.min(1, v / max));
+          return {
+            label: it.label,
+            value: it.display != null ? String(it.display) : v == null ? "—" : String(v),
+            pct: Math.round(ratio * 1000) / 10
+          };
+        });
+      }
+
+      function renderVizCard(title, rows, note) {
+        var bars = rows
+          .map(function (r) {
+            return (
+              '<div class="viz-bar-row">' +
+              '<div class="viz-label" title="' + r.label.replace(/"/g, "&quot;") + '">' + r.label.replace(/</g, "&lt;") + "</div>" +
+              '<div class="viz-track"><div class="viz-fill" style="width:' + r.pct + '%"></div></div>' +
+              '<div class="viz-value">' + r.value.replace(/</g, "&lt;") + "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+        var noteHtml = note ? '<div class="viz-note">' + note.replace(/</g, "&lt;") + "</div>" : "";
+        return '<div class="viz-card"><h3>' + title + '</h3><div class="viz-bars">' + bars + "</div>" + noteHtml + "</div>";
+      }
+
+      function renderVisuals(rows) {
+        var grid = document.getElementById("visualGrid");
+        if (!rows.length) {
+          grid.innerHTML = "";
+          document.getElementById("visualPanel").hidden = true;
+          return;
+        }
+
+        var accuracy = toBarRows(
+          buildAccuracyItems(rows).map(function (x) {
+            return { label: x.label, value: x.value, display: x.display };
+          }),
+          20
+        );
+        accuracy.forEach(function (it) {
+          if (it.label.indexOf("CRT") === 0) it.pct = Math.min(100, it.pct * (20 / 3));
+          if (it.label.indexOf("GoNoGo") === 0) it.pct = Math.min(100, it.pct * 2);
+        });
+
+        var reaction = toBarRows(buildReactionItems(rows), null);
+        var genders = toBarRows(mapToItems(countBy(rows, "s7_gender", "Unknown")), null);
+        var ages = toBarRows(buildAgeDistribution(rows), null);
+        var branches = toBarRows(mapToItems(countBy(rows, "stage1_branch", "Unknown")), null);
+
+        grid.innerHTML =
+          renderVizCard("Средние результаты", accuracy, "Средние баллы по всем участникам") +
+          renderVizCard("Среднее время реакции", reaction, "Чем меньше ms, тем быстрее реакция") +
+          renderVizCard("Распределение пола", genders, "По заполненной анкете stage 7") +
+          renderVizCard("Распределение возраста", ages, "Возрастные группы участников") +
+          renderVizCard("Ветка видео stage 1", branches, "Short vs Long");
+
+        document.getElementById("visualPanel").hidden = false;
+      }
+
       function renderTable(rows, cols) {
         var thead = document.getElementById("dataThead");
         var tbody = document.getElementById("dataTbody");
@@ -585,6 +786,7 @@
         }
         columns = buildColumns(flatRows);
         renderStats(flatRows);
+        renderVisuals(flatRows);
         renderTable(flatRows, columns);
         msg.className = "ok";
         msg.textContent =
@@ -600,7 +802,9 @@
         document.getElementById("dataThead").innerHTML = "";
         document.getElementById("dataTbody").innerHTML = "";
         document.getElementById("statsGrid").innerHTML = "";
+        document.getElementById("visualGrid").innerHTML = "";
         document.getElementById("statsPanel").hidden = true;
+        document.getElementById("visualPanel").hidden = true;
         document.getElementById("tablePanel").hidden = true;
         document.getElementById("message").textContent = "";
         document.getElementById("btnCsv").disabled = true;
@@ -639,6 +843,7 @@
         flatRows = Array.isArray(rows) ? rows.slice() : [];
         columns = Array.isArray(cols) && cols.length ? cols.slice() : buildColumns(flatRows);
         renderStats(flatRows);
+        renderVisuals(flatRows);
         renderTable(flatRows, columns);
         document.getElementById("btnCsv").disabled = flatRows.length === 0;
         if (noticeText) setCloudMessage(false, noticeText);
