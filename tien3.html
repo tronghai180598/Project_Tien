@@ -886,6 +886,15 @@
     .gng-desc p { margin: 0.5rem 0; }
     .gng-desc ul { margin: 0.4rem 0 0.5rem 1.2rem; padding: 0; }
     .gng-desc li { margin: 0.35rem 0; }
+    .gng-touch-hint {
+      margin: 0.75rem 0 0;
+      padding: 0.65rem 0.75rem;
+      background: #f0f6f2;
+      border: 1px solid #c8dccf;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
     .gng-green-text { color: #1b6b3a; font-weight: 600; }
     .gng-red-text { color: #a32020; font-weight: 600; }
     .gng-ready { margin-bottom: 1rem; }
@@ -897,12 +906,20 @@
       color: var(--accent);
       font-variant-numeric: tabular-nums;
     }
-    .gng-arena-wrap { margin: 1rem 0 1.25rem; }
+    .gng-arena-wrap {
+      margin: 1rem 0 1.25rem;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
     .gng-arena {
       position: relative;
       width: 200px;
       height: 200px;
+      min-height: 140px;
       margin: 0 auto;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .gng-digit {
       position: absolute;
@@ -1449,6 +1466,9 @@
           <li>Если цифра <strong>не 3</strong>: нажмите <strong>Пробел</strong> в любой момент, пока видна эта цифра <strong>или</strong> пока виден × (до следующей попытки). Успех — круг станет <span class="gng-green-text">зелёным</span>. Если не нажали — ошибка.</li>
           <li>Если цифра <strong>3</strong>: <strong>не нажимайте</strong> Пробел, пока на экране эта попытка (цифра или ×). Любое нажатие Пробела — ошибка, круг станет <span class="gng-red-text">красным</span>.</li>
         </ul>
+        <p class="gng-touch-hint">
+          На телефоне или планшете: <strong>касание</strong> по квадрату с цифрой или кругом × считается так же, как <strong>Пробел</strong> (для цифры 3 касаться не нужно — не нажимайте).
+        </p>
         <p>Сначала идут <strong>25 пробных</strong> попыток — после них показывается сводка и список ошибок. Затем нажмите <strong>«Готов к настоящему?»</strong>, чтобы начать <strong>10 основных</strong> попыток. После основного блока снова отображаются итог и ошибки, затем — фейерверк.</p>
       </div>
       <button type="button" class="btn-primary gng-ready">Готовы?</button>
@@ -3324,10 +3344,16 @@
           timeouts = [];
         }
 
+        var arenaPointerHandler = null;
+
         function offKey() {
           if (keyHandler) {
             window.removeEventListener("keydown", keyHandler, true);
             keyHandler = null;
+          }
+          if (arenaPointerHandler && arenaWrap) {
+            arenaWrap.removeEventListener("pointerdown", arenaPointerHandler, true);
+            arenaPointerHandler = null;
           }
         }
 
@@ -3430,16 +3456,27 @@
           digitEl.textContent = String(d);
           digitEl.style.visibility = "visible";
 
+          function trySpacePress() {
+            if (ctx.phase !== "digit" && ctx.phase !== "mask") return;
+            if (!spacePressed) firstPressMsRel = Math.round(performance.now() - tDigit0);
+            spacePressed = true;
+          }
+
           keyHandler = function (e) {
             if (e.code !== "Space" && e.key !== " ") return;
             e.preventDefault();
             e.stopPropagation();
-            if (ctx.phase === "digit" || ctx.phase === "mask") {
-              if (!spacePressed) firstPressMsRel = Math.round(performance.now() - tDigit0);
-              spacePressed = true;
-            }
+            trySpacePress();
           };
           window.addEventListener("keydown", keyHandler, true);
+
+          arenaPointerHandler = function (e) {
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            trySpacePress();
+          };
+          arenaWrap.addEventListener("pointerdown", arenaPointerHandler, true);
 
           pushT(function () {
             ctx.phase = "mask";

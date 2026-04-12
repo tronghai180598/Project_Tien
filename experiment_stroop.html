@@ -184,6 +184,7 @@
             justify-content: center;
             gap: 15px;
             flex-wrap: wrap;
+            touch-action: manipulation;
         }
 
         .keys-hint strong {
@@ -200,6 +201,9 @@
             transition: all 0.2s;
             background: white;
             color: #333;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .color-button:hover:not(:disabled) {
@@ -299,6 +303,17 @@
             .color-guide {
                 grid-template-columns: 1fr;
             }
+
+            .keys-hint {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .color-button {
+                min-height: 48px;
+                padding: 16px 20px;
+                font-size: 1.15em;
+            }
         }
     </style>
 </head>
@@ -345,6 +360,7 @@
             <p style="margin-top: 30px; color: #666;">
                  У вас всего <strong>2 сек</strong> на 1 вопрос.<br>
                 Всего <strong>20 вопросов</strong>.<br>
+                На телефоне отвечайте <strong>нажатием на четыре цветные кнопки</strong> внизу (К, С, Ж, З) — то же самое, что клавиши на клавиатуре.<br>
                 Нажмите кнопку ниже, чтобы начать.
             </p>
 
@@ -361,11 +377,11 @@
             </div>
             <div class="word-display" id="wordDisplay"></div>
             <div class="feedback" id="feedback"></div>
-            <div class="keys-hint">
-                <button class="color-button red" id="btnRed" onclick="handleButtonPress('Красный')">🔴 К</button>
-                <button class="color-button blue" id="btnBlue" onclick="handleButtonPress('Синий')">🔵 С</button>
-                <button class="color-button yellow" id="btnYellow" onclick="handleButtonPress('Жёлтый')">🟡 Ж</button>
-                <button class="color-button green" id="btnGreen" onclick="handleButtonPress('Зелёный')">🟢 З</button>
+            <div class="keys-hint" id="keysHint" role="group" aria-label="Выбор цвета (касание или клавиши)">
+                <button type="button" class="color-button red" id="btnRed" data-color="Красный">🔴 К</button>
+                <button type="button" class="color-button blue" id="btnBlue" data-color="Синий">🔵 С</button>
+                <button type="button" class="color-button yellow" id="btnYellow" data-color="Жёлтый">🟡 Ж</button>
+                <button type="button" class="color-button green" id="btnGreen" data-color="Зелёный">🟢 З</button>
             </div>
         </div>
 
@@ -465,6 +481,28 @@
             showScreen('instructions-screen');
         }
 
+        function wireColorButtonsOnce() {
+            if (wireColorButtonsOnce._done) return;
+            wireColorButtonsOnce._done = true;
+            document.querySelectorAll('.keys-hint .color-button').forEach(function (btn) {
+                var color = btn.getAttribute('data-color');
+                if (!color) return;
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    handleButtonPress(color);
+                });
+                btn.addEventListener(
+                    'pointerdown',
+                    function (e) {
+                        if (e.pointerType !== 'touch') return;
+                        e.preventDefault();
+                        handleButtonPress(color);
+                    },
+                    { passive: false }
+                );
+            });
+        }
+
         function startGame() {
             gameState = {
                 currentTrial: 0,
@@ -479,6 +517,7 @@
                 trialLog: []
             };
             showScreen('game-screen');
+            wireColorButtonsOnce();
             document.addEventListener('keydown', handleKeyPress);
             showNextTrial();
         }
