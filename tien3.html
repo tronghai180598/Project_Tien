@@ -2451,9 +2451,18 @@
 
           savePrestartProfile(data);
           applyPrestartToStage7StorageIfAny();
-          if (getMaxUnlocked() < 1) setMaxUnlocked(1);
+          setMaxUnlocked(Math.max(getMaxUnlocked(), 1));
           syncPrestartPanelState();
           render();
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              expandStageByNumber("1");
+              var st = document.querySelector('.stage[data-stage="1"]');
+              if (st && typeof st.scrollIntoView === "function") {
+                st.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            });
+          });
         });
       }
 
@@ -3768,6 +3777,7 @@
       });
 
       getOrCreateParticipantId();
+      bindPrestartForm();
       render();
     })();
   </script>
