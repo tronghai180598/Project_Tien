@@ -297,10 +297,12 @@
           1 строка на участника
         </label>
         <button type="button" class="btn btn-primary" id="btnParsePaste">Разобрать вставку из поля ниже</button>
-        <button type="button" class="btn" id="btnClear">Очистить всё</button>
         <button type="button" class="btn btn-danger" id="btnResetAll">Reset all</button>
         <button type="button" class="btn btn-primary" id="btnCsv" disabled>Скачать CSV (все колонки)</button>
       </div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.82rem; color: var(--muted); line-height: 1.45">
+        Полное удаление всех записей в Supabase и сброс таблицы на этой странице — <strong>только</strong> через «Reset all» (пароль). Другой кнопки «очистить всё» нет.
+      </p>
       <p style="margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted)">
         Вставка (несколько JSON подряд, или один за другим через пустую строку — пробуем разобрать каждый объект):
       </p>
@@ -1474,7 +1476,6 @@
         document.getElementById("btnParsePaste").disabled = false;
       });
 
-      document.getElementById("btnClear").addEventListener("click", clearAll);
       document.getElementById("btnLoadCloud").addEventListener("click", loadFromCloud);
       document.getElementById("btnCsvCloud").addEventListener("click", downloadServerCsv);
 
