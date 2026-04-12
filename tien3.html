@@ -714,6 +714,73 @@
       text-decoration: underline;
     }
     .btn-ghost:hover { color: var(--accent); }
+    .prestart-panel {
+      margin: 0 auto 1rem;
+      max-width: 52rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+    .prestart-panel h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.05rem;
+    }
+    .prestart-note {
+      margin: 0 0 0.85rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .prestart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.6rem;
+    }
+    .prestart-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .prestart-field label {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .prestart-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.48rem 0.6rem;
+      font: inherit;
+      background: #fff;
+    }
+    .prestart-gender {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      min-height: 2.2rem;
+    }
+    .prestart-gender label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .prestart-actions {
+      margin-top: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+    }
+    .prestart-feedback {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .prestart-feedback.ok { color: #1b6b3a; }
+    .prestart-feedback.warn { color: #8b4513; }
     .crt-test { margin-top: 0.25rem; }
     .crt-intro {
       font-size: 0.95rem;
@@ -1027,6 +1094,16 @@
     .s7-feedback.s7-feedback-ok { color: #1b6b3a; }
     .s7-feedback.s7-feedback-warn { color: #8b4513; }
     .s7-intro a { color: var(--accent); }
+    .s7-profile-banner {
+      margin: 0 0 1rem;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      background: #f0f6f2;
+      border: 1px solid #c8dccf;
+      border-radius: 8px;
+      color: #1a3d24;
+    }
     .s7-req { color: #c62828; font-weight: 700; }
     .s7-section-title {
       font-size: 1.05rem;
@@ -1147,6 +1224,40 @@
   <div class="wrap">
     <h1>Задача Струпа</h1>
     <p class="subtitle">Семь этапов. Этапы 3 и 5 — перерыв ~1 минута. Этап 6 — игра «цифра / × в круге» (Пробел). Демонстрация Струпа — на этапе 4.</p>
+
+    <section class="prestart-panel" id="prestartPanel">
+      <h2>Профиль перед началом этапов</h2>
+      <p class="prestart-note">
+        Сначала заполните: ФИО, возраст, пол и специальность. После этого откроется первый этап.
+      </p>
+      <form id="prestartForm" novalidate>
+        <div class="prestart-grid">
+          <div class="prestart-field">
+            <label for="pre-fio">ФИО *</label>
+            <input class="prestart-input" id="pre-fio" type="text" autocomplete="name" required />
+          </div>
+          <div class="prestart-field">
+            <label for="pre-age">Возраст *</label>
+            <input class="prestart-input" id="pre-age" type="text" inputmode="numeric" required />
+          </div>
+          <div class="prestart-field">
+            <label>Пол *</label>
+            <div class="prestart-gender" role="radiogroup" aria-required="true">
+              <label><input type="radio" name="pre_gender" value="F" required /> Ж</label>
+              <label><input type="radio" name="pre_gender" value="M" required /> М</label>
+            </div>
+          </div>
+          <div class="prestart-field">
+            <label for="pre-spec">Специальность/Направление *</label>
+            <input class="prestart-input" id="pre-spec" type="text" required />
+          </div>
+        </div>
+        <div class="prestart-actions">
+          <button type="button" class="btn-primary" id="prestartSaveBtn">Сохранить и открыть этап 1</button>
+          <p class="prestart-feedback" id="prestartFeedback"></p>
+        </div>
+      </form>
+    </section>
 
     <div class="stage-list" id="stages"></div>
 
@@ -1371,33 +1482,11 @@
           target="_blank"
           rel="noopener noreferrer"
         >«Опросник»</a>. Ответы сохраняются в браузере (локально). Поля со звёздочкой <span class="s7-req">*</span> обязательны.
+        ФИО, пол, возраст и специальность вы уже указали в начале курса (перед первым этапом) — они подставляются в данные автоматически.
       </p>
+      <p class="s7-profile-banner" id="s7-profile-banner" hidden></p>
       <form class="s7-form" id="stage7-quiz-form" novalidate>
-        <h3 class="s7-section-title">Демографические данные</h3>
-
-        <fieldset class="s7-fieldset">
-          <label class="s7-text-label" for="s7-fio">ФИО</label>
-          <input class="s7-text" type="text" id="s7-fio" name="s7_fio" autocomplete="name" />
-        </fieldset>
-
-        <fieldset class="s7-fieldset">
-          <legend class="s7-legend">Пол <span class="s7-req">*</span></legend>
-          <div class="s7-options" role="radiogroup" aria-required="true">
-            <label class="s7-option">
-              <input type="radio" name="s7_gender" value="F" required />
-              <span>Ж</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="s7_gender" value="M" required />
-              <span>М</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <fieldset class="s7-fieldset">
-          <label class="s7-text-label" for="s7-age">Возраст <span class="s7-req">*</span></label>
-          <input class="s7-text" type="text" id="s7-age" name="s7_age" inputmode="numeric" autocomplete="bday-year" required />
-        </fieldset>
+        <h3 class="s7-section-title">Образование</h3>
 
         <fieldset class="s7-fieldset">
           <legend class="s7-legend">Уровень образования <span class="s7-req">*</span></legend>
@@ -1431,11 +1520,6 @@
             <label class="s7-option"><input type="radio" name="s7_course" value="5" required /><span>5</span></label>
             <label class="s7-option"><input type="radio" name="s7_course" value="6" required /><span>6</span></label>
           </div>
-        </fieldset>
-
-        <fieldset class="s7-fieldset">
-          <label class="s7-text-label" for="s7-spec">Специальность/Направление <span class="s7-req">*</span></label>
-          <input class="s7-text s7-text--wide" type="text" id="s7-spec" name="s7_spec" required />
         </fieldset>
 
         <h3 class="s7-section-title">Короткие видео</h3>
@@ -1581,6 +1665,8 @@
       var GNG_METRICS_KEY = "courseGngMetricsLast";
       var PARTICIPANT_ID_KEY = "courseParticipantId";
       var STAGE7_SURVEY_KEY = "stage7SurveyResponse";
+      var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
+      var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       var crtOnStage2Open = function () {};
 
       function safeJsonParse(s) {
@@ -1617,6 +1703,117 @@
           localStorage.setItem(PARTICIPANT_ID_KEY, id);
         } catch (e) {}
         return id;
+      }
+
+      function getPrestartProfile() {
+        return safeJsonParse(localStorage.getItem(PRESTART_PROFILE_KEY));
+      }
+
+      function hasPrestartProfile() {
+        var p = getPrestartProfile();
+        return !!(
+          p &&
+          String(p.fio || "").trim() &&
+          String(p.age || "").trim() &&
+          (p.gender === "F" || p.gender === "M") &&
+          String(p.spec || "").trim()
+        );
+      }
+
+      function savePrestartProfile(profile) {
+        try {
+          localStorage.setItem(
+            PRESTART_PROFILE_KEY,
+            JSON.stringify({
+              fio: String(profile.fio || "").trim(),
+              age: String(profile.age || "").trim(),
+              gender: profile.gender === "F" ? "F" : "M",
+              spec: String(profile.spec || "").trim(),
+              at: new Date().toISOString()
+            })
+          );
+        } catch (err) {}
+      }
+
+      function getStage1Metrics() {
+        var d = safeJsonParse(localStorage.getItem(STAGE1_METRICS_KEY));
+        if (d && typeof d === "object") return d;
+        return {
+          short: { perVideoMs: {}, totalMs: 0, completedVideos: [] },
+          long: { watchMs: 0, startedAt: null, endedAt: null }
+        };
+      }
+
+      function saveStage1Metrics(data) {
+        try {
+          localStorage.setItem(STAGE1_METRICS_KEY, JSON.stringify(data));
+        } catch (err) {}
+      }
+
+      function recordStage1ShortWatch(videoNo, deltaMs) {
+        if (!videoNo || !deltaMs || deltaMs <= 0) return;
+        var m = getStage1Metrics();
+        if (!m.short) m.short = { perVideoMs: {}, totalMs: 0, completedVideos: [] };
+        if (!m.short.perVideoMs) m.short.perVideoMs = {};
+        var key = String(videoNo);
+        var prev = typeof m.short.perVideoMs[key] === "number" ? m.short.perVideoMs[key] : 0;
+        m.short.perVideoMs[key] = prev + deltaMs;
+        m.short.totalMs = Object.keys(m.short.perVideoMs).reduce(function (acc, k) {
+          return acc + (typeof m.short.perVideoMs[k] === "number" ? m.short.perVideoMs[k] : 0);
+        }, 0);
+        saveStage1Metrics(m);
+      }
+
+      function markStage1ShortCompletedVideo(videoNo) {
+        var m = getStage1Metrics();
+        if (!m.short) m.short = { perVideoMs: {}, totalMs: 0, completedVideos: [] };
+        if (!Array.isArray(m.short.completedVideos)) m.short.completedVideos = [];
+        if (m.short.completedVideos.indexOf(videoNo) < 0) m.short.completedVideos.push(videoNo);
+        saveStage1Metrics(m);
+      }
+
+      function startStage1LongWatchIfNeeded() {
+        var m = getStage1Metrics();
+        if (!m.long) m.long = { watchMs: 0, startedAt: null, endedAt: null };
+        if (!m.long.startedAt) {
+          m.long.startedAt = new Date().toISOString();
+          m.long.endedAt = null;
+          m.long.watchMs = 0;
+          saveStage1Metrics(m);
+        }
+      }
+
+      function finalizeStage1LongWatch() {
+        var m = getStage1Metrics();
+        if (!m.long) m.long = { watchMs: 0, startedAt: null, endedAt: null };
+        var startTs = Date.parse(m.long.startedAt || "");
+        var now = Date.now();
+        if (isFinite(startTs) && startTs > 0 && now >= startTs) {
+          m.long.watchMs = now - startTs;
+        } else if (!m.long.watchMs) {
+          m.long.watchMs = 0;
+        }
+        m.long.endedAt = new Date(now).toISOString();
+        saveStage1Metrics(m);
+      }
+
+      function applyPrestartToStage7StorageIfAny() {
+        var p = getPrestartProfile();
+        if (!p) return;
+        var wrap = safeJsonParse(localStorage.getItem(STAGE7_SURVEY_KEY));
+        if (!wrap || !wrap.payload) return;
+        var payload = wrap.payload;
+        payload.fio = String(p.fio || "");
+        if (!payload.fields || typeof payload.fields !== "object") payload.fields = {};
+        payload.fields.s7_age = String(p.age || "");
+        payload.fields.s7_gender = String(p.gender || "");
+        payload.fields.s7_spec = String(p.spec || "");
+        try {
+          localStorage.setItem(
+            STAGE7_SURVEY_KEY,
+            JSON.stringify({ payload: payload, at: wrap.at || new Date().toISOString() })
+          );
+        } catch (err) {}
       }
       var STAGE_LABELS = [
         "Первый этап",
@@ -1785,6 +1982,8 @@
         var stroop = safeJsonParse(localStorage.getItem(STROOP_METRICS_KEY));
         var gng = safeJsonParse(localStorage.getItem(GNG_METRICS_KEY));
         var s7wrap = safeJsonParse(localStorage.getItem(STAGE7_SURVEY_KEY));
+        var pre = getPrestartProfile();
+        var stage1m = getStage1Metrics();
 
         var stage2 = null;
         if (crt && Array.isArray(crt.byQuestion)) {
@@ -1846,14 +2045,42 @@
           stage7 = { answers: s7wrap.payload, savedAt: s7wrap.at || null };
         }
 
+        if (pre && pre.fio) {
+          if (!stage7) {
+            stage7 = { answers: { fio: String(pre.fio), fields: {} }, savedAt: null };
+          }
+          if (!stage7.answers) stage7.answers = { fio: "", fields: {} };
+          if (!stage7.answers.fields) stage7.answers.fields = {};
+          if (!stage7.answers.fio) stage7.answers.fio = String(pre.fio);
+          if (!stage7.answers.fields.s7_age) stage7.answers.fields.s7_age = String(pre.age || "");
+          if (!stage7.answers.fields.s7_gender) stage7.answers.fields.s7_gender = String(pre.gender || "");
+          if (!stage7.answers.fields.s7_spec) stage7.answers.fields.s7_spec = String(pre.spec || "");
+        }
+
+        var shortTotalMs =
+          stage1m && stage1m.short && typeof stage1m.short.totalMs === "number" ? stage1m.short.totalMs : 0;
+        var shortVideoCount =
+          stage1m && stage1m.short && Array.isArray(stage1m.short.completedVideos)
+            ? stage1m.short.completedVideos.length
+            : 0;
+        var longMs = stage1m && stage1m.long && typeof stage1m.long.watchMs === "number" ? stage1m.long.watchMs : 0;
+        var branch = getStage1Branch();
+        var stage1TotalWatchMs = branch === "short" ? shortTotalMs : branch === "long" ? longMs : 0;
+        var stage1VideoCount = branch === "short" ? Math.max(1, shortVideoCount) : branch === "long" ? 1 : 0;
+        var stage1AvgWatchMs = stage1VideoCount > 0 ? Math.round(stage1TotalWatchMs / stage1VideoCount) : null;
+
         return {
           schemaVersion: 1,
           participantId: getOrCreateParticipantId(),
           exportedAt: new Date().toISOString(),
+          pre_stage_profile: pre || null,
           stage1: {
-            videoBranch: getStage1Branch(),
+            videoBranch: branch,
             allShortsWatched: hasStage1ShortsCompleted(),
-            maxUnlockedStage: getMaxUnlocked()
+            maxUnlockedStage: getMaxUnlocked(),
+            total_watch_ms: stage1TotalWatchMs,
+            video_count: stage1VideoCount,
+            avg_watch_ms: stage1AvgWatchMs
           },
           stage2: stage2,
           stage4: stage4,
@@ -1863,6 +2090,7 @@
             crt: crt,
             stroop: stroop,
             gng: gng,
+            stage1Metrics: stage1m,
             stage7Stored: s7wrap
           }
         };
@@ -1898,12 +2126,12 @@
 
       function getMaxUnlocked() {
         var n = parseInt(localStorage.getItem(STORAGE_KEY), 10);
-        if (!isFinite(n) || n < 1) return 1;
-        return Math.min(7, Math.max(1, n));
+        if (!isFinite(n) || n < 0) return hasPrestartProfile() ? 1 : 0;
+        return Math.min(7, Math.max(0, n));
       }
 
       function setMaxUnlocked(n) {
-        localStorage.setItem(STORAGE_KEY, String(Math.min(7, Math.max(1, n))));
+        localStorage.setItem(STORAGE_KEY, String(Math.min(7, Math.max(0, n))));
       }
 
       function hasStage1ShortsCompleted() {
@@ -2011,6 +2239,7 @@
           if (getStage1Branch() === "short") return;
           if (getStage1Branch() === "long") return;
           setStage1Branch("long");
+          startStage1LongWatchIfNeeded();
           exitStage1ShortFullscreen();
           var vShort = document.getElementById("stage1-short-video");
           if (vShort) vShort.pause();
@@ -2153,6 +2382,78 @@
           } else {
             btn.removeAttribute("title");
           }
+        });
+      }
+
+      function fillPrestartFormFromStorage() {
+        var form = document.getElementById("prestartForm");
+        if (!form) return;
+        var p = getPrestartProfile();
+        if (!p) return;
+        var fio = form.querySelector("#pre-fio");
+        var age = form.querySelector("#pre-age");
+        var spec = form.querySelector("#pre-spec");
+        if (fio) fio.value = p.fio || "";
+        if (age) age.value = p.age || "";
+        if (spec) spec.value = p.spec || "";
+        var gr = form.querySelector('input[name="pre_gender"][value="' + (p.gender || "") + '"]');
+        if (gr) gr.checked = true;
+      }
+
+      function syncPrestartPanelState() {
+        var fb = document.getElementById("prestartFeedback");
+        if (!fb) return;
+        var p = getPrestartProfile();
+        if (hasPrestartProfile()) {
+          fb.className = "prestart-feedback ok";
+          fb.textContent =
+            "Профиль сохранён: " +
+            String(p.fio || "") +
+            " · " +
+            String(p.age || "") +
+            " · " +
+            String(p.gender || "") +
+            " · " +
+            String(p.spec || "");
+        } else {
+          fb.className = "prestart-feedback";
+          fb.textContent = "Заполните все 4 поля для открытия первого этапа.";
+        }
+      }
+
+      function bindPrestartForm() {
+        var form = document.getElementById("prestartForm");
+        var btn = document.getElementById("prestartSaveBtn");
+        var fb = document.getElementById("prestartFeedback");
+        if (!form || !btn || !fb) return;
+
+        fillPrestartFormFromStorage();
+        syncPrestartPanelState();
+
+        btn.addEventListener("click", function () {
+          var fioEl = form.querySelector("#pre-fio");
+          var ageEl = form.querySelector("#pre-age");
+          var specEl = form.querySelector("#pre-spec");
+          var gEl = form.querySelector('input[name="pre_gender"]:checked');
+          var data = {
+            fio: fioEl ? fioEl.value.trim() : "",
+            age: ageEl ? ageEl.value.trim() : "",
+            gender: gEl ? gEl.value : "",
+            spec: specEl ? specEl.value.trim() : ""
+          };
+
+          if (!data.fio || !data.age || !data.spec || (data.gender !== "F" && data.gender !== "M")) {
+            fb.className = "prestart-feedback warn";
+            fb.textContent = "Заполните ФИО, возраст, пол и специальность.";
+            if (typeof form.reportValidity === "function") form.reportValidity();
+            return;
+          }
+
+          savePrestartProfile(data);
+          applyPrestartToStage7StorageIfAny();
+          if (getMaxUnlocked() < 1) setMaxUnlocked(1);
+          syncPrestartPanelState();
+          render();
         });
       }
 
@@ -2362,6 +2663,7 @@
         var shortsFinishUIShown = false;
         var lastVideoUiSync = 0;
         var VIDEO_UI_THROTTLE_MS = 200;
+        var lastPlayheadSec = 0;
 
         function showShortsFinishedUI() {
           if (shortsFinishUIShown) return;
@@ -2384,6 +2686,14 @@
         }
 
         function onVideoTimeUpdate() {
+          var curSec = video.currentTime;
+          if (isFinite(curSec)) {
+            var deltaSec = curSec - lastPlayheadSec;
+            if (deltaSec > 0 && deltaSec < 2.5) {
+              recordStage1ShortWatch(current + 1, Math.round(deltaSec * 1000));
+            }
+            lastPlayheadSec = curSec;
+          }
           var now = performance.now();
           if (now - lastVideoUiSync >= VIDEO_UI_THROTTLE_MS) {
             lastVideoUiSync = now;
@@ -2404,6 +2714,7 @@
           var scrollLock = window.scrollY;
           ignoreEndedUntil = Date.now() + 520;
           lastVideoUiSync = 0;
+          lastPlayheadSec = 0;
           current = Math.max(0, Math.min(SHORT_TOTAL - 1, i));
           if (!keepDone) {
             gotoStage2Btn.hidden = true;
@@ -2483,6 +2794,7 @@
         }
 
         video.addEventListener("ended", function () {
+          markStage1ShortCompletedVideo(current + 1);
           if (Date.now() < ignoreEndedUntil) return;
           if (current < SHORT_TOTAL - 1) {
             loadIndex(current + 1);
@@ -2850,21 +3162,18 @@
 
       function collectStage7FormPayload(form) {
         var payload = { fio: "", fields: {} };
-        var fioEl = form.querySelector("#s7-fio");
-        if (fioEl) payload.fio = (fioEl.value || "").trim();
-        var names = [
-          "s7_gender",
-          "s7_edu",
-          "s7_course",
-          "s7_shorts_daily",
-          "s7_shorts_study"
-        ];
+        var pre = getPrestartProfile();
+        if (pre) {
+          payload.fio = String(pre.fio || "").trim();
+          payload.fields.s7_gender = String(pre.gender || "");
+          payload.fields.s7_age = String(pre.age || "");
+          payload.fields.s7_spec = String(pre.spec || "");
+        }
+        var names = ["s7_edu", "s7_course", "s7_shorts_daily", "s7_shorts_study"];
         names.forEach(function (nm) {
           var el = form.querySelector('input[name="' + nm + '"]:checked');
           payload.fields[nm] = el ? el.value : "";
         });
-        payload.fields.s7_age = (form.querySelector("#s7-age") && form.querySelector("#s7-age").value) || "";
-        payload.fields.s7_spec = (form.querySelector("#s7-spec") && form.querySelector("#s7-spec").value) || "";
         payload.fields.s7_short_days =
           (form.querySelector("#s7-short-days") && form.querySelector("#s7-short-days").value) || "";
         payload.asst = {};
@@ -2880,14 +3189,45 @@
         return payload;
       }
 
+      function syncStage7ProfileBanner() {
+        var el = document.getElementById("s7-profile-banner");
+        if (!el) return;
+        var p = getPrestartProfile();
+        if (!hasPrestartProfile()) {
+          el.hidden = true;
+          el.textContent = "";
+          return;
+        }
+        el.hidden = false;
+        var gLabel = p.gender === "F" ? "Ж" : p.gender === "M" ? "М" : String(p.gender || "");
+        el.textContent =
+          "Данные из начала курса: ФИО — " +
+          String(p.fio || "") +
+          ", возраст — " +
+          String(p.age || "") +
+          ", пол — " +
+          gLabel +
+          ", специальность — " +
+          String(p.spec || "") +
+          ".";
+      }
+
       function bindStage7Form() {
         var form = document.getElementById("stage7-quiz-form");
         if (!form) return;
         mountStage7SurveyLikert(form);
+        syncStage7ProfileBanner();
         var btn = form.querySelector(".s7-submit");
         var fb = form.querySelector(".s7-feedback");
         if (!btn || !fb) return;
         btn.addEventListener("click", function () {
+          if (!hasPrestartProfile()) {
+            fb.hidden = false;
+            fb.className = "s7-feedback s7-feedback-warn";
+            fb.textContent =
+              "Сначала заполните профиль вверху страницы (ФИО, возраст, пол, специальность) и сохраните его.";
+            return;
+          }
           if (!form.checkValidity()) {
             fb.hidden = false;
             fb.className = "s7-feedback s7-feedback-warn";
@@ -3395,6 +3735,7 @@
               var brc = getStage1Branch();
               if (!brc) return;
               if (brc === "short" && !hasStage1ShortsCompleted()) return;
+              if (brc === "long") finalizeStage1LongWatch();
             }
             if (s < 7) setMaxUnlocked(max + 1);
             render();

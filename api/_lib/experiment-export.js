@@ -157,6 +157,14 @@ function flattenBundle(b) {
   r.s7_shorts_study = fields.s7_shorts_study || "";
   r.s7_saved_at = s7 && s7.savedAt ? s7.savedAt : "";
 
+  var preProf = b.pre_stage_profile;
+  if (preProf && typeof preProf === "object") {
+    if (!String(r.s7_fio || "").trim() && preProf.fio) r.s7_fio = String(preProf.fio);
+    if (!String(r.s7_gender || "").trim() && preProf.gender) r.s7_gender = String(preProf.gender);
+    if (!String(r.s7_age || "").trim() && preProf.age) r.s7_age = String(preProf.age);
+    if (!String(r.s7_spec || "").trim() && preProf.spec) r.s7_spec = String(preProf.spec);
+  }
+
   for (var ai = 1; ai <= ASST_N; ai++) {
     r["s7_asst_" + ai] = pay && pay.asst && pay.asst[String(ai)] != null ? String(pay.asst[String(ai)]) : "";
   }
@@ -262,7 +270,7 @@ function dedupeByParticipant(bundles) {
     });
 }
 
-function buildFlatRowsFromDbRows(dbRows, options) {
+function buildBundlesFromDbRows(dbRows, options) {
   var opts = options || {};
   var dedupe = opts.dedupeByParticipant === true;
   var bundles = (Array.isArray(dbRows) ? dbRows : [])
@@ -274,11 +282,17 @@ function buildFlatRowsFromDbRows(dbRows, options) {
     bundles = dedupeByParticipant(bundles);
   }
 
-  return bundles.map(flattenBundle);
+  return bundles;
+}
+
+function buildFlatRowsFromDbRows(dbRows, options) {
+  return buildBundlesFromDbRows(dbRows, options).map(flattenBundle);
 }
 
 module.exports = {
   buildColumns: buildColumns,
+  buildBundlesFromDbRows: buildBundlesFromDbRows,
   buildFlatRowsFromDbRows: buildFlatRowsFromDbRows,
+  flattenBundle: flattenBundle,
   toCsv: toCsv
 };

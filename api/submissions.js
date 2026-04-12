@@ -43,7 +43,8 @@ module.exports = async function handler(req, res) {
 
   try {
     var dbRows = await supabase.fetchAllSubmissions();
-    var rows = exporter.buildFlatRowsFromDbRows(dbRows, { dedupeByParticipant: dedupe });
+    var bundles = exporter.buildBundlesFromDbRows(dbRows, { dedupeByParticipant: dedupe });
+    var rows = bundles.map(exporter.flattenBundle);
     var columns = exporter.buildColumns(rows);
 
     return res.status(200).json({
@@ -52,7 +53,8 @@ module.exports = async function handler(req, res) {
       source_rows: dbRows.length,
       total_rows: rows.length,
       columns: columns,
-      rows: rows
+      rows: rows,
+      bundles: bundles
     });
   } catch (err) {
     if (err && err.code === "STORAGE_NOT_CONFIGURED") {

@@ -162,6 +162,109 @@
     }
     .err { color: #a32020; font-size: 0.88rem; margin-top: 0.5rem; }
     .ok { color: #1b6b3a; font-size: 0.88rem; margin-top: 0.5rem; }
+    .participant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .participant-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .participant-card:hover {
+      border-color: #6b9f7a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .participant-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+    .participant-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .viz-section-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      overflow: auto;
+    }
+    .modal[hidden] { display: none !important; }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .modal-dialog {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+      max-height: min(90vh, 900px);
+      overflow: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+    .modal-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 2rem;
+      height: 2rem;
+      border: none;
+      background: transparent;
+      font-size: 1.35rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--muted);
+      border-radius: 6px;
+    }
+    .modal-close:hover { background: #ece8e0; color: var(--text); }
+    .modal-title { margin: 0 2rem 0.25rem 0; font-size: 1.1rem; }
+    .modal-sub { margin: 0 0 1rem; font-size: 0.85rem; color: var(--muted); }
+    .detail-stages { display: flex; flex-direction: column; gap: 0.75rem; }
+    .detail-stage {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      background: #faf9f7;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    .detail-stage h4 {
+      margin: 0 0 0.45rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .detail-stage p { margin: 0.2rem 0; }
+    .detail-muted { color: var(--muted); font-size: 0.78rem; }
   </style>
 </head>
 <body>
@@ -211,7 +314,21 @@
 
     <div class="panel" id="visualPanel" hidden>
       <p style="margin: 0 0 0.5rem"><strong>Visual Analytics</strong></p>
+      <p class="viz-note" style="margin: 0 0 0.65rem">
+        Каждая карточка — одна отправка данных. Нажмите, чтобы открыть этапы 1, 2, 4, 6 и 7.
+      </p>
+      <p class="viz-section-title">Участники</p>
+      <div class="participant-grid" id="participantGrid" role="list"></div>
+      <p class="viz-section-title">Сводные графики</p>
       <div class="viz-grid" id="visualGrid"></div>
+    </div>
+
+    <div id="participantModal" class="modal" hidden>
+      <div class="modal-backdrop" id="participantModalBackdrop"></div>
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="participantModalTitle">
+        <button type="button" class="modal-close" id="participantModalClose" aria-label="Закрыть">×</button>
+        <div id="participantModalBody"></div>
+      </div>
     </div>
 
     <div class="panel" id="tablePanel" hidden>
@@ -439,6 +556,14 @@
         r.s7_short_days = fields.s7_short_days || "";
         r.s7_shorts_study = fields.s7_shorts_study || "";
         r.s7_saved_at = s7 && s7.savedAt ? s7.savedAt : "";
+
+        var preProf = b.pre_stage_profile;
+        if (preProf && typeof preProf === "object") {
+          if (!String(r.s7_fio || "").trim() && preProf.fio) r.s7_fio = String(preProf.fio);
+          if (!String(r.s7_gender || "").trim() && preProf.gender) r.s7_gender = String(preProf.gender);
+          if (!String(r.s7_age || "").trim() && preProf.age) r.s7_age = String(preProf.age);
+          if (!String(r.s7_spec || "").trim() && preProf.spec) r.s7_spec = String(preProf.spec);
+        }
 
         for (var ai = 1; ai <= ASST_N; ai++) {
           r["s7_asst_" + ai] =
@@ -686,6 +811,331 @@
         });
       }
 
+      function escapeHtml(s) {
+        if (s == null) return "";
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function participantCardLabel(b) {
+        var pre = b.pre_stage_profile;
+        var s7 = b.stage7 && b.stage7.answers;
+        var fields = (s7 && s7.fields) || {};
+        var name = (s7 && s7.fio) || (pre && pre.fio) || b.participantId || "—";
+        var age = fields.s7_age || (pre && pre.age) || "";
+        var spec = fields.s7_spec || (pre && pre.spec) || "";
+        return {
+          name: String(name).trim(),
+          age: String(age).trim(),
+          spec: String(spec).trim()
+        };
+      }
+
+      function meanMsFromNumbers(arr) {
+        var xs = (arr || []).filter(function (x) {
+          return typeof x === "number" && isFinite(x);
+        });
+        if (!xs.length) return null;
+        var s = 0;
+        xs.forEach(function (x) {
+          s += x;
+        });
+        return Math.round(s / xs.length);
+      }
+
+      function wrongTrialIndicesOneBased(trials) {
+        var out = [];
+        if (!Array.isArray(trials)) return out;
+        trials.forEach(function (tr, i) {
+          if (tr && tr.correct === false) out.push(i + 1);
+        });
+        return out;
+      }
+
+      function stage1DetailHtml(b) {
+        var s1 = b.stage1 || {};
+        var branch = s1.videoBranch;
+        var branchRu =
+          branch === "short" ? "короткие ролики" : branch === "long" ? "длинный ролик" : branch ? String(branch) : "—";
+        var vc = s1.video_count != null ? s1.video_count : "—";
+        var tot = s1.total_watch_ms != null ? Math.round(s1.total_watch_ms) + " ms" : "—";
+        var avg = s1.avg_watch_ms != null ? Math.round(s1.avg_watch_ms) + " ms" : "—";
+        return (
+          "<p><strong>Ветка:</strong> " +
+          escapeHtml(branchRu) +
+          "</p>" +
+          "<p><strong>Число видео (для среднего):</strong> " +
+          escapeHtml(String(vc)) +
+          "</p>" +
+          "<p><strong>Суммарное время просмотра:</strong> " +
+          escapeHtml(String(tot)) +
+          "</p>" +
+          "<p><strong>Среднее время на одно видео:</strong> " +
+          escapeHtml(String(avg)) +
+          "</p>" +
+          '<p class="detail-muted">Среднее = суммарное время / число видео (для короткой ветки — по завершённым роликам).</p>'
+        );
+      }
+
+      function stage2DetailHtml(b) {
+        var s2 = b.stage2;
+        var raw = b._raw && b._raw.crt;
+        var correct =
+          s2 && typeof s2.wrong_count === "number" && s2.answers
+            ? 3 - s2.wrong_count
+            : raw && raw.correctCount != null
+            ? raw.correctCount
+            : "—";
+        var wrong =
+          s2 && s2.wrong_count != null
+            ? s2.wrong_count
+            : raw && raw.wrongCount != null
+            ? raw.wrongCount
+            : "—";
+        var times = [];
+        if (s2 && Array.isArray(s2.answers)) {
+          s2.answers.forEach(function (a) {
+            if (a.time_ms != null) times.push(a.time_ms);
+          });
+        }
+        if (raw && Array.isArray(raw.byQuestion)) {
+          raw.byQuestion.forEach(function (q) {
+            if (q.reactionMs != null) times.push(q.reactionMs);
+          });
+        }
+        var avg = meanMsFromNumbers(times);
+        return (
+          "<p><strong>Верных:</strong> " +
+          escapeHtml(String(correct)) +
+          " &nbsp; <strong>Неверных:</strong> " +
+          escapeHtml(String(wrong)) +
+          "</p>" +
+          "<p><strong>Среднее время ответа (CRT):</strong> " +
+          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          "</p>"
+        );
+      }
+
+      function stroopTrialsList(b) {
+        var raw = b._raw && b._raw.stroop;
+        if (raw && Array.isArray(raw.trials)) return raw.trials;
+        var s4 = b.stage4;
+        if (s4 && Array.isArray(s4.click_details)) {
+          return s4.click_details.map(function (cd) {
+            return {
+              correct: cd.correct,
+              reactionMs: cd.time_ms,
+              timeout: cd.timeout
+            };
+          });
+        }
+        return [];
+      }
+
+      function stage4DetailHtml(b) {
+        var trials = stroopTrialsList(b);
+        var s4 = b.stage4;
+        var rawSt = b._raw && b._raw.stroop;
+        var correct =
+          s4 && s4.correct_count != null
+            ? s4.correct_count
+            : rawSt && rawSt.correctCount != null
+            ? rawSt.correctCount
+            : "—";
+        var wrong =
+          s4 && s4.wrong_count != null
+            ? s4.wrong_count
+            : rawSt && rawSt.wrongCount != null
+            ? rawSt.wrongCount
+            : "—";
+        var rts = trials
+          .filter(function (tr) {
+            return tr && !tr.timeout && tr.reactionMs != null;
+          })
+          .map(function (tr) {
+            return tr.reactionMs;
+          });
+        var avg = meanMsFromNumbers(rts);
+        var bad = wrongTrialIndicesOneBased(trials);
+        var badStr = bad.length ? bad.join(", ") : "нет";
+        return (
+          "<p><strong>Верных:</strong> " +
+          escapeHtml(String(correct)) +
+          " &nbsp; <strong>Неверных:</strong> " +
+          escapeHtml(String(wrong)) +
+          "</p>" +
+          "<p><strong>Неверные попытки (№):</strong> " +
+          escapeHtml(badStr) +
+          "</p>" +
+          "<p><strong>Среднее время реакции (по попыткам без таймаута):</strong> " +
+          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          "</p>"
+        );
+      }
+
+      function gngMainTrialsList(b) {
+        var raw = b._raw && b._raw.gng && b._raw.gng.main;
+        if (raw && Array.isArray(raw.trials)) return raw.trials;
+        var s6 = b.stage6;
+        if (s6 && Array.isArray(s6.click_details)) return s6.click_details;
+        return [];
+      }
+
+      function stage6DetailHtml(b) {
+        var trials = gngMainTrialsList(b);
+        var s6 = b.stage6;
+        var rawG = b._raw && b._raw.gng && b._raw.gng.main;
+        var correct =
+          s6 && s6.correct_count != null
+            ? s6.correct_count
+            : rawG && rawG.correctCount != null
+            ? rawG.correctCount
+            : "—";
+        var wrong =
+          s6 && s6.wrong_count != null
+            ? s6.wrong_count
+            : rawG && rawG.wrongCount != null
+            ? rawG.wrongCount
+            : "—";
+        var rts = trials
+          .filter(function (tr) {
+            return tr && (tr.reactionMs != null || tr.time_ms != null);
+          })
+          .map(function (tr) {
+            return tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
+          });
+        var avg = meanMsFromNumbers(rts);
+        var bad = wrongTrialIndicesOneBased(trials);
+        var badStr = bad.length ? bad.join(", ") : "нет";
+        return (
+          "<p><strong>Верных:</strong> " +
+          escapeHtml(String(correct)) +
+          " &nbsp; <strong>Неверных:</strong> " +
+          escapeHtml(String(wrong)) +
+          "</p>" +
+          "<p><strong>Неверные попытки (№):</strong> " +
+          escapeHtml(badStr) +
+          "</p>" +
+          "<p><strong>Среднее время реакции:</strong> " +
+          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          "</p>"
+        );
+      }
+
+      function stage7DetailHtml(b) {
+        var s7 = b.stage7 && b.stage7.answers;
+        if (!s7) return "<p>—</p>";
+        var items = [];
+        if (s7.fio) items.push({ t: "ФИО", v: s7.fio });
+        var fields = s7.fields || {};
+        ["s7_gender", "s7_age", "s7_edu", "s7_course", "s7_spec", "s7_shorts_daily", "s7_short_days", "s7_shorts_study"].forEach(
+          function (k) {
+            if (fields[k]) items.push({ t: k, v: fields[k] });
+          }
+        );
+        var ai;
+        for (ai = 1; ai <= ASST_N; ai++) {
+          if (s7.asst && s7.asst[String(ai)]) items.push({ t: "АССТ " + ai, v: s7.asst[String(ai)] });
+        }
+        var ci;
+        for (ci = 1; ci <= CAQ_N; ci++) {
+          if (s7.caq && s7.caq[String(ci)]) items.push({ t: "CAQ " + ci, v: s7.caq[String(ci)] });
+        }
+        if (!items.length) return "<p>—</p>";
+        return items
+          .map(function (it, idx) {
+            return (
+              "<p>" +
+              (idx + 1) +
+              " — <em>" +
+              escapeHtml(it.t) +
+              "</em>: " +
+              escapeHtml(String(it.v)) +
+              "</p>"
+            );
+          })
+          .join("");
+      }
+
+      function buildDetailStage(title, innerHtml) {
+        return (
+          '<section class="detail-stage"><h4>' +
+          escapeHtml(title) +
+          "</h4>" +
+          innerHtml +
+          "</section>"
+        );
+      }
+
+      function buildParticipantDetailHtml(b) {
+        var lab = participantCardLabel(b);
+        var sub = [lab.age, lab.spec].filter(Boolean).join(" · ");
+        return (
+          '<h2 class="modal-title" id="participantModalTitle">' +
+          escapeHtml(lab.name || "—") +
+          "</h2>" +
+          '<p class="modal-sub">' +
+          escapeHtml(sub) +
+          "</p>" +
+          '<div class="detail-stages">' +
+          buildDetailStage("Этап 1 — видео", stage1DetailHtml(b)) +
+          buildDetailStage("Этап 2 — CRT", stage2DetailHtml(b)) +
+          buildDetailStage("Этап 4 — Струп", stage4DetailHtml(b)) +
+          buildDetailStage("Этап 6 — Go/No-Go", stage6DetailHtml(b)) +
+          buildDetailStage("Этап 7 — анкета", stage7DetailHtml(b)) +
+          "</div>"
+        );
+      }
+
+      function openParticipantDetail(b) {
+        var modal = document.getElementById("participantModal");
+        var body = document.getElementById("participantModalBody");
+        if (!modal || !body) return;
+        body.innerHTML = buildParticipantDetailHtml(b);
+        modal.hidden = false;
+      }
+
+      function closeParticipantModal() {
+        var modal = document.getElementById("participantModal");
+        if (modal) modal.hidden = true;
+      }
+
+      function renderParticipantGrid() {
+        var grid = document.getElementById("participantGrid");
+        if (!grid) return;
+        if (!bundles.length) {
+          grid.innerHTML = "";
+          return;
+        }
+        grid.innerHTML = bundles
+          .map(function (b, idx) {
+            var lab = participantCardLabel(b);
+            var sub = [lab.age, lab.spec].filter(Boolean).join(" · ");
+            return (
+              '<button type="button" class="participant-card" data-idx="' +
+              idx +
+              '" role="listitem">' +
+              '<span class="participant-name">' +
+              escapeHtml(lab.name || "—") +
+              "</span>" +
+              '<span class="participant-meta">' +
+              escapeHtml(sub || "—") +
+              "</span>" +
+              "</button>"
+            );
+          })
+          .join("");
+        grid.querySelectorAll(".participant-card").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var i = parseInt(btn.getAttribute("data-idx"), 10);
+            if (!isNaN(i) && bundles[i]) openParticipantDetail(bundles[i]);
+          });
+        });
+      }
+
       function renderVizCard(title, rows, note) {
         var bars = rows
           .map(function (r) {
@@ -707,6 +1157,7 @@
         if (!rows.length) {
           grid.innerHTML = "";
           document.getElementById("visualPanel").hidden = true;
+          renderParticipantGrid();
           return;
         }
 
@@ -734,6 +1185,7 @@
           renderVizCard("Ветка видео stage 1", branches, "Short vs Long");
 
         document.getElementById("visualPanel").hidden = false;
+        renderParticipantGrid();
       }
 
       function renderTable(rows, cols) {
@@ -803,9 +1255,11 @@
         document.getElementById("dataTbody").innerHTML = "";
         document.getElementById("statsGrid").innerHTML = "";
         document.getElementById("visualGrid").innerHTML = "";
+        document.getElementById("participantGrid").innerHTML = "";
         document.getElementById("statsPanel").hidden = true;
         document.getElementById("visualPanel").hidden = true;
         document.getElementById("tablePanel").hidden = true;
+        closeParticipantModal();
         document.getElementById("message").textContent = "";
         document.getElementById("btnCsv").disabled = true;
         document.getElementById("fileInput").value = "";
@@ -838,8 +1292,8 @@
         messageEl.textContent = text;
       }
 
-      function replaceRows(rows, cols, noticeText) {
-        bundles = [];
+      function replaceRows(rows, cols, noticeText, serverBundles) {
+        bundles = Array.isArray(serverBundles) ? serverBundles.slice() : [];
         flatRows = Array.isArray(rows) ? rows.slice() : [];
         columns = Array.isArray(cols) && cols.length ? cols.slice() : buildColumns(flatRows);
         renderStats(flatRows);
@@ -867,10 +1321,12 @@
             }
             var rows = (o.j && o.j.rows) || [];
             var cols = (o.j && o.j.columns) || [];
+            var srvBundles = (o.j && o.j.bundles) || [];
             replaceRows(
               rows,
               cols,
-              "Загружено строк: " + rows.length + " (в Supabase записей: " + ((o.j && o.j.source_rows) || 0) + ")."
+              "Загружено строк: " + rows.length + " (в Supabase записей: " + ((o.j && o.j.source_rows) || 0) + ").",
+              srvBundles
             );
           })
           .catch(function (err) {
@@ -950,6 +1406,12 @@
         a.download = "experiment_aggregate_" + new Date().toISOString().slice(0, 19).replace(/:/g, "-") + ".csv";
         a.click();
         URL.revokeObjectURL(a.href);
+      });
+
+      document.getElementById("participantModalClose").addEventListener("click", closeParticipantModal);
+      document.getElementById("participantModalBackdrop").addEventListener("click", closeParticipantModal);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeParticipantModal();
       });
 
       loadFromCloud();
