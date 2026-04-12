@@ -1,5 +1,6 @@
 var ASST_N = 20;
 var CAQ_N = 24;
+var POST_N = 5;
 var STROOP_N = 20;
 var GNG_MAIN_N = 10;
 
@@ -167,6 +168,10 @@ function flattenBundle(b) {
 
   for (var ai = 1; ai <= ASST_N; ai++) {
     r["s7_asst_" + ai] = pay && pay.asst && pay.asst[String(ai)] != null ? String(pay.asst[String(ai)]) : "";
+  }
+  for (var pi = 1; pi <= POST_N; pi++) {
+    var pk = "s7_post" + pi;
+    r["s7_post_" + pi] = fields[pk] != null && fields[pk] !== "" ? String(fields[pk]) : "";
   }
   for (var ci = 1; ci <= CAQ_N; ci++) {
     r["s7_caq_" + ci] = pay && pay.caq && pay.caq[String(ci)] != null ? String(pay.caq[String(ci)]) : "";

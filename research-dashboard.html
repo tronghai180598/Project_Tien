@@ -56,6 +56,14 @@
       color: #fff;
       border-color: #145a30;
     }
+    button.btn-danger {
+      background: #fff;
+      border-color: #c62828;
+      color: #a32020;
+    }
+    button.btn-danger:hover:not(:disabled) {
+      background: #ffebee;
+    }
     button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
     #pasteArea {
       width: 100%;
@@ -290,6 +298,7 @@
         </label>
         <button type="button" class="btn btn-primary" id="btnParsePaste">Разобрать вставку из поля ниже</button>
         <button type="button" class="btn" id="btnClear">Очистить всё</button>
+        <button type="button" class="btn btn-danger" id="btnResetAll">Reset all</button>
         <button type="button" class="btn btn-primary" id="btnCsv" disabled>Скачать CSV (все колонки)</button>
       </div>
       <p style="margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted)">
@@ -331,6 +340,38 @@
       </div>
     </div>
 
+    <div id="resetAllModal" class="modal" hidden>
+      <div class="modal-backdrop" id="resetAllModalBackdrop"></div>
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="resetAllModalTitle">
+        <button type="button" class="modal-close" id="resetAllModalClose" aria-label="Закрыть">×</button>
+        <h2 class="modal-title" id="resetAllModalTitle">Reset all</h2>
+        <p class="modal-sub" style="margin-bottom: 0.75rem">
+          Удалить <strong>все</strong> записи участников в Supabase (необратимо). Введите пароль и нажмите Enter или «Подтвердить».
+        </p>
+        <p style="margin: 0 0 0.35rem; font-size: 0.88rem; font-weight: 600">Пароль</p>
+        <input
+          type="password"
+          id="resetAllPassword"
+          style="
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            padding: 0.5rem 0.65rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font: inherit;
+          "
+          autocomplete="off"
+          autocapitalize="off"
+        />
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+          <button type="button" class="btn" id="resetAllCancel">Отмена</button>
+          <button type="button" class="btn btn-danger" id="resetAllConfirm">Подтвердить</button>
+        </div>
+      </div>
+    </div>
+
     <div class="panel" id="tablePanel" hidden>
       <p style="margin: 0 0 0.5rem"><strong>Таблица (прокрутка)</strong></p>
       <div class="table-scroll">
@@ -346,6 +387,7 @@
     (function () {
       var ASST_N = 20;
       var CAQ_N = 24;
+      var POST_N = 5;
       var STROOP_N = 20;
       var GNG_MAIN_N = 10;
 
@@ -571,6 +613,10 @@
               ? String(pay.asst[String(ai)])
               : "";
         }
+        for (var pi = 1; pi <= POST_N; pi++) {
+          var pk = "s7_post" + pi;
+          r["s7_post_" + pi] = fields[pk] != null && fields[pk] !== "" ? String(fields[pk]) : "";
+        }
         for (var ci = 1; ci <= CAQ_N; ci++) {
           r["s7_caq_" + ci] =
             pay && pay.caq && pay.caq[String(ci)] != null
@@ -785,8 +831,16 @@
         var st = meanFromRows(rows, "stroop_mean_rt_ms");
         var gg = meanFromRows(rows, "gng_mean_rt_ms");
         return [
-          { label: "Stroop RT", value: st === "" ? 0 : st, display: st === "" ? "—" : Math.round(st) + " ms" },
-          { label: "GoNoGo RT", value: gg === "" ? 0 : gg, display: gg === "" ? "—" : Math.round(gg) + " ms" }
+          {
+            label: "Stroop RT",
+            value: st === "" ? 0 : st,
+            display: st === "" ? "—" : formatSecondsFromMs(st)
+          },
+          {
+            label: "GoNoGo RT",
+            value: gg === "" ? 0 : gg,
+            display: gg === "" ? "—" : formatSecondsFromMs(gg)
+          }
         ];
       }
 
@@ -818,6 +872,21 @@
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+      }
+
+      function formatSecondsFromMs(msVal) {
+        if (msVal == null || msVal === "") return "—";
+        var ms = typeof msVal === "number" ? msVal : parseFloat(msVal);
+        if (!isFinite(ms)) return "—";
+        var sec = ms / 1000;
+        return sec.toFixed(2) + " s";
+      }
+
+      function postTestAnswerLabel(v) {
+        if (v === "yes") return "Да";
+        if (v === "no") return "Нет";
+        if (v === "maybe") return "Возможно";
+        return v == null ? "" : String(v);
       }
 
       function participantCardLabel(b) {
@@ -861,8 +930,8 @@
         var branchRu =
           branch === "short" ? "короткие ролики" : branch === "long" ? "длинный ролик" : branch ? String(branch) : "—";
         var vc = s1.video_count != null ? s1.video_count : "—";
-        var tot = s1.total_watch_ms != null ? Math.round(s1.total_watch_ms) + " ms" : "—";
-        var avg = s1.avg_watch_ms != null ? Math.round(s1.avg_watch_ms) + " ms" : "—";
+        var tot = s1.total_watch_ms != null ? formatSecondsFromMs(s1.total_watch_ms) : "—";
+        var avg = s1.avg_watch_ms != null ? formatSecondsFromMs(s1.avg_watch_ms) : "—";
         return (
           "<p><strong>Ветка:</strong> " +
           escapeHtml(branchRu) +
@@ -876,7 +945,7 @@
           "<p><strong>Среднее время на один ролик:</strong> " +
           escapeHtml(String(avg)) +
           "</p>" +
-          '<p class="detail-muted">Для короткой ветки: среднее = суммарное время ÷ N, где N — все ролики в ленте (например 7), а не только те, что дошли до конца.</p>'
+          '<p class="detail-muted">Время в секундах (с). Для короткой ветки: среднее = суммарное время ÷ N, где N — все ролики в ленте (например 7).</p>'
         );
       }
 
@@ -914,7 +983,7 @@
           escapeHtml(String(wrong)) +
           "</p>" +
           "<p><strong>Среднее время ответа (CRT):</strong> " +
-          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          (avg != null ? escapeHtml(formatSecondsFromMs(avg)) : "—") +
           "</p>"
         );
       }
@@ -971,7 +1040,7 @@
           escapeHtml(badStr) +
           "</p>" +
           "<p><strong>Среднее время реакции (по попыткам без таймаута):</strong> " +
-          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          (avg != null ? escapeHtml(formatSecondsFromMs(avg)) : "—") +
           "</p>"
         );
       }
@@ -1020,7 +1089,7 @@
           escapeHtml(badStr) +
           "</p>" +
           "<p><strong>Среднее время реакции:</strong> " +
-          (avg != null ? escapeHtml(String(avg)) + " ms" : "—") +
+          (avg != null ? escapeHtml(formatSecondsFromMs(avg)) : "—") +
           "</p>"
         );
       }
@@ -1036,13 +1105,25 @@
             if (fields[k]) items.push({ t: k, v: fields[k] });
           }
         );
+        var postLabels = {
+          s7_post1: "После тестов: трудности при выполнении тестов",
+          s7_post2: "После тестов: побуждение пропустить повторяющееся задание",
+          s7_post3: "После тестов: мысли о видео вместо цифр на экране",
+          s7_post4: "После тестов: доверие первой интуиции",
+          s7_post5: "После тестов: три детали из просмотренного видео"
+        };
+        var pi;
+        for (pi = 1; pi <= POST_N; pi++) {
+          var pk = "s7_post" + pi;
+          if (fields[pk]) items.push({ t: postLabels[pk] || pk, v: postTestAnswerLabel(fields[pk]) });
+        }
         var ai;
         for (ai = 1; ai <= ASST_N; ai++) {
           if (s7.asst && s7.asst[String(ai)]) items.push({ t: "АССТ " + ai, v: s7.asst[String(ai)] });
         }
         var ci;
         for (ci = 1; ci <= CAQ_N; ci++) {
-          if (s7.caq && s7.caq[String(ci)]) items.push({ t: "CAQ " + ci, v: s7.caq[String(ci)] });
+          if (s7.caq && s7.caq[String(ci)]) items.push({ t: "CFQ " + ci, v: s7.caq[String(ci)] });
         }
         if (!items.length) return "<p>—</p>";
         return items
@@ -1179,7 +1260,7 @@
 
         grid.innerHTML =
           renderVizCard("Средние результаты", accuracy, "Средние баллы по всем участникам") +
-          renderVizCard("Среднее время реакции", reaction, "Чем меньше ms, тем быстрее реакция") +
+          renderVizCard("Среднее время реакции", reaction, "Чем меньше с (секунд), тем быстрее реакция") +
           renderVizCard("Распределение пола", genders, "По заполненной анкете stage 7") +
           renderVizCard("Распределение возраста", ages, "Возрастные группы участников") +
           renderVizCard("Ветка видео stage 1", branches, "Short vs Long");
@@ -1410,8 +1491,84 @@
 
       document.getElementById("participantModalClose").addEventListener("click", closeParticipantModal);
       document.getElementById("participantModalBackdrop").addEventListener("click", closeParticipantModal);
+
+      function openResetAllModal() {
+        var m = document.getElementById("resetAllModal");
+        if (!m) return;
+        m.hidden = false;
+        var inp = document.getElementById("resetAllPassword");
+        if (inp) {
+          inp.value = "";
+          inp.focus();
+        }
+      }
+
+      function closeResetAllModal() {
+        var m = document.getElementById("resetAllModal");
+        if (m) m.hidden = true;
+      }
+
+      function submitResetAll() {
+        var pwdEl = document.getElementById("resetAllPassword");
+        var pwd = pwdEl ? String(pwdEl.value || "").trim() : "";
+        var btn = document.getElementById("resetAllConfirm");
+        if (!pwd) {
+          setCloudMessage(true, "Введите пароль.");
+          return;
+        }
+        if (btn) btn.disabled = true;
+        var url = cloudUrl("/api/reset-submissions");
+        var headers = { "Content-Type": "application/json" };
+        var tok = getTokenFromUrl();
+        if (tok) headers["x-research-token"] = tok;
+        fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ password: pwd })
+        })
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { ok: r.ok, status: r.status, j: j };
+            });
+          })
+          .then(function (o) {
+            if (!o.ok) {
+              throw new Error((o.j && (o.j.error || o.j.message)) || "HTTP " + o.status);
+            }
+            closeResetAllModal();
+            clearAll();
+            var paste = document.getElementById("pasteArea");
+            if (paste) paste.value = "";
+            setCloudMessage(false, "Все записи в Supabase удалены. Таблица пуста.");
+          })
+          .catch(function (err) {
+            setCloudMessage(true, "Ошибка: " + (err && err.message ? err.message : String(err)));
+          })
+          .finally(function () {
+            if (btn) btn.disabled = false;
+          });
+      }
+
+      document.getElementById("btnResetAll").addEventListener("click", openResetAllModal);
+      document.getElementById("resetAllModalClose").addEventListener("click", closeResetAllModal);
+      document.getElementById("resetAllModalBackdrop").addEventListener("click", closeResetAllModal);
+      document.getElementById("resetAllCancel").addEventListener("click", closeResetAllModal);
+      document.getElementById("resetAllConfirm").addEventListener("click", submitResetAll);
+      document.getElementById("resetAllPassword").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitResetAll();
+        }
+      });
+
       document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") closeParticipantModal();
+        if (e.key !== "Escape") return;
+        var rm = document.getElementById("resetAllModal");
+        if (rm && !rm.hidden) {
+          closeResetAllModal();
+          return;
+        }
+        closeParticipantModal();
       });
 
       loadFromCloud();

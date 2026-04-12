@@ -59,8 +59,64 @@ async function fetchAllSubmissions() {
   return all;
 }
 
+/**
+ * Delete all rows in experiment_submissions (service role only).
+ */
+async function deleteAllSubmissions() {
+  var cfg = getSupabaseConfig();
+  if (!cfg.url || !cfg.key) {
+    var e = new Error("Storage not configured");
+    e.code = "STORAGE_NOT_CONFIGURED";
+    throw e;
+  }
+  var base = cfg.url.replace(/\/$/, "") + "/rest/v1/experiment_submissions";
+  var delHeaders = Object.assign({}, getSupabaseHeaders(cfg.key), {
+    Prefer: "return=minimal"
+  });
+
+  var r = await fetch(base + "?id=not.is.null", {
+    method: "DELETE",
+    headers: delHeaders
+  });
+  if (r.ok) return true;
+
+  var rows = await fetchAllSubmissions();
+  if (!rows.length) return true;
+
+  var BATCH = 80;
+  for (var i = 0; i < rows.length; i += BATCH) {
+    var chunk = rows.slice(i, i + BATCH);
+    var ids = chunk
+      .map(function (row) {
+        return row.id;
+      })
+      .filter(function (x) {
+        return x != null;
+      });
+    if (!ids.length) continue;
+    var inList = ids
+      .map(function (id) {
+        return encodeURIComponent(id);
+      })
+      .join(",");
+    var r2 = await fetch(base + "?id=in.(" + inList + ")", {
+      method: "DELETE",
+      headers: delHeaders
+    });
+    if (!r2.ok) {
+      var detail = await r2.text();
+      var err = new Error("Supabase delete failed: HTTP " + r2.status);
+      err.status = r2.status;
+      err.detail = detail.slice(0, 500);
+      throw err;
+    }
+  }
+  return true;
+}
+
 module.exports = {
   fetchAllSubmissions: fetchAllSubmissions,
+  deleteAllSubmissions: deleteAllSubmissions,
   getSupabaseConfig: getSupabaseConfig,
   getSupabaseHeaders: getSupabaseHeaders
 };
