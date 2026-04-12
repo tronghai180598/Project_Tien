@@ -1667,6 +1667,8 @@
       var STAGE7_SURVEY_KEY = "stage7SurveyResponse";
       var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
+      /** Must match short feed in bindStage1ShortFeed (short_video/1..N.mp4, badge «1 / N»). */
+      var STAGE1_SHORT_FEED_COUNT = 7;
       var crtOnStage2Open = function () {};
 
       function safeJsonParse(s) {
@@ -2059,14 +2061,12 @@
 
         var shortTotalMs =
           stage1m && stage1m.short && typeof stage1m.short.totalMs === "number" ? stage1m.short.totalMs : 0;
-        var shortVideoCount =
-          stage1m && stage1m.short && Array.isArray(stage1m.short.completedVideos)
-            ? stage1m.short.completedVideos.length
-            : 0;
         var longMs = stage1m && stage1m.long && typeof stage1m.long.watchMs === "number" ? stage1m.long.watchMs : 0;
         var branch = getStage1Branch();
         var stage1TotalWatchMs = branch === "short" ? shortTotalMs : branch === "long" ? longMs : 0;
-        var stage1VideoCount = branch === "short" ? Math.max(1, shortVideoCount) : branch === "long" ? 1 : 0;
+        /** Average watch time = total time watched ÷ N, where N is the number of clips in the short series (not «how many ended»). */
+        var stage1VideoCount =
+          branch === "short" ? STAGE1_SHORT_FEED_COUNT : branch === "long" ? 1 : 0;
         var stage1AvgWatchMs = stage1VideoCount > 0 ? Math.round(stage1TotalWatchMs / stage1VideoCount) : null;
 
         return {
@@ -2664,7 +2664,7 @@
         var nextHint = document.getElementById("stage1-short-next-hint");
         if (!video || !feed || !touchEl || !miss || !badge || !nextHint || !gotoStage2Btn) return;
 
-        var SHORT_TOTAL = 7;
+        var SHORT_TOTAL = STAGE1_SHORT_FEED_COUNT;
         var current = 0;
         var NEAR_END_SEC = 3.5;
         var SWIPE_MIN = 52;
