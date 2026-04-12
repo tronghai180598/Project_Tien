@@ -1740,7 +1740,7 @@
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       /** Must match short feed in bindStage1ShortFeed (short_video/1..N.mp4, badge «1 / N»). */
       var STAGE1_SHORT_FEED_COUNT = 7;
-      /** After render(), open this stage (not always max unlocked) so the page does not jump to the next stage. */
+      /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
       var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
 
@@ -1992,7 +1992,7 @@
       function finishStage3Break() {
         clearStage3BreakTimer();
         setMaxUnlocked(Math.max(getMaxUnlocked(), 4));
-        pendingExpandStageAfterRender = 3;
+        pendingExpandStageAfterRender = 4;
         render();
       }
 
@@ -2024,7 +2024,7 @@
       function finishStage5Break() {
         clearStage5BreakTimer();
         setMaxUnlocked(Math.max(getMaxUnlocked(), 6));
-        pendingExpandStageAfterRender = 5;
+        pendingExpandStageAfterRender = 6;
         render();
       }
 
@@ -3117,11 +3117,13 @@
             expandStageByNumber(String(expandTarget));
             if (expandTarget > 0) {
               var stEl = document.querySelector('.stage[data-stage="' + expandTarget + '"]');
-              if (stEl && typeof stEl.scrollIntoView === "function") {
+              var scrollTarget = stEl && stEl.querySelector(".stage-head");
+              if (!scrollTarget) scrollTarget = stEl;
+              if (scrollTarget && typeof scrollTarget.scrollIntoView === "function") {
                 try {
-                  stEl.scrollIntoView({ block: "nearest", behavior: "instant" });
+                  scrollTarget.scrollIntoView({ block: "start", behavior: "instant" });
                 } catch (eScroll) {
-                  stEl.scrollIntoView(true);
+                  scrollTarget.scrollIntoView(true);
                 }
               }
             }
@@ -3877,7 +3879,7 @@
             }
             if (s < 7) {
               setMaxUnlocked(max + 1);
-              pendingExpandStageAfterRender = s;
+              pendingExpandStageAfterRender = Math.min(7, s + 1);
             }
             render();
           });
