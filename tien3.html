@@ -290,6 +290,22 @@
       font-size: 1.05rem;
       color: var(--text);
     }
+    .long-video-slot.long-video-slot--media {
+      border: none;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    .long-feed-video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .long-video-missing {
+      margin: 0.5rem 0 0;
+      font-size: 0.88rem;
+      color: #b71c1c;
+    }
     .stage1-long-complete {
       margin-top: 1.25rem;
       flex-shrink: 0;
@@ -345,7 +361,9 @@
       object-position: center center;
       border-radius: 8px;
       background: #000;
-      vertical-align: top;
+      /* Reduce blank-frame / black-video glitches when switching many clips (esp. mobile WebKit). */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
     .stage1-short-goto-stage2 {
       margin-top: 0.75rem;
@@ -1323,17 +1341,17 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–7 по очереди">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–72 по очереди">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
                       <video
                         id="stage1-short-video"
                         class="short-feed-video"
                         controls
                         playsinline
-                        preload="auto"
+                        preload="metadata"
                       ></video>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 7</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 72</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1371,11 +1389,19 @@
           hidden
         >
           <div class="long-video-wrap">
-            <p class="long-video-intro">Длиный ролик будет здесь. Пока файл не подключён.</p>
-            <div class="long-video-slot" role="img" aria-label="Место для длинного видео">
-              <strong>Длиный видеоролик</strong>
-              <span>Файл добавят позже</span>
+            <p class="long-video-intro">
+              Длиный ролик: файл <code>long_video/long.mp4</code> (папка <code>long_video</code> рядом со страницей).
+            </p>
+            <div class="long-video-slot long-video-slot--media" role="region" aria-label="Длиный видеоролик">
+              <video
+                id="stage1-long-video"
+                class="long-feed-video"
+                controls
+                playsinline
+                preload="metadata"
+              ></video>
             </div>
+            <p class="long-video-missing" id="stage1-long-miss" hidden role="alert"></p>
           </div>
           <div class="complete-row stage1-long-complete">
             <button
@@ -1739,7 +1765,9 @@
       var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       /** Must match short feed in bindStage1ShortFeed (short_video/1..N.mp4, badge «1 / N»). */
-      var STAGE1_SHORT_FEED_COUNT = 7;
+      var STAGE1_SHORT_FEED_COUNT = 72;
+      /** Long branch: single file in folder long_video (same origin as the page). */
+      var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
       /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
       var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
@@ -2437,7 +2465,7 @@
               } else if (fromShort2 && !hasStage1ShortsCompleted()) {
                 btn.setAttribute(
                   "title",
-                  "Сначала просмотрите все семь коротких роликов."
+                  "Сначала просмотрите все " + STAGE1_SHORT_FEED_COUNT + " коротких роликов."
                 );
               } else {
                 btn.removeAttribute("title");
@@ -2807,31 +2835,69 @@
           miss.hidden = true;
           nextHint.hidden = true;
           video.style.display = "";
-          video.pause();
-          video.src = "short_video/" + (current + 1) + ".mp4";
-          video.load();
+          try {
+            video.playsInline = true;
+          } catch (ePl) {}
+          try {
+            video.pause();
+          } catch (ePa) {}
+          try {
+            video.muted = false;
+          } catch (eMu) {}
+          try {
+            video.removeAttribute("src");
+          } catch (eRm) {}
+          try {
+            video.load();
+          } catch (eLd0) {}
+
+          var clipUrl = "short_video/" + (current + 1) + ".mp4";
+          video.src = clipUrl;
+          try {
+            video.load();
+          } catch (eLd1) {}
           badge.textContent = current + 1 + " / " + SHORT_TOTAL;
+
+          /** Wait until a video frame exists so audio does not start without picture (Safari / mobile). */
+          function whenDecodedFrame(cb) {
+            if (video.readyState >= 2) {
+              cb();
+              return;
+            }
+            var done = false;
+            var tid;
+            function run() {
+              if (done) return;
+              done = true;
+              try {
+                clearTimeout(tid);
+              } catch (eT) {}
+              video.removeEventListener("loadeddata", run);
+              video.removeEventListener("canplay", run);
+              cb();
+            }
+            tid = setTimeout(run, 8000);
+            video.addEventListener("loadeddata", run);
+            video.addEventListener("canplay", run);
+          }
+
           if (opts.autoplay === false) {
             if (keepDone) {
-              function seekToNearEnd() {
+              whenDecodedFrame(function () {
                 if (video.duration && isFinite(video.duration)) {
                   try {
                     video.currentTime = Math.max(0, video.duration - 0.08);
                   } catch (err) {}
                 }
                 video.pause();
-              }
-              if (video.readyState >= 1) seekToNearEnd();
-              else video.addEventListener("loadedmetadata", seekToNearEnd, { once: true });
+              });
             } else {
-              function holdAtStart() {
+              whenDecodedFrame(function () {
                 try {
                   video.currentTime = 0;
                 } catch (err) {}
                 video.pause();
-              }
-              if (video.readyState >= 1) holdAtStart();
-              else video.addEventListener("loadedmetadata", holdAtStart, { once: true });
+              });
             }
             requestAnimationFrame(function () {
               window.scrollTo(0, scrollLock);
@@ -2842,30 +2908,52 @@
                 window.scrollTo(0, scrollLock);
               });
             }
-            var playP;
-            try {
-              playP = video.play();
-            } catch (err) {
-              playP = null;
+            function nudgeVideoPaint() {
+              requestAnimationFrame(function () {
+                try {
+                  void video.offsetWidth;
+                  var prev = video.style.opacity;
+                  video.style.opacity = "0.999";
+                  requestAnimationFrame(function () {
+                    video.style.opacity = prev || "";
+                  });
+                } catch (eN) {}
+              });
             }
-            if (playP && typeof playP.then === "function") {
-              playP
-                .catch(function () {
-                  video.muted = true;
-                  try {
-                    return video.play();
-                  } catch (e2) {
-                    return Promise.resolve();
-                  }
-                })
-                .then(restoreScrollAfterClip, restoreScrollAfterClip);
-            } else {
+            whenDecodedFrame(function () {
+              var playP;
               try {
-                video.muted = true;
-                video.play();
-              } catch (e3) {}
-              restoreScrollAfterClip();
-            }
+                playP = video.play();
+              } catch (err) {
+                playP = null;
+              }
+              if (playP && typeof playP.then === "function") {
+                playP
+                  .catch(function () {
+                    try {
+                      video.muted = true;
+                    } catch (eM) {}
+                    try {
+                      return video.play();
+                    } catch (e2) {
+                      return Promise.resolve();
+                    }
+                  })
+                  .then(function () {
+                    nudgeVideoPaint();
+                    restoreScrollAfterClip();
+                  }, function () {
+                    restoreScrollAfterClip();
+                  });
+              } else {
+                try {
+                  video.muted = true;
+                  video.play();
+                } catch (e3) {}
+                nudgeVideoPaint();
+                restoreScrollAfterClip();
+              }
+            });
           }
         }
 
@@ -3001,6 +3089,25 @@
         });
       }
 
+      function bindStage1LongVideo() {
+        var v = document.getElementById("stage1-long-video");
+        var miss = document.getElementById("stage1-long-miss");
+        if (!v) return;
+        try {
+          v.src = STAGE1_LONG_VIDEO_SRC;
+        } catch (eSrc) {}
+        v.addEventListener("play", startStage1LongWatchIfNeeded);
+        v.addEventListener("error", function () {
+          if (miss) {
+            miss.hidden = false;
+            miss.textContent =
+              "Не удалось загрузить " +
+              STAGE1_LONG_VIDEO_SRC +
+              ". Проверьте, что файл есть в папке long_video.";
+          }
+        });
+      }
+
       function render() {
         exitStage1ShortFullscreen();
         migrateStage1BranchStorage();
@@ -3099,6 +3206,7 @@
         bindTabs();
         bindStage1BranchPicker();
         bindStage1ShortFeed();
+        bindStage1LongVideo();
         syncStage1BranchUI();
         bindCRT();
         bindGoNogoGame();
