@@ -1341,7 +1341,7 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–72 по очереди">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–71 по очереди">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
                       <video
                         id="stage1-short-video"
@@ -1351,7 +1351,7 @@
                         preload="metadata"
                       ></video>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 72</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 71</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1764,8 +1764,18 @@
       var STAGE7_SURVEY_KEY = "stage7SurveyResponse";
       var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
-      /** Must match short feed in bindStage1ShortFeed (short_video/1..N.mp4, badge «1 / N»). */
-      var STAGE1_SHORT_FEED_COUNT = 72;
+      /** Number of clips in the feed (files short_video/1..54, 56..72 — 55 omitted, see STAGE1_SHORT_SKIP_FILE_NO). */
+      var STAGE1_SHORT_FEED_COUNT = 71;
+      /** Omitted file in short_video/ (e.g. too large for GitHub); slot order skips this number. */
+      var STAGE1_SHORT_SKIP_FILE_NO = 55;
+
+      function shortClipFileNoFromSlot(slot0) {
+        if (slot0 < 0) return 1;
+        var skip = STAGE1_SHORT_SKIP_FILE_NO;
+        if (skip == null || !isFinite(skip)) return slot0 + 1;
+        if (slot0 < skip - 1) return slot0 + 1;
+        return slot0 + 2;
+      }
       /** Long branch: single file in folder long_video (same origin as the page). */
       var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
       /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
@@ -2802,7 +2812,7 @@
           if (isFinite(curSec)) {
             var deltaSec = curSec - lastPlayheadSec;
             if (deltaSec > 0 && deltaSec < 2.5) {
-              recordStage1ShortWatch(current + 1, Math.round(deltaSec * 1000));
+              recordStage1ShortWatch(shortClipFileNoFromSlot(current), Math.round(deltaSec * 1000));
             }
             lastPlayheadSec = curSec;
           }
@@ -2851,7 +2861,7 @@
             video.load();
           } catch (eLd0) {}
 
-          var clipUrl = "short_video/" + (current + 1) + ".mp4";
+          var clipUrl = "short_video/" + shortClipFileNoFromSlot(current) + ".mp4";
           video.src = clipUrl;
           try {
             video.load();
@@ -2966,7 +2976,7 @@
         }
 
         video.addEventListener("ended", function () {
-          markStage1ShortCompletedVideo(current + 1);
+          markStage1ShortCompletedVideo(shortClipFileNoFromSlot(current));
           if (Date.now() < ignoreEndedUntil) return;
           if (current < SHORT_TOTAL - 1) {
             loadIndex(current + 1);
@@ -2991,7 +3001,7 @@
         video.addEventListener("error", function () {
           miss.textContent =
             "Файл short_video/" +
-            (current + 1) +
+            shortClipFileNoFromSlot(current) +
             ".mp4 не найден или не воспроизводится. Через 2 с — переход к следующему (если есть).";
           miss.hidden = false;
           nextHint.hidden = true;
