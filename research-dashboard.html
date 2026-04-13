@@ -390,8 +390,9 @@
       var ASST_N = 20;
       var CAQ_N = 24;
       var POST_N = 5;
-      var STROOP_N = 20;
+      var STROOP_N = 25;
       var GNG_MAIN_N = 10;
+      var SCHULTE_TABLES_N = 5;
 
       var bundles = [];
       var flatRows = [];
@@ -463,9 +464,17 @@
         return obj;
       }
 
-      function stroopMeanRt(st) {
-        if (!st || !Array.isArray(st.trials)) return "";
-        var rts = st.trials
+      function stroopTrialsForStats(rawSt) {
+        if (!rawSt) return [];
+        if (rawSt.main && Array.isArray(rawSt.main.trials)) return rawSt.main.trials;
+        if (Array.isArray(rawSt.trials)) return rawSt.trials;
+        return [];
+      }
+
+      function stroopMeanRt(rawSt) {
+        var trials = stroopTrialsForStats(rawSt);
+        if (!trials.length) return "";
+        var rts = trials
           .filter(function (tr) {
             return !tr.timeout && tr.reactionMs != null;
           })
@@ -517,10 +526,13 @@
 
         var s4 = b.stage4;
         var rawSt = b._raw && b._raw.stroop;
-        var st = rawSt && rawSt.trials ? rawSt : s4 ? { trials: [] } : null;
         if (s4) {
           r.stroop_correct = s4.correct_count != null ? s4.correct_count : "";
           r.stroop_wrong = s4.wrong_count != null ? s4.wrong_count : "";
+        } else if (rawSt && rawSt.main) {
+          r.stroop_correct =
+            rawSt.main.correctCount != null ? rawSt.main.correctCount : "";
+          r.stroop_wrong = rawSt.main.wrongCount != null ? rawSt.main.wrongCount : "";
         } else if (rawSt) {
           r.stroop_correct = rawSt.correctCount != null ? rawSt.correctCount : "";
           r.stroop_wrong = rawSt.wrongCount != null ? rawSt.wrongCount : "";
@@ -528,12 +540,17 @@
           r.stroop_correct = "";
           r.stroop_wrong = "";
         }
-        r.stroop_mean_rt_ms = stroopMeanRt(st || rawSt);
+        r.stroop_mean_rt_ms = stroopMeanRt(rawSt);
 
         for (var si = 1; si <= STROOP_N; si++) {
           r["stroop_t" + si + "_ms"] = "";
         }
-        var trials = (st && st.trials) || (rawSt && rawSt.trials) || [];
+        var trials = stroopTrialsForStats(rawSt);
+        if ((!trials || trials.length === 0) && s4 && Array.isArray(s4.reaction_times)) {
+          trials = s4.reaction_times.map(function (rt) {
+            return { reactionMs: rt, timeout: rt == null };
+          });
+        }
         if (Array.isArray(trials)) {
           trials.forEach(function (tr, idx) {
             if (idx < STROOP_N) {
@@ -544,47 +561,40 @@
         }
 
         var s6 = b.stage6;
-        var rawG = b._raw && b._raw.gng;
-        var mainT =
-          rawG && rawG.main && rawG.main.trials
-            ? rawG.main.trials
-            : s6 && s6.click_details
-            ? s6.click_details
-            : [];
-        if (s6) {
-          r.gng_main_correct = s6.correct_count != null ? s6.correct_count : "";
-          r.gng_main_wrong = s6.wrong_count != null ? s6.wrong_count : "";
-        } else if (rawG && rawG.main) {
-          r.gng_main_correct =
-            rawG.main.correctCount != null ? rawG.main.correctCount : "";
-          r.gng_main_wrong =
-            rawG.main.wrongCount != null ? rawG.main.wrongCount : "";
-        } else {
-          r.gng_main_correct = "";
-          r.gng_main_wrong = "";
-        }
-        r.gng_mean_rt_ms = mean(
-          (Array.isArray(mainT) ? mainT : []).map(function (t) {
-            return safeNum(t.reactionMs != null ? t.reactionMs : t.time_ms);
-          })
-        );
-
+        var rawSch = b._raw && b._raw.schulte;
+        r.gng_main_correct = "";
+        r.gng_main_wrong = "";
+        r.gng_mean_rt_ms = "";
         for (var gi = 1; gi <= GNG_MAIN_N; gi++) {
           r["gng_m" + gi + "_digit"] = "";
           r["gng_m" + gi + "_ms"] = "";
           r["gng_m" + gi + "_ok"] = "";
         }
-        if (Array.isArray(mainT)) {
-          mainT.forEach(function (tr, idx) {
-            if (idx < GNG_MAIN_N) {
-              var dig = tr.digit != null ? tr.digit : tr.showed;
-              r["gng_m" + (idx + 1) + "_digit"] = dig != null ? String(dig) : "";
-              var ms = tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
-              r["gng_m" + (idx + 1) + "_ms"] = ms != null ? ms : "";
-              r["gng_m" + (idx + 1) + "_ok"] =
-                tr.correct ? "1" : tr.correct === false ? "0" : "";
+        for (var sti = 1; sti <= SCHULTE_TABLES_N; sti++) {
+          r["schulte_t" + sti + "_ms"] = "";
+        }
+        r.schulte_total_ms = "";
+        r.schulte_wrong_clicks = "";
+        function fillSchulteFromTables(tablesArr) {
+          if (!Array.isArray(tablesArr)) return;
+          tablesArr.forEach(function (row, idx) {
+            if (idx < SCHULTE_TABLES_N && row && row.durationMs != null) {
+              r["schulte_t" + (idx + 1) + "_ms"] = row.durationMs;
             }
           });
+        }
+        if (s6 && Array.isArray(s6.schulte_table_times_ms)) {
+          s6.schulte_table_times_ms.forEach(function (ms, idx) {
+            if (idx < SCHULTE_TABLES_N) r["schulte_t" + (idx + 1) + "_ms"] = ms != null ? ms : "";
+          });
+          r.schulte_total_ms = s6.schulte_total_ms != null ? s6.schulte_total_ms : "";
+          r.schulte_wrong_clicks =
+            s6.schulte_wrong_clicks != null ? s6.schulte_wrong_clicks : "";
+        } else if (rawSch && Array.isArray(rawSch.tables)) {
+          fillSchulteFromTables(rawSch.tables);
+          r.schulte_total_ms = rawSch.totalDurationMs != null ? rawSch.totalDurationMs : "";
+          r.schulte_wrong_clicks =
+            rawSch.wrongClicksTotal != null ? rawSch.wrongClicksTotal : "";
         }
 
         var s7 = b.stage7;
@@ -657,7 +667,14 @@
           "crt_q3_correct",
           "stroop_correct",
           "stroop_wrong",
-          "stroop_mean_rt_ms"
+          "stroop_mean_rt_ms",
+          "schulte_t1_ms",
+          "schulte_t2_ms",
+          "schulte_t3_ms",
+          "schulte_t4_ms",
+          "schulte_t5_ms",
+          "schulte_total_ms",
+          "schulte_wrong_clicks"
         ];
         var rest = Object.keys(set).filter(function (k) {
           return preferred.indexOf(k) < 0;
@@ -703,8 +720,8 @@
         var withStroop = rows.filter(function (r) {
           return r.stroop_correct !== "" && r.stroop_correct != null;
         });
-        var withGng = rows.filter(function (r) {
-          return r.gng_main_correct !== "" && r.gng_main_correct != null;
+        var withSchulte = rows.filter(function (r) {
+          return r.schulte_total_ms !== "" && r.schulte_total_ms != null;
         });
         var withS7 = rows.filter(function (r) {
           return r.s7_gender || r.s7_age;
@@ -735,8 +752,8 @@
             value: withStroop.length
           },
           {
-            label: "С данными GNG (осн.)",
-            value: withGng.length
+            label: "С данными Шульте (этап 6)",
+            value: withSchulte.length
           }
         ];
 
@@ -821,17 +838,19 @@
       function buildAccuracyItems(rows) {
         var crt = meanFromRows(rows, "crt_correct");
         var stroop = meanFromRows(rows, "stroop_correct");
-        var gng = meanFromRows(rows, "gng_main_correct");
         return [
           { label: "CRT /3", value: crt === "" ? 0 : crt, display: crt === "" ? "—" : crt, max: 3 },
-          { label: "Stroop /20", value: stroop === "" ? 0 : stroop, display: stroop === "" ? "—" : stroop, max: 20 },
-          { label: "GoNoGo /10", value: gng === "" ? 0 : gng, display: gng === "" ? "—" : gng, max: 10 }
+          { label: "Stroop /25", value: stroop === "" ? 0 : stroop, display: stroop === "" ? "—" : stroop, max: 25 }
         ];
       }
 
       function buildReactionItems(rows) {
         var st = meanFromRows(rows, "stroop_mean_rt_ms");
-        var gg = meanFromRows(rows, "gng_mean_rt_ms");
+        var schulteMeanMs = mean(
+          rows.map(function (r) {
+            return safeNum(r.schulte_total_ms);
+          })
+        );
         return [
           {
             label: "Stroop RT",
@@ -839,9 +858,9 @@
             display: st === "" ? "—" : formatSecondsFromMs(st)
           },
           {
-            label: "GoNoGo RT",
-            value: gg === "" ? 0 : gg,
-            display: gg === "" ? "—" : formatSecondsFromMs(gg)
+            label: "Шульте сумм. время",
+            value: schulteMeanMs === "" ? 0 : schulteMeanMs,
+            display: schulteMeanMs === "" ? "—" : formatSecondsFromMs(schulteMeanMs)
           }
         ];
       }
@@ -934,6 +953,9 @@
         var vc = s1.video_count != null ? s1.video_count : "—";
         var tot = s1.total_watch_ms != null ? formatSecondsFromMs(s1.total_watch_ms) : "—";
         var avg = s1.avg_watch_ms != null ? formatSecondsFromMs(s1.avg_watch_ms) : "—";
+        var shortWatch = s1.short_watch_ms != null ? formatSecondsFromMs(s1.short_watch_ms) : "—";
+        var longWatch = s1.long_watch_ms != null ? formatSecondsFromMs(s1.long_watch_ms) : "—";
+        var impatience = s1.impatience_after_video ? (s1.impatience_after_video === "yes" ? "Да" : s1.impatience_after_video === "no" ? "Нет" : String(s1.impatience_after_video)) : "—";
         return (
           "<p><strong>Ветка:</strong> " +
           escapeHtml(branchRu) +
@@ -946,6 +968,15 @@
           "</p>" +
           "<p><strong>Среднее время на один ролик:</strong> " +
           escapeHtml(String(avg)) +
+          "</p>" +
+          "<p><strong>Время просмотра короткого видео:</strong> " +
+          escapeHtml(String(shortWatch)) +
+          "</p>" +
+          "<p><strong>Время просмотра длинного видео:</strong> " +
+          escapeHtml(String(longWatch)) +
+          "</p>" +
+          "<p><strong>Чувствуете ли нетерпение пропустить перерыв:</strong> " +
+          escapeHtml(String(impatience)) +
           "</p>" +
           '<p class="detail-muted">Время в секундах (с). Для короткой ветки: среднее = суммарное время ÷ N, где N — все ролики в ленте (см. «Число роликов в серии» выше).</p>'
         );
@@ -992,7 +1023,8 @@
 
       function stroopTrialsList(b) {
         var raw = b._raw && b._raw.stroop;
-        if (raw && Array.isArray(raw.trials)) return raw.trials;
+        var fromRaw = stroopTrialsForStats(raw);
+        if (fromRaw && fromRaw.length) return fromRaw;
         var s4 = b.stage4;
         if (s4 && Array.isArray(s4.click_details)) {
           return s4.click_details.map(function (cd) {
@@ -1013,12 +1045,16 @@
         var correct =
           s4 && s4.correct_count != null
             ? s4.correct_count
+            : rawSt && rawSt.main && rawSt.main.correctCount != null
+            ? rawSt.main.correctCount
             : rawSt && rawSt.correctCount != null
             ? rawSt.correctCount
             : "—";
         var wrong =
           s4 && s4.wrong_count != null
             ? s4.wrong_count
+            : rawSt && rawSt.main && rawSt.main.wrongCount != null
+            ? rawSt.main.wrongCount
             : rawSt && rawSt.wrongCount != null
             ? rawSt.wrongCount
             : "—";
@@ -1047,51 +1083,52 @@
         );
       }
 
-      function gngMainTrialsList(b) {
-        var raw = b._raw && b._raw.gng && b._raw.gng.main;
-        if (raw && Array.isArray(raw.trials)) return raw.trials;
-        var s6 = b.stage6;
-        if (s6 && Array.isArray(s6.click_details)) return s6.click_details;
-        return [];
-      }
-
       function stage6DetailHtml(b) {
-        var trials = gngMainTrialsList(b);
+        var rawSch = b._raw && b._raw.schulte;
         var s6 = b.stage6;
-        var rawG = b._raw && b._raw.gng && b._raw.gng.main;
-        var correct =
-          s6 && s6.correct_count != null
-            ? s6.correct_count
-            : rawG && rawG.correctCount != null
-            ? rawG.correctCount
+        var tables = rawSch && Array.isArray(rawSch.tables) ? rawSch.tables : [];
+        if (!tables.length && s6 && Array.isArray(s6.schulte_table_times_ms)) {
+          tables = s6.schulte_table_times_ms.map(function (ms, i) {
+            return { tableIndex: i + 1, durationMs: ms };
+          });
+        }
+        if (!tables.length) return "<p>—</p>";
+        var total =
+          rawSch && rawSch.totalDurationMs != null
+            ? rawSch.totalDurationMs
+            : s6 && s6.schulte_total_ms != null
+            ? s6.schulte_total_ms
             : "—";
         var wrong =
-          s6 && s6.wrong_count != null
-            ? s6.wrong_count
-            : rawG && rawG.wrongCount != null
-            ? rawG.wrongCount
+          rawSch && rawSch.wrongClicksTotal != null
+            ? rawSch.wrongClicksTotal
+            : s6 && s6.schulte_wrong_clicks != null
+            ? s6.schulte_wrong_clicks
             : "—";
-        var rts = trials
-          .filter(function (tr) {
-            return tr && (tr.reactionMs != null || tr.time_ms != null);
+        var rows = tables
+          .map(function (t) {
+            var sec = t.durationMs != null ? (t.durationMs / 1000).toFixed(1) : "—";
+            return (
+              "Таблица " +
+              (t.tableIndex != null ? t.tableIndex : "?") +
+              ": " +
+              sec +
+              " с" +
+              (t.wrongClicksInTable ? " (ошибок: " + t.wrongClicksInTable + ")" : "")
+            );
           })
-          .map(function (tr) {
-            return tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
-          });
-        var avg = meanMsFromNumbers(rts);
-        var bad = wrongTrialIndicesOneBased(trials);
-        var badStr = bad.length ? bad.join(", ") : "нет";
+          .join("<br/>");
+        var totalStr = "—";
+        if (typeof total === "number" && isFinite(total)) totalStr = (total / 1000).toFixed(1) + " с";
         return (
-          "<p><strong>Верных:</strong> " +
-          escapeHtml(String(correct)) +
-          " &nbsp; <strong>Неверных:</strong> " +
+          "<p><strong>Время по таблицам:</strong><br/>" +
+          rows +
+          "</p>" +
+          "<p><strong>Суммарное время:</strong> " +
+          escapeHtml(totalStr) +
+          "</p>" +
+          "<p><strong>Всего неверных кликов:</strong> " +
           escapeHtml(String(wrong)) +
-          "</p>" +
-          "<p><strong>Неверные попытки (№):</strong> " +
-          escapeHtml(badStr) +
-          "</p>" +
-          "<p><strong>Среднее время реакции:</strong> " +
-          (avg != null ? escapeHtml(formatSecondsFromMs(avg)) : "—") +
           "</p>"
         );
       }
@@ -1167,7 +1204,7 @@
           buildDetailStage("Этап 1 — видео", stage1DetailHtml(b)) +
           buildDetailStage("Этап 2 — CRT", stage2DetailHtml(b)) +
           buildDetailStage("Этап 4 — Струп", stage4DetailHtml(b)) +
-          buildDetailStage("Этап 6 — Go/No-Go", stage6DetailHtml(b)) +
+          buildDetailStage("Этап 6 — таблицы Шульте", stage6DetailHtml(b)) +
           buildDetailStage("Этап 7 — анкета", stage7DetailHtml(b)) +
           "</div>"
         );
@@ -1252,7 +1289,6 @@
         );
         accuracy.forEach(function (it) {
           if (it.label.indexOf("CRT") === 0) it.pct = Math.min(100, it.pct * (20 / 3));
-          if (it.label.indexOf("GoNoGo") === 0) it.pct = Math.min(100, it.pct * 2);
         });
 
         var reaction = toBarRows(buildReactionItems(rows), null);

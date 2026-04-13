@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Задача Струпа</title>
+  <title>Психологическое исследование</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -344,6 +344,32 @@
       display: block;
       touch-action: pan-y;
     }
+    /* Short clips: new <video> per clip in JS. No translateZ/absolute — avoids black-layer bugs on mobile WebKit. */
+    .short-video-stack {
+      position: relative;
+      width: 100%;
+      max-width: min(100%, 420px);
+      margin: 0 auto;
+      min-height: 200px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .short-video-stack .short-feed-video {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      max-height: 85vh;
+      object-fit: contain;
+      object-position: center center;
+      transform: none;
+      -webkit-transform: none;
+    }
     .short-slide-inner {
       position: relative;
       width: 100%;
@@ -361,9 +387,6 @@
       object-position: center center;
       border-radius: 8px;
       background: #000;
-      /* Reduce blank-frame / black-video glitches when switching many clips (esp. mobile WebKit). */
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
     }
     .stage1-short-goto-stage2 {
       margin-top: 0.75rem;
@@ -371,6 +394,29 @@
       max-width: min(100%, 420px);
       align-self: center;
       box-sizing: border-box;
+    }
+    .stage1-post-video {
+      margin-top: 0.9rem;
+      padding: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #faf9f7;
+      max-width: min(100%, 420px);
+    }
+    .stage1-post-video-q {
+      margin: 0 0 0.55rem;
+      font-weight: 600;
+    }
+    .stage1-post-video-opts {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.55rem;
+    }
+    .stage1-post-video-opts label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
     }
     .short-slide-badge {
       position: absolute;
@@ -535,6 +581,14 @@
         flex: 1 1 auto;
         min-height: 0;
         align-self: stretch;
+      }
+      #stage1-short-fs-shell.stage1-short-fs-shell--open .short-video-stack {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+        align-self: stretch;
+        aspect-ratio: unset;
       }
       #stage1-short-fs-shell.stage1-short-fs-shell--open .short-feed-video {
         width: 100%;
@@ -751,8 +805,13 @@
     }
     .prestart-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.6rem;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 600px) {
+      .prestart-grid {
+        grid-template-columns: 1fr;
+      }
     }
     .prestart-field {
       display: flex;
@@ -773,6 +832,7 @@
     }
     .prestart-gender {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.8rem;
       min-height: 2.2rem;
@@ -886,9 +946,9 @@
       line-height: 1.2;
     }
     .break-panel.break-done .break-desc { margin-bottom: 0; color: var(--text); }
-    .gng-game { margin-top: 0.25rem; }
-    .gng-desc {
-      margin-bottom: 1.25rem;
+    .shulte-game { margin-top: 0.25rem; }
+    .shulte-intro {
+      margin-bottom: 1rem;
       padding: 1rem 1.1rem;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -896,115 +956,76 @@
       font-size: 0.95rem;
       line-height: 1.55;
     }
-    .gng-desc h2 {
+    .shulte-intro h2 {
       font-size: 1.15rem;
       font-weight: 600;
       margin: 0 0 0.65rem;
     }
-    .gng-desc p { margin: 0.5rem 0; }
-    .gng-desc ul { margin: 0.4rem 0 0.5rem 1.2rem; padding: 0; }
-    .gng-desc li { margin: 0.35rem 0; }
-    .gng-touch-hint {
-      margin: 0.75rem 0 0;
-      padding: 0.65rem 0.75rem;
-      background: #f0f6f2;
-      border: 1px solid #c8dccf;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      line-height: 1.45;
-    }
-    .gng-green-text { color: #1b6b3a; font-weight: 600; }
-    .gng-red-text { color: #a32020; font-weight: 600; }
-    .gng-ready { margin-bottom: 1rem; }
-    .gng-countdown-overlay {
-      text-align: center;
-      padding: 2rem 1rem;
-      font-size: 4rem;
+    .shulte-intro p { margin: 0.5rem 0; }
+    .shulte-start-manual { margin-top: 0.75rem; }
+    .shulte-countdown-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(250, 249, 247, 0.96);
+      font-size: clamp(3rem, 12vw, 5rem);
       font-weight: 700;
       color: var(--accent);
       font-variant-numeric: tabular-nums;
     }
-    .gng-arena-wrap {
-      margin: 1rem 0 1.25rem;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .gng-arena {
-      position: relative;
-      width: 200px;
-      height: 200px;
-      min-height: 140px;
+    .shulte-play-area {
+      max-width: min(100%, 380px);
       margin: 0 auto;
-      cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
-    .gng-digit {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 5.5rem;
-      font-weight: 600;
-      line-height: 1;
+    .shulte-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+      font-size: 0.92rem;
+    }
+    .shulte-table-label { font-weight: 600; color: var(--text); }
+    .shulte-timer {
       font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--accent);
     }
-    .gng-mask {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 150px;
-      height: 150px;
-      border: 5px solid #8a8580;
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.92);
-      box-sizing: border-box;
+    .shulte-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.35rem;
+      width: 100%;
     }
-    .gng-mask.is-visible { display: flex; }
-    .gng-x {
-      font-size: 4rem;
-      font-weight: 300;
-      line-height: 1;
-      color: var(--text);
-    }
-    .gng-mask.gng-ok { border-color: #2a8f47; box-shadow: 0 0 0 2px rgba(42, 143, 71, 0.25); }
-    .gng-mask.gng-bad { border-color: #c42b2b; box-shadow: 0 0 0 2px rgba(196, 43, 43, 0.2); }
-    .gng-trial-label {
-      text-align: center;
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin: 0.75rem 0 0;
-    }
-    .gng-results {
-      margin-top: 1.25rem;
-      padding: 1rem 1.1rem;
+    .shulte-cell {
+      aspect-ratio: 1;
+      min-height: 44px;
+      font-size: clamp(0.85rem, 3.5vw, 1.05rem);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       background: #fff;
-      font-size: 0.95rem;
-      line-height: 1.55;
+      cursor: pointer;
+      padding: 0.2rem;
+      line-height: 1.1;
     }
-    .gng-results h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
-    .gng-results h4 { margin: 1rem 0 0.35rem; font-size: 1rem; font-weight: 600; }
-    .gng-results p { margin: 0.35rem 0; }
-    .gng-results .gng-error-intro { margin-top: 0.25rem; font-size: 0.88rem; color: var(--muted); }
-    .gng-results .gng-error-list { margin: 0.4rem 0 0; padding-left: 1.25rem; }
-    .gng-results .gng-error-list li { margin: 0.35rem 0; }
-    .gng-results .gng-no-errors { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
-    .gng-stage-complete { margin-top: 1.25rem; }
-    .gng-practice-break {
-      margin-top: 1.25rem;
-      padding: 1rem 1.1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #faf9f7;
+    .shulte-cell:hover:not(:disabled) {
+      background: #f3f1ed;
     }
-    .gng-practice-break .gng-start-main { margin-top: 1rem; }
-    .gng-hidden { display: none !important; }
+    .shulte-cell-done {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .shulte-cell-wrong {
+      background: #ffe8e8 !important;
+    }
+    .shulte-hidden { display: none !important; }
     .celebration-overlay {
       position: fixed;
       inset: 0;
@@ -1257,13 +1278,13 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Задача Струпа</h1>
-    <p class="subtitle">Семь этапов. Этапы 3 и 5 — перерыв ~1 минута. Этап 6 — игра «цифра / × в круге» (Пробел). Демонстрация Струпа — на этапе 4.</p>
+    <h1>Психологическое исследование</h1>
+    <p class="subtitle">Эксперимент состоит из 7 этапов: Личная информация => Видео => Тест когнитивной рефлексии => Перерыв 20 сек => Тест Струпа => Перерыв 20 сек => Таблицы Шульте => Анкета/Опросник</p>
 
     <section class="prestart-panel" id="prestartPanel">
       <h2>Профиль перед началом этапов</h2>
       <p class="prestart-note">
-        Сначала заполните: ФИО, возраст, пол и специальность. После этого откроется первый этап.
+        Сначала заполните: ФИО, возраст, пол, специальность, образование и курс. Затем подтвердите согласие на обработку персональных данных — после этого откроется первый этап.
       </p>
       <form id="prestartForm" novalidate>
         <div class="prestart-grid">
@@ -1285,6 +1306,32 @@
           <div class="prestart-field">
             <label for="pre-spec">Специальность/Направление *</label>
             <input class="prestart-input" id="pre-spec" type="text" required />
+          </div>
+          <div class="prestart-field">
+            <label>Уровень образования *</label>
+            <div class="prestart-gender" role="radiogroup" aria-required="true">
+              <label><input type="radio" name="pre_edu" value="bachelor" required /> Бакалавриат</label>
+              <label><input type="radio" name="pre_edu" value="master" required /> Магистратура</label>
+              <label><input type="radio" name="pre_edu" value="specialist" required /> Специалитет</label>
+              <label><input type="radio" name="pre_edu" value="postgrad" required /> Аспирантура</label>
+            </div>
+          </div>
+          <div class="prestart-field">
+            <label>Курс *</label>
+            <div class="prestart-gender" role="radiogroup" aria-required="true">
+              <label><input type="radio" name="pre_course" value="1" required /> 1</label>
+              <label><input type="radio" name="pre_course" value="2" required /> 2</label>
+              <label><input type="radio" name="pre_course" value="3" required /> 3</label>
+              <label><input type="radio" name="pre_course" value="4" required /> 4</label>
+              <label><input type="radio" name="pre_course" value="5" required /> 5</label>
+              <label><input type="radio" name="pre_course" value="6" required /> 6</label>
+            </div>
+          </div>
+          <div class="prestart-field" style="grid-column: 1 / -1;">
+            <label style="display:flex;align-items:flex-start;gap:0.6rem;">
+              <input id="pre-consent" type="checkbox" required style="margin-top:0.25rem;" />
+              <span>Я согласен (согласна) предоставить свои персональные данные исследователю. Все персональные данные участников сохраняются и доступны только исследователю.</span>
+            </label>
           </div>
         </div>
         <div class="prestart-actions">
@@ -1341,17 +1388,11 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–71 по очереди">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–70 по очереди (35 и 55 пропущены)">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
-                      <video
-                        id="stage1-short-video"
-                        class="short-feed-video"
-                        controls
-                        playsinline
-                        preload="metadata"
-                      ></video>
+                      <div class="short-video-stack" id="stage1-short-stack" aria-live="polite"></div>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 71</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 70</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1407,11 +1448,22 @@
             <button
               type="button"
               class="btn-primary btn-complete stage1-complete-from-long"
+              id="stage1-long-goto-stage2"
               data-stage="1"
+              hidden
             >
               Перейти ко второму этапу
             </button>
           </div>
+        </div>
+        <div class="stage1-post-video" id="stage1-post-video" hidden>
+          <p class="stage1-post-video-q">Чувствуете ли вы нетерпение и желание пропустить перерыв?</p>
+          <div class="stage1-post-video-opts" role="radiogroup" aria-label="Ответ на вопрос после просмотра видео">
+            <label><input type="radio" name="stage1_post_video" value="yes" /> Да</label>
+            <label><input type="radio" name="stage1_post_video" value="no" /> Нет</label>
+          </div>
+          <button type="button" class="btn-primary" id="stage1-post-video-submit">Перейти ко второму этапу</button>
+          <p class="prestart-feedback" id="stage1-post-video-feedback" style="margin-top:0.5rem;"></p>
         </div>
       </div>
     </div>
@@ -1469,51 +1521,40 @@
   <template id="tpl-stage3-inner">
     <div class="break-panel">
       <h2 class="break-title">Время перерыва</h2>
-      <p class="break-desc">Отдыхайте <strong>1 минуту</strong>. Откройте этот этап — запустится таймер. По окончании времени <strong>четвёртый этап</strong> откроется автоматически.</p>
-      <div class="break-countdown" role="timer" aria-live="polite" aria-atomic="true">1:00</div>
+      <p class="break-desc">Отдыхайте <strong>20 секунд</strong>. Откройте этот этап — запустится таймер. По окончании времени <strong>четвёртый этап</strong> откроется автоматически.</p>
+      <div class="break-countdown" role="timer" aria-live="polite" aria-atomic="true">0:20</div>
     </div>
   </template>
 
   <template id="tpl-stage5-inner">
     <div class="break-panel">
       <h2 class="break-title">Время перерыва</h2>
-      <p class="break-desc">Короткий отдых <strong>около 1 минуты</strong>. Откройте этот этап — запустится таймер. По окончании времени <strong>шестой этап</strong> откроется автоматически.</p>
-      <div class="break-countdown" role="timer" aria-live="polite" aria-atomic="true">1:00</div>
+      <p class="break-desc">Короткий отдых <strong>20 секунд</strong>. Откройте этот этап — запустится таймер. По окончании времени <strong>шестой этап</strong> откроется автоматически.</p>
+      <div class="break-countdown" role="timer" aria-live="polite" aria-atomic="true">0:20</div>
     </div>
   </template>
 
   <template id="tpl-stage6-inner">
-    <div class="gng-game">
-      <div class="gng-desc">
-        <h2>Игра на внимание и торможение</h2>
-        <p>Нажмите кнопку <strong>«Готовы?»</strong> — затем пойдёт обратный отсчёт: <strong>3, 2, 1</strong>, после чего начнутся попытки.</p>
-        <p>В каждой попытке случайная цифра от <strong>1</strong> до <strong>9</strong> показывается <strong>0,5 секунды</strong>, затем на том же месте появляется знак <strong>×</strong> в круге ещё <strong>0,5 секунды</strong>. Ответ засчитывается за всё это время до появления следующей цифры.</p>
-        <ul>
-          <li>Если цифра <strong>не 3</strong>: нажмите <strong>Пробел</strong> в любой момент, пока видна эта цифра <strong>или</strong> пока виден × (до следующей попытки). Успех — круг станет <span class="gng-green-text">зелёным</span>. Если не нажали — ошибка.</li>
-          <li>Если цифра <strong>3</strong>: <strong>не нажимайте</strong> Пробел, пока на экране эта попытка (цифра или ×). Любое нажатие Пробела — ошибка, круг станет <span class="gng-red-text">красным</span>.</li>
-        </ul>
-        <p class="gng-touch-hint">
-          На телефоне или планшете: <strong>касание</strong> по квадрату с цифрой или кругом × считается так же, как <strong>Пробел</strong> (для цифры 3 касаться не нужно — не нажимайте).
+    <div class="shulte-game">
+      <div class="shulte-intro" id="shulteIntro">
+        <h2>Таблицы Шульте (5×5)</h2>
+        <p>
+          После завершения пятого этапа запускается обратный отсчёт <strong>3 — 2 — 1</strong>, затем по очереди показываются <strong>пять таблиц</strong> (числа
+          <strong>1…25</strong> в клетках). Нужно нажимать числа <strong>по возрастанию</strong> (сначала 1, затем 2, … 25). Неверный клик не засчитывается.
         </p>
-        <p>Сначала идут <strong>25 пробных</strong> попыток — после них показывается сводка и список ошибок. Затем нажмите <strong>«Готов к настоящему?»</strong>, чтобы начать <strong>10 основных</strong> попыток. После основного блока снова отображаются итог и ошибки, затем — фейерверк.</p>
+        <p>У каждой таблицы замеряется время от первого до последнего верного нажатия. После пятой таблицы откроется <strong>седьмой этап</strong>.</p>
+        <p>Если вы открыли этот этап без перехода с пятого, нажмите <strong>«Начать»</strong> — затем тот же отсчёт 3‑2‑1.</p>
+        <button type="button" class="btn-primary shulte-start-manual" id="shulteStartManual">Начать</button>
       </div>
-      <button type="button" class="btn-primary gng-ready">Готовы?</button>
-      <div class="gng-countdown-overlay gng-hidden" aria-live="polite"><span class="gng-count-num">3</span></div>
-      <div class="gng-arena-wrap gng-hidden">
-        <div class="gng-arena">
-          <div class="gng-digit" aria-hidden="true"></div>
-          <div class="gng-mask" aria-hidden="true"><span class="gng-x" aria-hidden="true">×</span></div>
+      <div class="shulte-countdown-overlay shulte-hidden" id="shulteCdOverlay" aria-live="polite">
+        <span class="shulte-cd-num" id="shulteCdNum">3</span>
+      </div>
+      <div class="shulte-play-area shulte-hidden" id="shultePlayArea">
+        <div class="shulte-meta">
+          <span class="shulte-table-label" id="shulteTableLabel"></span>
+          <span class="shulte-timer" id="shulteTimer">0.0 с</span>
         </div>
-        <p class="gng-trial-label"></p>
-      </div>
-      <div class="gng-practice-break gng-hidden">
-        <div class="gng-practice-report" aria-live="polite"></div>
-        <button type="button" class="btn-primary gng-start-main">Готов к настоящему?</button>
-      </div>
-      <div class="gng-results gng-hidden"></div>
-      <div class="complete-row gng-stage-complete gng-hidden">
-        <button type="button" class="btn-primary btn-complete" data-stage="6">Завершить шестой этап</button>
-        <span class="hint">Нажмите, чтобы открыть седьмой этап.</span>
+        <div class="shulte-grid" id="shulteGrid" role="group" aria-label="Таблица Шульте"></div>
       </div>
     </div>
   </template>
@@ -1532,42 +1573,6 @@
       </p>
       <p class="s7-profile-banner" id="s7-profile-banner" hidden></p>
       <form class="s7-form" id="stage7-quiz-form" novalidate>
-        <h3 class="s7-section-title">Образование</h3>
-
-        <fieldset class="s7-fieldset">
-          <legend class="s7-legend">Уровень образования <span class="s7-req">*</span></legend>
-          <div class="s7-options" role="radiogroup">
-            <label class="s7-option">
-              <input type="radio" name="s7_edu" value="bachelor" required />
-              <span>Бакалавриат</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="s7_edu" value="master" required />
-              <span>Магистратура</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="s7_edu" value="specialist" required />
-              <span>Специально</span>
-            </label>
-            <label class="s7-option">
-              <input type="radio" name="s7_edu" value="postgrad" required />
-              <span>Аспирант</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <fieldset class="s7-fieldset">
-          <legend class="s7-legend">Курс <span class="s7-req">*</span></legend>
-          <div class="s7-options" role="radiogroup">
-            <label class="s7-option"><input type="radio" name="s7_course" value="1" required /><span>1</span></label>
-            <label class="s7-option"><input type="radio" name="s7_course" value="2" required /><span>2</span></label>
-            <label class="s7-option"><input type="radio" name="s7_course" value="3" required /><span>3</span></label>
-            <label class="s7-option"><input type="radio" name="s7_course" value="4" required /><span>4</span></label>
-            <label class="s7-option"><input type="radio" name="s7_course" value="5" required /><span>5</span></label>
-            <label class="s7-option"><input type="radio" name="s7_course" value="6" required /><span>6</span></label>
-          </div>
-        </fieldset>
-
         <h3 class="s7-section-title">Короткие видео</h3>
 
         <fieldset class="s7-fieldset">
@@ -1744,7 +1749,6 @@
           </div>
         </div>
       </div>
-
       <div class="complete-row">
         <button type="button" class="btn-primary btn-complete" data-stage="4">Завершить четвёртый этап</button>
         <span class="hint">Когда закончите материалы четвёртого этапа, нажмите, чтобы открыть этап 5.</span>
@@ -1759,22 +1763,30 @@
       var STAGE1_BRANCH_KEY = "courseStage1VideoBranch";
       var CRT_METRICS_KEY = "courseCRTMetricsLast";
       var STROOP_METRICS_KEY = "courseStroopMetricsLast";
-      var GNG_METRICS_KEY = "courseGngMetricsLast";
+      var SCHULTE_METRICS_KEY = "courseSchulteMetricsStage6";
+      /** После «Завершить пятый этап» — автоматически 3‑2‑1 и старт таблиц Шульте. */
+      var pendingSchulteCountdownAfterStage5 = false;
+      var schulteRunStage5AutoStart = null;
       var PARTICIPANT_ID_KEY = "courseParticipantId";
       var STAGE7_SURVEY_KEY = "stage7SurveyResponse";
       var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
-      /** Number of clips in the feed (files short_video/1..54, 56..72 — 55 omitted, see STAGE1_SHORT_SKIP_FILE_NO). */
-      var STAGE1_SHORT_FEED_COUNT = 71;
-      /** Omitted file in short_video/ (e.g. too large for GitHub); slot order skips this number. */
-      var STAGE1_SHORT_SKIP_FILE_NO = 55;
+      var STAGE1_LONG_DONE_KEY = "courseStage1LongCompleted";
+      /** Number of clips: files short_video/N.mp4 for N in 1..72 except omitted numbers below. */
+      var STAGE1_SHORT_FEED_COUNT = 70;
+      /** Номера файлов short_video/*.mp4, не включаемые в ленту (55 — слишком большой для GitHub; 35 — исключён по заданию). */
+      var STAGE1_SHORT_SKIP_FILE_NOS = [35, 55];
 
       function shortClipFileNoFromSlot(slot0) {
         if (slot0 < 0) return 1;
-        var skip = STAGE1_SHORT_SKIP_FILE_NO;
-        if (skip == null || !isFinite(skip)) return slot0 + 1;
-        if (slot0 < skip - 1) return slot0 + 1;
-        return slot0 + 2;
+        var remaining = slot0 + 1;
+        var f = 0;
+        while (remaining > 0) {
+          f++;
+          if (STAGE1_SHORT_SKIP_FILE_NOS.indexOf(f) >= 0) continue;
+          remaining--;
+        }
+        return f;
       }
       /** Long branch: single file in folder long_video (same origin as the page). */
       var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
@@ -1829,7 +1841,10 @@
           String(p.fio || "").trim() &&
           String(p.age || "").trim() &&
           (p.gender === "F" || p.gender === "M") &&
-          String(p.spec || "").trim()
+          String(p.spec || "").trim() &&
+          String(p.edu || "").trim() &&
+          String(p.course || "").trim() &&
+          p.consent === true
         );
       }
 
@@ -1842,6 +1857,9 @@
               age: String(profile.age || "").trim(),
               gender: profile.gender === "F" ? "F" : "M",
               spec: String(profile.spec || "").trim(),
+              edu: String(profile.edu || "").trim(),
+              course: String(profile.course || "").trim(),
+              consent: profile.consent === true,
               at: new Date().toISOString()
             })
           );
@@ -1850,11 +1868,19 @@
 
       function getStage1Metrics() {
         var d = safeJsonParse(localStorage.getItem(STAGE1_METRICS_KEY));
-        if (d && typeof d === "object") return d;
-        return {
-          short: { perVideoMs: {}, totalMs: 0, completedVideos: [] },
-          long: { watchMs: 0, startedAt: null, endedAt: null }
-        };
+        if (!d || typeof d !== "object") d = {};
+        if (!d.short || typeof d.short !== "object") d.short = {};
+        if (!d.short.perVideoMs || typeof d.short.perVideoMs !== "object") d.short.perVideoMs = {};
+        if (typeof d.short.totalMs !== "number") d.short.totalMs = 0;
+        if (!Array.isArray(d.short.completedVideos)) d.short.completedVideos = [];
+        if (!d.long || typeof d.long !== "object") d.long = {};
+        if (typeof d.long.watchMs !== "number") d.long.watchMs = 0;
+        if (d.long.startedAt == null) d.long.startedAt = null;
+        if (d.long.endedAt == null) d.long.endedAt = null;
+        if (!d.postVideo || typeof d.postVideo !== "object") d.postVideo = {};
+        if (d.postVideo.value == null) d.postVideo.value = "";
+        if (d.postVideo.at == null) d.postVideo.at = null;
+        return d;
       }
 
       function saveStage1Metrics(data) {
@@ -1910,6 +1936,33 @@
         saveStage1Metrics(m);
       }
 
+      function hasStage1LongCompleted() {
+        try {
+          return localStorage.getItem(STAGE1_LONG_DONE_KEY) === "1";
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function markStage1LongCompleted() {
+        try {
+          localStorage.setItem(STAGE1_LONG_DONE_KEY, "1");
+        } catch (err) {}
+      }
+
+      function setStage1PostVideoAnswer(value) {
+        var m = getStage1Metrics();
+        if (!m.postVideo || typeof m.postVideo !== "object") m.postVideo = {};
+        m.postVideo.value = value === "yes" || value === "no" ? value : "";
+        m.postVideo.at = new Date().toISOString();
+        saveStage1Metrics(m);
+      }
+
+      function getStage1PostVideoAnswer() {
+        var m = getStage1Metrics();
+        return m && m.postVideo ? m.postVideo.value || "" : "";
+      }
+
       function applyPrestartToStage7StorageIfAny() {
         var p = getPrestartProfile();
         if (!p) return;
@@ -1921,6 +1974,8 @@
         payload.fields.s7_age = String(p.age || "");
         payload.fields.s7_gender = String(p.gender || "");
         payload.fields.s7_spec = String(p.spec || "");
+        payload.fields.s7_edu = String(p.edu || "");
+        payload.fields.s7_course = String(p.course || "");
         try {
           localStorage.setItem(
             STAGE7_SURVEY_KEY,
@@ -1946,6 +2001,8 @@
       var tplStage7 = document.getElementById("tpl-stage7-inner");
       var stage3Break = { intervalId: null };
       var stage5Break = { intervalId: null };
+      /** Длительность перерыва на этапах 3 и 5 (секунды). */
+      var STAGE_BREAK_SECONDS = 20;
       var BREAK_TICK_SRC = "tich_tac.mp3";
       var breakTickAudio = null;
 
@@ -2041,7 +2098,7 @@
         if (!st.querySelector(".break-countdown")) return;
         if (stage3Break.intervalId) return;
 
-        var remain = 60;
+        var remain = STAGE_BREAK_SECONDS;
         function tick() {
           if (remain > 0) playBreakTickSound();
           var m = Math.floor(remain / 60);
@@ -2073,7 +2130,7 @@
         if (!st.querySelector(".break-countdown")) return;
         if (stage5Break.intervalId) return;
 
-        var remain = 60;
+        var remain = STAGE_BREAK_SECONDS;
         function tick() {
           if (remain > 0) playBreakTickSound();
           var m = Math.floor(remain / 60);
@@ -2095,7 +2152,7 @@
         getOrCreateParticipantId();
         var crt = safeJsonParse(localStorage.getItem(CRT_METRICS_KEY));
         var stroop = safeJsonParse(localStorage.getItem(STROOP_METRICS_KEY));
-        var gng = safeJsonParse(localStorage.getItem(GNG_METRICS_KEY));
+        var schulte = safeJsonParse(localStorage.getItem(SCHULTE_METRICS_KEY));
         var s7wrap = safeJsonParse(localStorage.getItem(STAGE7_SURVEY_KEY));
         var pre = getPrestartProfile();
         var stage1m = getStage1Metrics();
@@ -2116,14 +2173,28 @@
         }
 
         var stage4 = null;
-        if (stroop && Array.isArray(stroop.trials)) {
+        var stroopMainTrials =
+          stroop && stroop.main && Array.isArray(stroop.main.trials)
+            ? stroop.main.trials
+            : stroop && Array.isArray(stroop.trials)
+            ? stroop.trials
+            : null;
+        if (stroopMainTrials) {
+          var s4Correct =
+            stroop.main && stroop.main.correctCount != null
+              ? stroop.main.correctCount
+              : stroop.correctCount;
+          var s4Wrong =
+            stroop.main && stroop.main.wrongCount != null
+              ? stroop.main.wrongCount
+              : stroop.wrongCount;
           stage4 = {
-            correct_count: stroop.correctCount,
-            wrong_count: stroop.wrongCount,
-            reaction_times: stroop.trials.map(function (t) {
+            correct_count: s4Correct,
+            wrong_count: s4Wrong,
+            reaction_times: stroopMainTrials.map(function (t) {
               return t.timeout ? null : t.reactionMs != null ? t.reactionMs : null;
             }),
-            click_details: stroop.trials.map(function (t) {
+            click_details: stroopMainTrials.map(function (t) {
               return {
                 expected: t.inkColor,
                 clicked: t.selected,
@@ -2136,22 +2207,13 @@
         }
 
         var stage6 = null;
-        if (gng && gng.main && Array.isArray(gng.main.trials)) {
+        if (schulte && Array.isArray(schulte.tables) && schulte.tables.length > 0) {
           stage6 = {
-            correct_count: gng.main.correctCount,
-            wrong_count: gng.main.wrongCount,
-            reaction_times: gng.main.trials.map(function (t) {
-              return t.reactionMs != null ? t.reactionMs : null;
+            schulte_table_times_ms: schulte.tables.map(function (t) {
+              return t.durationMs != null ? t.durationMs : null;
             }),
-            click_details: gng.main.trials.map(function (t) {
-              return {
-                showed: t.digit,
-                pressed_space: !!t.spacePressed,
-                correct: !!t.correct,
-                time_ms: t.reactionMs != null ? t.reactionMs : null,
-                errorKind: t.errorKind != null ? t.errorKind : null
-              };
-            })
+            schulte_total_ms: schulte.totalDurationMs != null ? schulte.totalDurationMs : null,
+            schulte_wrong_clicks: schulte.wrongClicksTotal != null ? schulte.wrongClicksTotal : null
           };
         }
 
@@ -2176,6 +2238,7 @@
           stage1m && stage1m.short && typeof stage1m.short.totalMs === "number" ? stage1m.short.totalMs : 0;
         var longMs = stage1m && stage1m.long && typeof stage1m.long.watchMs === "number" ? stage1m.long.watchMs : 0;
         var branch = getStage1Branch();
+        var stage1PostVideo = stage1m && stage1m.postVideo ? stage1m.postVideo : { value: "", at: null };
         var stage1TotalWatchMs = branch === "short" ? shortTotalMs : branch === "long" ? longMs : 0;
         /** Average watch time = total time watched ÷ N, where N is the number of clips in the short series (not «how many ended»). */
         var stage1VideoCount =
@@ -2190,10 +2253,15 @@
           stage1: {
             videoBranch: branch,
             allShortsWatched: hasStage1ShortsCompleted(),
+            longVideoCompleted: hasStage1LongCompleted(),
             maxUnlockedStage: getMaxUnlocked(),
             total_watch_ms: stage1TotalWatchMs,
+            short_watch_ms: shortTotalMs,
+            long_watch_ms: longMs,
             video_count: stage1VideoCount,
-            avg_watch_ms: stage1AvgWatchMs
+            avg_watch_ms: stage1AvgWatchMs,
+            impatience_after_video: stage1PostVideo.value || "",
+            impatience_answered_at: stage1PostVideo.at || null
           },
           stage2: stage2,
           stage4: stage4,
@@ -2202,7 +2270,7 @@
           _raw: {
             crt: crt,
             stroop: stroop,
-            gng: gng,
+            schulte: schulte,
             stage1Metrics: stage1m,
             stage7Stored: s7wrap
           }
@@ -2259,6 +2327,64 @@
         try {
           localStorage.setItem(STAGE1_SHORTS_DONE_KEY, "1");
         } catch (err) {}
+      }
+
+      function branchDisplayName(branch) {
+        return branch === "short" ? "короткого видео" : "длинного видео";
+      }
+
+      function showStage1PostVideoQuestion(branch) {
+        var box = document.getElementById("stage1-post-video");
+        var feedback = document.getElementById("stage1-post-video-feedback");
+        if (!box) return;
+        box.hidden = false;
+        box.setAttribute("data-branch", branch || "");
+        var stored = getStage1PostVideoAnswer();
+        box.querySelectorAll('input[name="stage1_post_video"]').forEach(function (el) {
+          el.checked = !!stored && el.value === stored;
+        });
+        if (feedback) {
+          feedback.className = "prestart-feedback";
+          feedback.textContent =
+            "Ответьте на вопрос после просмотра " + branchDisplayName(branch || getStage1Branch()) + ".";
+        }
+      }
+
+      function hideStage1PostVideoQuestion() {
+        var box = document.getElementById("stage1-post-video");
+        if (!box) return;
+        box.hidden = true;
+      }
+
+      function bindStage1PostVideoQuestion() {
+        var box = document.getElementById("stage1-post-video");
+        var btn = document.getElementById("stage1-post-video-submit");
+        var fb = document.getElementById("stage1-post-video-feedback");
+        if (!box || !btn || !fb) return;
+
+        if (getMaxUnlocked() > 1 && getStage1PostVideoAnswer()) {
+          showStage1PostVideoQuestion(getStage1Branch());
+          fb.className = "prestart-feedback ok";
+          fb.textContent = "Ответ уже сохранён. Второй этап открыт.";
+        } else {
+          hideStage1PostVideoQuestion();
+        }
+
+        btn.addEventListener("click", function () {
+          var sel = box.querySelector('input[name="stage1_post_video"]:checked');
+          if (!sel) {
+            fb.className = "prestart-feedback warn";
+            fb.textContent = "Выберите один вариант ответа: «Да» или «Нет».";
+            return;
+          }
+          var answer = sel.value === "yes" ? "yes" : "no";
+          setStage1PostVideoAnswer(answer);
+          fb.className = "prestart-feedback ok";
+          fb.textContent = "Ответ сохранён. Переходим ко второму этапу…";
+          setMaxUnlocked(Math.max(getMaxUnlocked(), 2));
+          pendingExpandStageAfterRender = 2;
+          render();
+        });
       }
 
       function getStage1Branch() {
@@ -2447,7 +2573,7 @@
               else disabled = !hasStage1ShortsCompleted();
             } else if (br === "long") {
               if (fromShort) disabled = true;
-              else disabled = false;
+              else disabled = !hasStage1LongCompleted();
             } else {
               disabled = true;
             }
@@ -2485,6 +2611,11 @@
                 btn.setAttribute(
                   "title",
                   "Выбран длиный видеоролик. Короткие ролики недоступны."
+                );
+              } else if (!hasStage1LongCompleted()) {
+                btn.setAttribute(
+                  "title",
+                  "Сначала досмотрите длиный ролик до конца."
                 );
               } else {
                 btn.removeAttribute("title");
@@ -2548,16 +2679,43 @@
           var ageEl = form.querySelector("#pre-age");
           var specEl = form.querySelector("#pre-spec");
           var gEl = form.querySelector('input[name="pre_gender"]:checked');
+          var eduEl = form.querySelector('input[name="pre_edu"]:checked');
+          var courseEl = form.querySelector('input[name="pre_course"]:checked');
+          var consentEl = form.querySelector("#pre-consent");
           var data = {
             fio: fioEl ? fioEl.value.trim() : "",
             age: ageEl ? ageEl.value.trim() : "",
             gender: gEl ? gEl.value : "",
-            spec: specEl ? specEl.value.trim() : ""
+            spec: specEl ? specEl.value.trim() : "",
+            edu: eduEl ? eduEl.value : "",
+            course: courseEl ? courseEl.value : "",
+            consent: consentEl ? consentEl.checked : false
           };
 
           if (!data.fio || !data.age || !data.spec || (data.gender !== "F" && data.gender !== "M")) {
             fb.className = "prestart-feedback warn";
             fb.textContent = "Заполните ФИО, возраст, пол и специальность.";
+            if (typeof form.reportValidity === "function") form.reportValidity();
+            return;
+          }
+
+          if (!data.edu) {
+            fb.className = "prestart-feedback warn";
+            fb.textContent = "Выберите уровень образования.";
+            if (typeof form.reportValidity === "function") form.reportValidity();
+            return;
+          }
+
+          if (!data.course) {
+            fb.className = "prestart-feedback warn";
+            fb.textContent = "Выберите курс.";
+            if (typeof form.reportValidity === "function") form.reportValidity();
+            return;
+          }
+
+          if (!data.consent) {
+            fb.className = "prestart-feedback warn";
+            fb.textContent = "Вы должны дать согласие на обработку персональных данных, чтобы начать эксперимент.";
             if (typeof form.reportValidity === "function") form.reportValidity();
             return;
           }
@@ -2768,15 +2926,16 @@
       }
 
       function bindStage1ShortFeed() {
-        var video = document.getElementById("stage1-short-video");
+        var mount = document.getElementById("stage1-short-stack");
         var feed = document.getElementById("stage1-short-feed");
         var touchEl = document.getElementById("stage1-short-touch");
         var miss = document.getElementById("stage1-short-miss");
         var badge = document.getElementById("stage1-short-badge");
         var gotoStage2Btn = document.getElementById("stage1-short-goto-stage2");
         var nextHint = document.getElementById("stage1-short-next-hint");
-        if (!video || !feed || !touchEl || !miss || !badge || !nextHint || !gotoStage2Btn) return;
+        if (!mount || !feed || !touchEl || !miss || !badge || !nextHint || !gotoStage2Btn) return;
 
+        var video = null;
         var SHORT_TOTAL = STAGE1_SHORT_FEED_COUNT;
         var current = 0;
         var NEAR_END_SEC = 3.5;
@@ -2798,16 +2957,101 @@
         }
 
         function syncNextHint() {
+          var v = video;
+          if (!v) return;
           var hasNext = current < SHORT_TOTAL - 1;
-          if (!hasNext || !video.duration || !isFinite(video.duration)) {
+          if (!hasNext || !v.duration || !isFinite(v.duration)) {
             nextHint.hidden = true;
             return;
           }
-          var left = video.duration - video.currentTime;
-          nextHint.hidden = left > NEAR_END_SEC || video.ended;
+          var left = v.duration - v.currentTime;
+          nextHint.hidden = left > NEAR_END_SEC || v.ended;
         }
 
-        function onVideoTimeUpdate() {
+        function whenDecodedFrame(el, cb) {
+          if (el.readyState >= 2) {
+            cb();
+            return;
+          }
+          var done = false;
+          var tid;
+          function run() {
+            if (done) return;
+            done = true;
+            try {
+              clearTimeout(tid);
+            } catch (eT) {}
+            el.removeEventListener("loadeddata", run);
+            el.removeEventListener("canplay", run);
+            cb();
+          }
+          tid = setTimeout(run, 8000);
+          el.addEventListener("loadeddata", run);
+          el.addEventListener("canplay", run);
+        }
+
+        function removeVideoNode() {
+          if (video && video.parentNode) {
+            try {
+              video.pause();
+            } catch (eP) {}
+            try {
+              video.removeAttribute("src");
+            } catch (eR) {}
+            try {
+              video.load();
+            } catch (eL) {}
+            video.parentNode.removeChild(video);
+          }
+          video = null;
+        }
+
+        function attachVideoListeners(v) {
+          v.addEventListener("ended", onShortEnded);
+          v.addEventListener("timeupdate", onVideoTimeUpdate);
+          v.addEventListener("loadedmetadata", syncNextHint);
+          v.addEventListener("play", syncNextHint);
+          v.addEventListener("error", onShortError);
+        }
+
+        function createFreshVideo() {
+          removeVideoNode();
+          var v = document.createElement("video");
+          v.id = "stage1-short-video";
+          v.className = "short-feed-video";
+          v.controls = true;
+          v.setAttribute("playsinline", "");
+          v.setAttribute("webkit-playsinline", "");
+          try {
+            v.playsInline = true;
+          } catch (ePl) {}
+          v.preload = "auto";
+          v.setAttribute("preload", "auto");
+          mount.appendChild(v);
+          video = v;
+          attachVideoListeners(video);
+        }
+
+        /** Tiny seek helps some WebKit builds repaint the first frame before play(). */
+        function primeVideoSurface(el, then) {
+          requestAnimationFrame(function () {
+            try {
+              if (el.readyState >= 2 && el.duration && isFinite(el.duration) && el.duration > 0.15) {
+                var t = Math.min(0.06, el.duration * 0.02);
+                if (t > 0) el.currentTime = t;
+              }
+            } catch (eSeek) {}
+            requestAnimationFrame(function () {
+              try {
+                el.currentTime = 0;
+              } catch (eZero) {}
+              then();
+            });
+          });
+        }
+
+        function onVideoTimeUpdate(e) {
+          if (!video || e.target !== video) return;
           var curSec = video.currentTime;
           if (isFinite(curSec)) {
             var deltaSec = curSec - lastPlayheadSec;
@@ -2830,10 +3074,39 @@
           }
         }
 
+        function onShortEnded(e) {
+          if (!video || e.target !== video) return;
+          markStage1ShortCompletedVideo(shortClipFileNoFromSlot(current));
+          if (Date.now() < ignoreEndedUntil) return;
+          if (current < SHORT_TOTAL - 1) {
+            loadIndex(current + 1);
+          } else {
+            showShortsFinishedUI();
+          }
+        }
+
+        function onShortError(e) {
+          if (!video || e.target !== video) return;
+          miss.textContent =
+            "Файл short_video/" +
+            shortClipFileNoFromSlot(current) +
+            ".mp4 не найден или не воспроизводится. Через 2 с — переход к следующему (если есть).";
+          miss.hidden = false;
+          nextHint.hidden = true;
+          if (current < SHORT_TOTAL - 1) {
+            setTimeout(function () {
+              loadIndex(current + 1);
+            }, 2000);
+          } else {
+            showShortsFinishedUI();
+          }
+        }
+
         function loadIndex(i, opts) {
           opts = opts || {};
           var keepDone = opts.keepDoneUI === true;
           var scrollLock = window.scrollY;
+
           ignoreEndedUntil = Date.now() + 520;
           lastVideoUiSync = 0;
           lastPlayheadSec = 0;
@@ -2844,56 +3117,30 @@
           }
           miss.hidden = true;
           nextHint.hidden = true;
-          video.style.display = "";
-          try {
-            video.playsInline = true;
-          } catch (ePl) {}
-          try {
-            video.pause();
-          } catch (ePa) {}
+
+          createFreshVideo();
           try {
             video.muted = false;
           } catch (eMu) {}
-          try {
-            video.removeAttribute("src");
-          } catch (eRm) {}
-          try {
-            video.load();
-          } catch (eLd0) {}
 
           var clipUrl = "short_video/" + shortClipFileNoFromSlot(current) + ".mp4";
-          video.src = clipUrl;
+          try {
+            video.innerHTML = "";
+            var srcEl = document.createElement("source");
+            srcEl.src = clipUrl;
+            srcEl.type = "video/mp4";
+            video.appendChild(srcEl);
+          } catch (eInner) {
+            video.src = clipUrl;
+          }
           try {
             video.load();
           } catch (eLd1) {}
           badge.textContent = current + 1 + " / " + SHORT_TOTAL;
 
-          /** Wait until a video frame exists so audio does not start without picture (Safari / mobile). */
-          function whenDecodedFrame(cb) {
-            if (video.readyState >= 2) {
-              cb();
-              return;
-            }
-            var done = false;
-            var tid;
-            function run() {
-              if (done) return;
-              done = true;
-              try {
-                clearTimeout(tid);
-              } catch (eT) {}
-              video.removeEventListener("loadeddata", run);
-              video.removeEventListener("canplay", run);
-              cb();
-            }
-            tid = setTimeout(run, 8000);
-            video.addEventListener("loadeddata", run);
-            video.addEventListener("canplay", run);
-          }
-
           if (opts.autoplay === false) {
             if (keepDone) {
-              whenDecodedFrame(function () {
+              whenDecodedFrame(video, function () {
                 if (video.duration && isFinite(video.duration)) {
                   try {
                     video.currentTime = Math.max(0, video.duration - 0.08);
@@ -2902,7 +3149,7 @@
                 video.pause();
               });
             } else {
-              whenDecodedFrame(function () {
+              whenDecodedFrame(video, function () {
                 try {
                   video.currentTime = 0;
                 } catch (err) {}
@@ -2918,51 +3165,52 @@
                 window.scrollTo(0, scrollLock);
               });
             }
-            function nudgeVideoPaint() {
+            function nudgeVideoPaint(el) {
               requestAnimationFrame(function () {
                 try {
-                  void video.offsetWidth;
-                  var prev = video.style.opacity;
-                  video.style.opacity = "0.999";
+                  void el.offsetWidth;
+                  var prev = el.style.opacity;
+                  el.style.opacity = "0.999";
                   requestAnimationFrame(function () {
-                    video.style.opacity = prev || "";
+                    el.style.opacity = prev || "";
                   });
                 } catch (eN) {}
               });
             }
-            whenDecodedFrame(function () {
-              var playP;
-              try {
-                playP = video.play();
-              } catch (err) {
-                playP = null;
-              }
-              if (playP && typeof playP.then === "function") {
-                playP
-                  .catch(function () {
-                    try {
-                      video.muted = true;
-                    } catch (eM) {}
-                    try {
-                      return video.play();
-                    } catch (e2) {
-                      return Promise.resolve();
-                    }
-                  })
-                  .then(function () {
-                    nudgeVideoPaint();
-                    restoreScrollAfterClip();
-                  }, function () {
-                    restoreScrollAfterClip();
-                  });
-              } else {
+            whenDecodedFrame(video, function () {
+              /* Do not test videoWidth here — often 0 until the first frame after play(); that caused a false warning. */
+              primeVideoSurface(video, function () {
+                var playP;
                 try {
-                  video.muted = true;
-                  video.play();
-                } catch (e3) {}
-                nudgeVideoPaint();
-                restoreScrollAfterClip();
-              }
+                  playP = video.play();
+                } catch (err) {
+                  playP = null;
+                }
+                function afterPlayOk() {
+                  nudgeVideoPaint(video);
+                  restoreScrollAfterClip();
+                }
+                if (playP && typeof playP.then === "function") {
+                  playP
+                    .catch(function () {
+                      try {
+                        video.muted = true;
+                      } catch (eM) {}
+                      try {
+                        return video.play();
+                      } catch (e2) {
+                        return Promise.resolve();
+                      }
+                    })
+                    .then(afterPlayOk, restoreScrollAfterClip);
+                } else {
+                  try {
+                    video.muted = true;
+                    video.play();
+                  } catch (e3) {}
+                  afterPlayOk();
+                }
+              });
             });
           }
         }
@@ -2975,20 +3223,6 @@
           if (current > 0) loadIndex(current - 1);
         }
 
-        video.addEventListener("ended", function () {
-          markStage1ShortCompletedVideo(shortClipFileNoFromSlot(current));
-          if (Date.now() < ignoreEndedUntil) return;
-          if (current < SHORT_TOTAL - 1) {
-            loadIndex(current + 1);
-          } else {
-            showShortsFinishedUI();
-          }
-        });
-
-        video.addEventListener("timeupdate", onVideoTimeUpdate);
-        video.addEventListener("loadedmetadata", syncNextHint);
-        video.addEventListener("play", syncNextHint);
-
         nextHint.addEventListener("mousedown", function (e) {
           e.preventDefault();
         });
@@ -2996,22 +3230,6 @@
           e.preventDefault();
           e.stopPropagation();
           goNext();
-        });
-
-        video.addEventListener("error", function () {
-          miss.textContent =
-            "Файл short_video/" +
-            shortClipFileNoFromSlot(current) +
-            ".mp4 не найден или не воспроизводится. Через 2 с — переход к следующему (если есть).";
-          miss.hidden = false;
-          nextHint.hidden = true;
-          if (current < SHORT_TOTAL - 1) {
-            setTimeout(function () {
-              loadIndex(current + 1);
-            }, 2000);
-          } else {
-            showShortsFinishedUI();
-          }
         });
 
         var touchY0 = null;
@@ -3079,18 +3297,11 @@
           loadIndex(0);
         } else {
           current = 0;
+          removeVideoNode();
           badge.textContent = "1 / " + SHORT_TOTAL;
           miss.hidden = true;
           nextHint.hidden = true;
           gotoStage2Btn.hidden = true;
-          video.style.display = "";
-          video.pause();
-          try {
-            video.removeAttribute("src");
-          } catch (eRm) {}
-          try {
-            video.load();
-          } catch (eLd) {}
         }
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
@@ -3102,11 +3313,22 @@
       function bindStage1LongVideo() {
         var v = document.getElementById("stage1-long-video");
         var miss = document.getElementById("stage1-long-miss");
+        var longBtn = document.getElementById("stage1-long-goto-stage2");
         if (!v) return;
         try {
           v.src = STAGE1_LONG_VIDEO_SRC;
         } catch (eSrc) {}
+        function refreshLongStage2Button() {
+          if (longBtn) {
+            longBtn.hidden = !hasStage1LongCompleted();
+          }
+          updateCompleteButtonsState();
+        }
         v.addEventListener("play", startStage1LongWatchIfNeeded);
+        v.addEventListener("ended", function () {
+          markStage1LongCompleted();
+          refreshLongStage2Button();
+        });
         v.addEventListener("error", function () {
           if (miss) {
             miss.hidden = false;
@@ -3116,6 +3338,9 @@
               ". Проверьте, что файл есть в папке long_video.";
           }
         });
+        if (hasStage1LongCompleted()) {
+          refreshLongStage2Button();
+        }
       }
 
       function render() {
@@ -3219,7 +3444,7 @@
         bindStage1LongVideo();
         syncStage1BranchUI();
         bindCRT();
-        bindGoNogoGame();
+        bindSchulteGame();
         bindStage7Form();
         bindComplete();
         updateCompleteButtonsState();
@@ -3245,6 +3470,7 @@
                 }
               }
             }
+            maybeStartSchulteAfterStage5();
           });
         });
       }
@@ -3450,327 +3676,252 @@
         });
       }
 
-      function bindGoNogoGame() {
-        var root = document.querySelector(".gng-game");
-        if (!root) return;
+      /** Таблицы Шульте 5×5 (источник: методика «Внимание. Таблицы Шульте», таблицы №1–5). */
+      var SCHULTE_TABLES = [
+        [
+          [14, 9, 2, 21, 13],
+          [22, 7, 16, 5, 10],
+          [4, 25, 11, 18, 3],
+          [20, 6, 23, 8, 19],
+          [15, 24, 1, 17, 12]
+        ],
+        [
+          [2, 13, 1, 8, 20],
+          [17, 6, 25, 7, 11],
+          [22, 18, 3, 15, 19],
+          [10, 5, 12, 24, 16],
+          [14, 23, 4, 9, 21]
+        ],
+        [
+          [21, 11, 1, 19, 24],
+          [2, 20, 18, 5, 10],
+          [4, 13, 25, 16, 7],
+          [17, 6, 14, 9, 12],
+          [22, 3, 8, 15, 23]
+        ],
+        [
+          [5, 21, 23, 4, 25],
+          [11, 2, 7, 13, 20],
+          [24, 17, 19, 6, 18],
+          [9, 1, 12, 8, 14],
+          [16, 10, 3, 15, 22]
+        ],
+        [
+          [3, 17, 21, 8, 4],
+          [10, 6, 15, 25, 13],
+          [24, 20, 1, 9, 22],
+          [19, 12, 7, 14, 16],
+          [2, 18, 23, 11, 5]
+        ]
+      ];
 
-        var readyBtn = root.querySelector(".gng-ready");
-        var cdOverlay = root.querySelector(".gng-countdown-overlay");
-        var cdNum = root.querySelector(".gng-count-num");
-        var arenaWrap = root.querySelector(".gng-arena-wrap");
-        var digitEl = root.querySelector(".gng-digit");
-        var maskEl = root.querySelector(".gng-mask");
-        var trialLabel = root.querySelector(".gng-trial-label");
-        var resultsEl = root.querySelector(".gng-results");
-        var practiceBreakEl = root.querySelector(".gng-practice-break");
-        var practiceReportEl = root.querySelector(".gng-practice-report");
-        var startMainBtn = root.querySelector(".gng-start-main");
-        var completeRow = root.querySelector(".gng-stage-complete");
+      function maybeStartSchulteAfterStage5() {
+        if (!pendingSchulteCountdownAfterStage5) return;
+        if (typeof schulteRunStage5AutoStart !== "function") return;
+        schulteRunStage5AutoStart();
+      }
+
+      function bindSchulteGame() {
+        var root = document.querySelector(".shulte-game");
+        if (!root) {
+          schulteRunStage5AutoStart = null;
+          return;
+        }
+
+        var introEl = document.getElementById("shulteIntro");
+        var cdOverlay = document.getElementById("shulteCdOverlay");
+        var cdNum = document.getElementById("shulteCdNum");
+        var playArea = document.getElementById("shultePlayArea");
+        var gridEl = document.getElementById("shulteGrid");
+        var timerEl = document.getElementById("shulteTimer");
+        var labelEl = document.getElementById("shulteTableLabel");
+        var manualStart = document.getElementById("shulteStartManual");
 
         var timeouts = [];
-        var keyHandler = null;
-        var PRACTICE = 25;
-        var MAIN = 10;
-        var TOTAL = PRACTICE + MAIN;
-        var DIGIT_MS = 500;
-        var RESPONSE_MS = 500;
-        var FEEDBACK_MS = 800;
+        var timerRaf = null;
+        var tableStartTs = 0;
+        var currentTableIdx = 0;
+        var nextExpected = 1;
+        var wrongClicks = 0;
+        var wrongInTable = 0;
+        var tableRecords = [];
+        var isActive = false;
 
         function pushT(fn, ms) {
           timeouts.push(setTimeout(fn, ms));
         }
 
-        function clearTimers() {
+        function clearAllTimers() {
           timeouts.forEach(function (t) {
             clearTimeout(t);
           });
           timeouts = [];
-        }
-
-        var arenaPointerHandler = null;
-
-        function offKey() {
-          if (keyHandler) {
-            window.removeEventListener("keydown", keyHandler, true);
-            keyHandler = null;
-          }
-          if (arenaPointerHandler && arenaWrap) {
-            arenaWrap.removeEventListener("pointerdown", arenaPointerHandler, true);
-            arenaPointerHandler = null;
+          if (timerRaf != null) {
+            cancelAnimationFrame(timerRaf);
+            timerRaf = null;
           }
         }
 
-        var stats = { pC: 0, pW: 0, mC: 0, mW: 0 };
-        var trialLog = [];
+        function formatTime(ms) {
+          return (ms / 1000).toFixed(1) + " с";
+        }
 
-        function record(correct, isPractice) {
-          if (isPractice) {
-            if (correct) stats.pC++;
-            else stats.pW++;
-          } else {
-            if (correct) stats.mC++;
-            else stats.mW++;
+        function updateTimerLoop() {
+          if (!isActive) return;
+          var elapsed = performance.now() - tableStartTs;
+          if (timerEl) timerEl.textContent = formatTime(elapsed);
+          timerRaf = requestAnimationFrame(updateTimerLoop);
+        }
+
+        function startTableTimer() {
+          tableStartTs = performance.now();
+          if (timerEl) timerEl.textContent = "0.0 с";
+          if (timerRaf != null) cancelAnimationFrame(timerRaf);
+          timerRaf = requestAnimationFrame(updateTimerLoop);
+        }
+
+        function renderGrid(tableIdx) {
+          if (!gridEl || !labelEl) return;
+          wrongInTable = 0;
+          nextExpected = 1;
+          gridEl.innerHTML = "";
+          labelEl.textContent = "Таблица " + (tableIdx + 1) + " из 5";
+          var grid = SCHULTE_TABLES[tableIdx];
+          for (var r = 0; r < 5; r++) {
+            for (var c = 0; c < 5; c++) {
+              var v = grid[r][c];
+              var cell = document.createElement("button");
+              cell.type = "button";
+              cell.className = "shulte-cell";
+              cell.textContent = String(v);
+              cell.setAttribute("data-val", String(v));
+              cell.setAttribute("aria-label", "Число " + v);
+              cell.addEventListener("click", onCellClick);
+              gridEl.appendChild(cell);
+            }
           }
         }
 
-        function errRuText(kind) {
-          return kind === "extra"
-            ? "лишнее нажатие Пробела (для цифры 3 нажимать нельзя)"
-            : "пропуск Пробела (для этой цифры нужно было нажать)";
+        function onCellClick(e) {
+          var btn = e.currentTarget;
+          var v = parseInt(btn.getAttribute("data-val"), 10);
+          if (!isActive || !isFinite(v)) return;
+          if (v !== nextExpected) {
+            wrongClicks++;
+            wrongInTable++;
+            btn.classList.add("shulte-cell-wrong");
+            setTimeout(function () {
+              btn.classList.remove("shulte-cell-wrong");
+            }, 200);
+            return;
+          }
+          btn.classList.add("shulte-cell-done");
+          nextExpected++;
+          if (nextExpected > 25) {
+            finishCurrentTable();
+          }
         }
 
-        function buildErrorSection(errors, blockLabel, blockSize) {
-          if (errors.length === 0) {
-            return (
-              "<h4>Ошибки по попыткам</h4>" +
-              '<p class="gng-no-errors">Неверных ответов не было — все попытки в этом блоке верны.</p>'
-            );
+        function finishCurrentTable() {
+          isActive = false;
+          if (timerRaf != null) {
+            cancelAnimationFrame(timerRaf);
+            timerRaf = null;
           }
-          var errItems = errors
-            .map(function (t) {
-              return (
-                "<li><strong>" +
-                blockLabel +
-                " попытка " +
-                t.indexInBlock +
-                " / " +
-                blockSize +
-                '</strong>: цифра <strong>' +
-                t.digit +
-                "</strong> — " +
-                errRuText(t.errorKind) +
-                ".</li>"
-              );
-            })
-            .join("");
-          return (
-            "<h4>Ошибки по попыткам</h4>" +
-            '<p class="gng-error-intro">Неверные ответы в этом блоке:</p>' +
-            '<ul class="gng-error-list">' +
-            errItems +
-            "</ul>"
-          );
+          var elapsed = performance.now() - tableStartTs;
+          if (timerEl) timerEl.textContent = formatTime(elapsed);
+          tableRecords.push({
+            tableIndex: currentTableIdx + 1,
+            durationMs: Math.round(elapsed),
+            wrongClicksInTable: wrongInTable
+          });
+          currentTableIdx++;
+          if (currentTableIdx >= SCHULTE_TABLES.length) {
+            onAllTablesDone();
+            return;
+          }
+          renderGrid(currentTableIdx);
+          isActive = true;
+          startTableTimer();
         }
 
-        readyBtn.addEventListener("click", function () {
-          readyBtn.disabled = true;
-          trialLog = [];
-          stats.pC = 0;
-          stats.pW = 0;
-          stats.mC = 0;
-          stats.mW = 0;
-          practiceBreakEl.classList.add("gng-hidden");
-          practiceReportEl.innerHTML = "";
-          resultsEl.classList.add("gng-hidden");
-          resultsEl.innerHTML = "";
-          completeRow.classList.add("gng-hidden");
-          cdOverlay.classList.remove("gng-hidden");
-          cdNum.textContent = "3";
-          pushT(function () {
-            cdNum.textContent = "2";
-          }, 1000);
-          pushT(function () {
-            cdNum.textContent = "1";
-          }, 2000);
-          pushT(function () {
-            cdOverlay.classList.add("gng-hidden");
-            arenaWrap.classList.remove("gng-hidden");
-            clearTimers();
-            runTrial(0);
-          }, 3000);
-        });
-
-        function runTrial(idx) {
-          offKey();
-          clearTimers();
-
-          var d = 1 + Math.floor(Math.random() * 9);
-          var isPractice = idx < PRACTICE;
-          trialLabel.textContent = isPractice
-            ? "Пробная попытка " + (idx + 1) + " / " + PRACTICE
-            : "Основная попытка " + (idx + 1 - PRACTICE) + " / " + MAIN;
-
-          var ctx = { phase: "digit" };
-          var spacePressed = false;
-          var firstPressMsRel = null;
-          var tDigit0 = performance.now();
-
-          maskEl.classList.remove("gng-ok", "gng-bad", "is-visible");
-          digitEl.textContent = String(d);
-          digitEl.style.visibility = "visible";
-
-          function trySpacePress() {
-            if (ctx.phase !== "digit" && ctx.phase !== "mask") return;
-            if (!spacePressed) firstPressMsRel = Math.round(performance.now() - tDigit0);
-            spacePressed = true;
+        function onAllTablesDone() {
+          clearAllTimers();
+          if (playArea) playArea.classList.add("shulte-hidden");
+          var totalMs = 0;
+          for (var i = 0; i < tableRecords.length; i++) {
+            totalMs += tableRecords[i].durationMs || 0;
           }
-
-          keyHandler = function (e) {
-            if (e.code !== "Space" && e.key !== " ") return;
-            e.preventDefault();
-            e.stopPropagation();
-            trySpacePress();
+          var metrics = {
+            at: new Date().toISOString(),
+            tables: tableRecords,
+            totalDurationMs: totalMs,
+            wrongClicksTotal: wrongClicks
           };
-          window.addEventListener("keydown", keyHandler, true);
-
-          arenaPointerHandler = function (e) {
-            if (e.pointerType === "mouse" && e.button !== 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            trySpacePress();
-          };
-          arenaWrap.addEventListener("pointerdown", arenaPointerHandler, true);
-
-          pushT(function () {
-            ctx.phase = "mask";
-            digitEl.textContent = "";
-            digitEl.style.visibility = "hidden";
-            maskEl.classList.add("is-visible");
-
-            pushT(function () {
-              ctx.phase = "done";
-              offKey();
-
-              var ok = d === 3 ? !spacePressed : spacePressed;
-
-              trialLog.push({
-                overall: idx + 1,
-                isPractice: isPractice,
-                indexInBlock: isPractice ? idx + 1 : idx + 1 - PRACTICE,
-                digit: d,
-                correct: ok,
-                spacePressed: spacePressed,
-                reactionMs: spacePressed ? firstPressMsRel : null,
-                errorKind: ok ? null : d === 3 ? "extra" : "miss"
-              });
-
-              record(ok, isPractice);
-              if (ok) maskEl.classList.add("gng-ok");
-              else maskEl.classList.add("gng-bad");
-
-              pushT(function () {
-                maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
-                digitEl.style.visibility = "visible";
-                var nextIdx = idx + 1;
-                if (nextIdx === PRACTICE) {
-                  endPracticePhase();
-                } else if (nextIdx >= TOTAL) {
-                  endMainPhase();
-                } else {
-                  runTrial(nextIdx);
-                }
-              }, FEEDBACK_MS);
-            }, RESPONSE_MS);
-          }, DIGIT_MS);
-        }
-
-        function endPracticePhase() {
-          offKey();
-          clearTimers();
-          maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
-          digitEl.textContent = "";
-          arenaWrap.classList.add("gng-hidden");
-
-          var pt = stats.pC + stats.pW;
-          var pp = pt ? Math.round((100 * stats.pC) / pt) : 0;
-          var practiceErrors = trialLog.filter(function (t) {
-            return t.isPractice && !t.correct;
-          });
-          practiceReportEl.innerHTML =
-            "<h3>Пробный блок завершён</h3>" +
-            "<p><strong>Пробные попытки (" +
-            PRACTICE +
-            "):</strong> верно — " +
-            stats.pC +
-            ", ошибок — " +
-            stats.pW +
-            ", процент верных — " +
-            pp +
-            "%</p>" +
-            buildErrorSection(practiceErrors, "Пробная", PRACTICE);
-          practiceBreakEl.classList.remove("gng-hidden");
-        }
-
-        startMainBtn.addEventListener("click", function () {
-          practiceBreakEl.classList.add("gng-hidden");
-          arenaWrap.classList.remove("gng-hidden");
-          clearTimers();
-          runTrial(PRACTICE);
-        });
-
-        function endMainPhase() {
-          offKey();
-          clearTimers();
-          maskEl.classList.remove("is-visible", "gng-ok", "gng-bad");
-          digitEl.textContent = "";
-          arenaWrap.classList.add("gng-hidden");
-
-          var pt = stats.pC + stats.pW;
-          var mt = stats.mC + stats.mW;
-          var pp = pt ? Math.round((100 * stats.pC) / pt) : 0;
-          var mp = mt ? Math.round((100 * stats.mC) / mt) : 0;
-          var mainErrors = trialLog.filter(function (t) {
-            return !t.isPractice && !t.correct;
-          });
-
-          resultsEl.innerHTML =
-            "<h3>Основной блок завершён</h3>" +
-            "<p><strong>Основные попытки (" +
-            MAIN +
-            "):</strong> верно — " +
-            stats.mC +
-            ", ошибок — " +
-            stats.mW +
-            ", процент верных — " +
-            mp +
-            "%</p>" +
-            buildErrorSection(mainErrors, "Основная", MAIN) +
-            "<p class=\"gng-error-intro\" style=\"margin-top:1rem\"><strong>Пробный блок (справочно):</strong> " +
-            stats.pC +
-            " верно из " +
-            pt +
-            " (" +
-            pp +
-            "%).</p>";
-          resultsEl.classList.remove("gng-hidden");
-          completeRow.classList.remove("gng-hidden");
-
-          var mainTrials = trialLog.filter(function (t) {
-            return !t.isPractice;
-          });
-          var practiceTrials = trialLog.filter(function (t) {
-            return t.isPractice;
-          });
           try {
-            localStorage.setItem(
-              GNG_METRICS_KEY,
-              JSON.stringify({
-                at: new Date().toISOString(),
-                practice: {
-                  correctCount: stats.pC,
-                  wrongCount: stats.pW,
-                  trials: practiceTrials
-                },
-                main: {
-                  correctCount: stats.mC,
-                  wrongCount: stats.mW,
-                  trials: mainTrials
-                }
-              })
+            localStorage.setItem(SCHULTE_METRICS_KEY, JSON.stringify(metrics));
+          } catch (errS) {}
+
+          setMaxUnlocked(7);
+
+          var sublines = tableRecords.map(function (t) {
+            return (
+              "Таблица " + t.tableIndex + ": " + (t.durationMs / 1000).toFixed(1) + " с" +
+              (t.wrongClicksInTable ? " (ошибок: " + t.wrongClicksInTable + ")" : "")
             );
-          } catch (errGng) {}
+          });
+          sublines.push("Всего неверных кликов: " + wrongClicks);
+          sublines.push("Открывается седьмой этап…");
+
+          showCelebrationOverlay({
+            headline: "Таблицы Шульте завершены",
+            sublines: sublines
+          });
 
           setTimeout(function () {
-            showCelebrationOverlay({
-              headline: stats.mC + " из " + mt,
-              sublines: [
-                "Верно в основном блоке — " + mp + "%",
-                "Пробные: " + stats.pC + " из " + pt + " (" + pp + "%)",
-                "Фейерверк — затем завершите этап."
-              ]
-            });
-          }, 450);
+            pendingExpandStageAfterRender = 7;
+            render();
+          }, 2600);
         }
+
+        function startCountdownThenPlay() {
+          clearAllTimers();
+          if (cdOverlay) cdOverlay.classList.remove("shulte-hidden");
+          if (cdNum) cdNum.textContent = "3";
+          if (playArea) playArea.classList.add("shulte-hidden");
+          pushT(function () {
+            if (cdNum) cdNum.textContent = "2";
+          }, 1000);
+          pushT(function () {
+            if (cdNum) cdNum.textContent = "1";
+          }, 2000);
+          pushT(function () {
+            if (cdOverlay) cdOverlay.classList.add("shulte-hidden");
+            if (introEl) introEl.classList.add("shulte-hidden");
+            if (playArea) playArea.classList.remove("shulte-hidden");
+            tableRecords = [];
+            wrongClicks = 0;
+            wrongInTable = 0;
+            currentTableIdx = 0;
+            renderGrid(0);
+            isActive = true;
+            startTableTimer();
+          }, 3000);
+        }
+
+        if (manualStart) {
+          manualStart.addEventListener("click", function () {
+            if (introEl) introEl.classList.add("shulte-hidden");
+            startCountdownThenPlay();
+          });
+        }
+
+        schulteRunStage5AutoStart = function () {
+          if (!pendingSchulteCountdownAfterStage5) return;
+          pendingSchulteCountdownAfterStage5 = false;
+          if (introEl) introEl.classList.add("shulte-hidden");
+          startCountdownThenPlay();
+        };
       }
 
       function bindCRT() {
@@ -3953,11 +4104,12 @@
           localStorage.removeItem(STORAGE_KEY);
           localStorage.removeItem(STAGE1_SHORTS_DONE_KEY);
           localStorage.removeItem(STAGE1_BRANCH_KEY);
+          localStorage.removeItem(STAGE1_LONG_DONE_KEY);
           localStorage.removeItem("courseStage1LongVideoVisited");
           localStorage.removeItem(STAGE1_METRICS_KEY);
           localStorage.removeItem(CRT_METRICS_KEY);
           localStorage.removeItem(STROOP_METRICS_KEY);
-          localStorage.removeItem(GNG_METRICS_KEY);
+          localStorage.removeItem(SCHULTE_METRICS_KEY);
           localStorage.removeItem(STAGE7_SURVEY_KEY);
           localStorage.removeItem("stage7FormAnswer");
           localStorage.removeItem(PRESTART_PROFILE_KEY);
@@ -3976,6 +4128,7 @@
               var brc = getStage1Branch();
               if (!brc) return;
               if (brc === "short" && !hasStage1ShortsCompleted()) return;
+              if (brc === "long" && !hasStage1LongCompleted()) return;
               if (brc === "long") finalizeStage1LongWatch();
             }
             if (s === 7) {
@@ -3996,6 +4149,9 @@
               return;
             }
             if (s < 7) {
+              if (s === 5 && max === 5) {
+                pendingSchulteCountdownAfterStage5 = true;
+              }
               setMaxUnlocked(max + 1);
               pendingExpandStageAfterRender = Math.min(7, s + 1);
             }

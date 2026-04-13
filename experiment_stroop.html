@@ -287,6 +287,52 @@
             font-weight: bold;
         }
 
+        .stroop-practice-break {
+            margin-top: 1rem;
+            padding: 1rem 1.1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f8f9ff;
+            text-align: left;
+        }
+
+        .stroop-practice-break h3 {
+            color: #667eea;
+            margin: 0 0 0.75rem;
+            font-size: 1.2em;
+        }
+
+        .stroop-practice-break h4 {
+            margin: 1rem 0 0.35rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .stroop-practice-break .stroop-error-list {
+            margin: 0.4rem 0 0;
+            padding-left: 1.25rem;
+        }
+
+        .stroop-practice-break .stroop-error-list li {
+            margin: 0.35rem 0;
+        }
+
+        .stroop-practice-break .stroop-no-errors {
+            margin: 0.35rem 0 0;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .stroop-practice-break .stroop-start-main {
+            margin-top: 1rem;
+        }
+
+        .stroop-results-practice-note {
+            margin-top: 1rem;
+            font-size: 0.95em;
+            color: #555;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -358,8 +404,8 @@
             </div>
 
             <p style="margin-top: 30px; color: #666;">
-                 У вас всего <strong>2 сек</strong> на 1 вопрос.<br>
-                Всего <strong>20 вопросов</strong>.<br>
+                 У вас всего <strong>1 сек</strong> на 1 вопрос.<br>
+                Сначала <strong>10 пробных вопросов</strong>, затем <strong>25 основных вопросов</strong>.<br>
                 На телефоне отвечайте <strong>нажатием на четыре цветные кнопки</strong> внизу (К, С, Ж, З) — то же самое, что клавиши на клавиатуре.<br>
                 Нажмите кнопку ниже, чтобы начать.
             </p>
@@ -369,19 +415,26 @@
 
         <!-- Game Screen -->
         <div class="screen game-screen">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+            <div class="stroop-game-area" id="stroopGameArea">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="stroop-phase-label" id="stroopPhaseLabel" style="text-align:center;color:#555;margin:0 0 8px;font-size:0.95rem;"></p>
+                <div class="trial-counter">
+                    <span id="trialCounter">1</span> / <span id="totalTrialDisplay">10</span>
+                </div>
+                <div class="word-display" id="wordDisplay"></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="keys-hint" id="keysHint" role="group" aria-label="Выбор цвета (касание или клавиши)">
+                    <button type="button" class="color-button red" id="btnRed" data-color="Красный">🔴 К</button>
+                    <button type="button" class="color-button blue" id="btnBlue" data-color="Синий">🔵 С</button>
+                    <button type="button" class="color-button yellow" id="btnYellow" data-color="Жёлтый">🟡 Ж</button>
+                    <button type="button" class="color-button green" id="btnGreen" data-color="Зелёный">🟢 З</button>
+                </div>
             </div>
-            <div class="trial-counter">
-                <span id="trialCounter">1</span> / 20
-            </div>
-            <div class="word-display" id="wordDisplay"></div>
-            <div class="feedback" id="feedback"></div>
-            <div class="keys-hint" id="keysHint" role="group" aria-label="Выбор цвета (касание или клавиши)">
-                <button type="button" class="color-button red" id="btnRed" data-color="Красный">🔴 К</button>
-                <button type="button" class="color-button blue" id="btnBlue" data-color="Синий">🔵 С</button>
-                <button type="button" class="color-button yellow" id="btnYellow" data-color="Жёлтый">🟡 Ж</button>
-                <button type="button" class="color-button green" id="btnGreen" data-color="Зелёный">🟢 З</button>
+            <div class="stroop-practice-break" id="stroopPracticeBreak" hidden>
+                <div class="stroop-practice-report" id="stroopPracticeReport" aria-live="polite"></div>
+                <button type="button" class="btn stroop-start-main" id="stroopStartMain">Готов к настоящему?</button>
             </div>
         </div>
 
@@ -401,9 +454,10 @@
                 <span class="value" id="wrongCount">0</span>
             </div>
             <div class="accuracy">
-                <div>Точность:</div>
+                <div>Точность (основной блок):</div>
                 <div class="percentage" id="accuracy">0%</div>
             </div>
+            <p class="stroop-results-practice-note" id="stroopResultsPracticeNote" style="display: none;"></p>
             <p id="courseReturnHint" style="display: none; margin-top: 20px; color: #555; font-size: 1.05em;">
                 Через несколько секунд вы вернётесь к курсу — откроется <strong>пятый этап</strong>.
             </p>
@@ -429,22 +483,30 @@
             'З': 'Зелёный'
         };
 
+        const PRACTICE = 10;
+        const MAIN = 25;
+        const TOTAL = PRACTICE + MAIN;
+
         const COURSE_STORAGE_KEY = 'courseMaxUnlockedStage';
         const STROOP_METRICS_KEY = 'courseStroopMetricsLast';
         let courseReturnTimeoutId = null;
 
         let gameState = {
-            currentTrial: 0,
-            totalTrials: 20,
-            correct: 0,
-            wrong: 0,
+            phase: 'idle',
+            currentIdx: 0,
             isWaiting: false,
             currentWord: '',
             currentColor: '',
             timeoutId: null,
-            trialStimulusTs: 0,
-            trialLog: []
+            trialStimulusTs: 0
         };
+
+        let practiceCorrect = 0;
+        let practiceWrong = 0;
+        let mainCorrect = 0;
+        let mainWrong = 0;
+        let practiceLog = [];
+        let mainLog = [];
 
         function isCourseStroopFlow() {
             try {
@@ -501,25 +563,44 @@
                     { passive: false }
                 );
             });
+            var startMainBtn = document.getElementById('stroopStartMain');
+            if (startMainBtn) {
+                startMainBtn.addEventListener('click', function () {
+                    var area = document.getElementById('stroopGameArea');
+                    var br = document.getElementById('stroopPracticeBreak');
+                    if (br) br.hidden = true;
+                    if (area) area.hidden = false;
+                    runTrial(PRACTICE);
+                });
+            }
         }
 
         function startGame() {
             gameState = {
-                currentTrial: 0,
-                totalTrials: 20,
-                correct: 0,
-                wrong: 0,
+                phase: 'practice',
+                currentIdx: 0,
                 isWaiting: false,
                 currentWord: '',
                 currentColor: '',
                 timeoutId: null,
-                trialStimulusTs: 0,
-                trialLog: []
+                trialStimulusTs: 0
             };
+            practiceCorrect = 0;
+            practiceWrong = 0;
+            mainCorrect = 0;
+            mainWrong = 0;
+            practiceLog = [];
+            mainLog = [];
+
+            var area = document.getElementById('stroopGameArea');
+            var br = document.getElementById('stroopPracticeBreak');
+            if (area) area.hidden = false;
+            if (br) br.hidden = true;
+
             showScreen('game-screen');
             wireColorButtonsOnce();
             document.addEventListener('keydown', handleKeyPress);
-            showNextTrial();
+            runTrial(0);
         }
 
         function getRandomWord() {
@@ -531,52 +612,125 @@
             return colorNames[Math.floor(Math.random() * colorNames.length)];
         }
 
-        function showNextTrial() {
-            if (gameState.currentTrial >= gameState.totalTrials) {
-                endGame();
-                return;
-            }
+        function errStroopRu(t) {
+            if (t.timeout) return 'время истекло (нет ответа)';
+            return (
+                'выбрано «' +
+                String(t.selected || '') +
+                '», нужен цвет «' +
+                String(t.inkColor || '') +
+                '»'
+            );
+        }
 
-            gameState.currentTrial++;
+        function buildStroopErrorSection(errors, blockLabel, blockSize) {
+            if (errors.length === 0) {
+                return (
+                    '<h4>Ошибки по попыткам</h4>' +
+                    '<p class="stroop-no-errors">Неверных ответов не было — все попытки в этом блоке верны.</p>'
+                );
+            }
+            var items = errors
+                .map(function (t) {
+                    return (
+                        '<li><strong>' +
+                        blockLabel +
+                        ' попытка ' +
+                        t.indexInBlock +
+                        ' / ' +
+                        blockSize +
+                        '</strong>: ' +
+                        errStroopRu(t) +
+                        '.</li>'
+                    );
+                })
+                .join('');
+            return (
+                '<h4>Ошибки по попыткам</h4>' +
+                '<p style="margin:0.35rem 0 0;font-size:0.9rem;color:#555;">Неверные ответы в этом блоке:</p>' +
+                '<ul class="stroop-error-list">' +
+                items +
+                '</ul>'
+            );
+        }
+
+        function updateTrialCounterUI(idx) {
+            var isPractice = idx < PRACTICE;
+            var phaseEl = document.getElementById('stroopPhaseLabel');
+            var nInBlock = isPractice ? idx + 1 : idx + 1 - PRACTICE;
+            var blockSize = isPractice ? PRACTICE : MAIN;
+            if (phaseEl) {
+                phaseEl.textContent = isPractice
+                    ? 'Пробная серия (не входит в итоговую статистику)'
+                    : 'Основная серия (учитывается в статистике)';
+            }
+            document.getElementById('trialCounter').textContent = String(nInBlock);
+            document.getElementById('totalTrialDisplay').textContent = String(blockSize);
+            document.getElementById('progressFill').style.width =
+                (nInBlock / blockSize) * 100 + '%';
+        }
+
+        function pushRecord(idx, isPractice, rec) {
+            rec.isPractice = isPractice;
+            rec.indexInBlock = isPractice ? idx + 1 : idx + 1 - PRACTICE;
+            rec.trialIndex = idx + 1;
+            if (isPractice) practiceLog.push(rec);
+            else mainLog.push(rec);
+        }
+
+        function finishTrialStep(idx, isPractice) {
+            var nextIdx = idx + 1;
+            if (nextIdx === PRACTICE) {
+                setTimeout(endPracticePhase, 1500);
+            } else if (nextIdx >= TOTAL) {
+                setTimeout(endMainPhase, 1500);
+            } else {
+                setTimeout(function () {
+                    runTrial(nextIdx);
+                }, 1500);
+            }
+        }
+
+        function runTrial(idx) {
+            var isPractice = idx < PRACTICE;
+            gameState.phase = isPractice ? 'practice' : 'main';
+            gameState.currentIdx = idx;
             gameState.isWaiting = true;
 
-            // Get random word and color
             gameState.currentWord = getRandomWord();
             gameState.currentColor = getRandomColor();
 
-            // Update display
-            const wordDisplay = document.getElementById('wordDisplay');
+            var wordDisplay = document.getElementById('wordDisplay');
             wordDisplay.textContent = gameState.currentWord;
             wordDisplay.style.color = COLORS[gameState.currentColor];
 
             document.getElementById('feedback').textContent = '';
-            document.getElementById('trialCounter').textContent = gameState.currentTrial;
-            document.getElementById('progressFill').style.width = (gameState.currentTrial / gameState.totalTrials) * 100 + '%';
+            updateTrialCounterUI(idx);
 
             gameState.trialStimulusTs = performance.now();
 
-            // Auto-advance after 2 seconds WITHOUT response
-            gameState.timeoutId = setTimeout(() => {
-                if (gameState.isWaiting) {
-                    document.getElementById('feedback').textContent = 'Время истекло!';
-                    document.getElementById('feedback').className = 'feedback timeout';
-                    gameState.wrong++;
-                    gameState.isWaiting = false;
-                    gameState.trialLog.push({
-                        trialIndex: gameState.currentTrial,
-                        word: gameState.currentWord,
-                        inkColor: gameState.currentColor,
-                        selected: null,
-                        correct: false,
-                        reactionMs: null,
-                        timeout: true
-                    });
-                    setTimeout(showNextTrial, 1500);
-                }
-            }, 2000);
+            if (gameState.timeoutId) clearTimeout(gameState.timeoutId);
+            gameState.timeoutId = setTimeout(function () {
+                if (!gameState.isWaiting) return;
+                document.getElementById('feedback').textContent = 'Время истекло!';
+                document.getElementById('feedback').className = 'feedback timeout';
+                if (isPractice) practiceWrong++;
+                else mainWrong++;
+                gameState.isWaiting = false;
+                pushRecord(idx, isPractice, {
+                    word: gameState.currentWord,
+                    inkColor: gameState.currentColor,
+                    selected: null,
+                    correct: false,
+                    reactionMs: null,
+                    timeout: true
+                });
+                finishTrialStep(idx, isPractice);
+            }, 1000);
         }
 
         function handleKeyPress(event) {
+            if (gameState.phase !== 'practice' && gameState.phase !== 'main') return;
             if (!gameState.isWaiting) return;
 
             const key = event.key;
@@ -589,13 +743,17 @@
         }
 
         function handleButtonPress(colorName) {
+            if (gameState.phase !== 'practice' && gameState.phase !== 'main') return;
             if (!gameState.isWaiting) return;
             processAnswer(colorName);
         }
 
         function processAnswer(selectedColor) {
-            clearTimeout(gameState.timeoutId);
+            if (gameState.timeoutId) clearTimeout(gameState.timeoutId);
             gameState.isWaiting = false;
+
+            var idx = gameState.currentIdx;
+            var isPractice = idx < PRACTICE;
 
             const feedback = document.getElementById('feedback');
             const reactionMs = Math.round(performance.now() - gameState.trialStimulusTs);
@@ -604,15 +762,16 @@
             if (isCorrect) {
                 feedback.textContent = '✓ Правильно!';
                 feedback.className = 'feedback correct';
-                gameState.correct++;
+                if (isPractice) practiceCorrect++;
+                else mainCorrect++;
             } else {
                 feedback.textContent = '✗ Неправильно!';
                 feedback.className = 'feedback wrong';
-                gameState.wrong++;
+                if (isPractice) practiceWrong++;
+                else mainWrong++;
             }
 
-            gameState.trialLog.push({
-                trialIndex: gameState.currentTrial,
+            pushRecord(idx, isPractice, {
                 word: gameState.currentWord,
                 inkColor: gameState.currentColor,
                 selected: selectedColor,
@@ -621,17 +780,70 @@
                 timeout: false
             });
 
-            setTimeout(showNextTrial, 1500);
+            finishTrialStep(idx, isPractice);
         }
 
-        function endGame() {
-            document.removeEventListener('keydown', handleKeyPress);
-            const accuracy = Math.round((gameState.correct / gameState.totalTrials) * 100);
+        function endPracticePhase() {
+            gameState.phase = 'between';
+            gameState.isWaiting = false;
+            if (gameState.timeoutId) clearTimeout(gameState.timeoutId);
 
-            document.getElementById('totalTrials').textContent = gameState.totalTrials;
-            document.getElementById('correctCount').textContent = gameState.correct;
-            document.getElementById('wrongCount').textContent = gameState.wrong;
+            var area = document.getElementById('stroopGameArea');
+            var br = document.getElementById('stroopPracticeBreak');
+            var report = document.getElementById('stroopPracticeReport');
+            if (area) area.hidden = true;
+            if (br) br.hidden = false;
+
+            var pt = practiceCorrect + practiceWrong;
+            var pp = pt ? Math.round((100 * practiceCorrect) / pt) : 0;
+            var practiceErrors = practiceLog.filter(function (t) {
+                return !t.correct;
+            });
+
+            if (report) {
+                report.innerHTML =
+                    '<h3>Пробный блок завершён</h3>' +
+                    '<p><strong>Пробные попытки (' +
+                    PRACTICE +
+                    '):</strong> верно — ' +
+                    practiceCorrect +
+                    ', ошибок — ' +
+                    practiceWrong +
+                    ', процент верных — ' +
+                    pp +
+                    '%</p>' +
+                    buildStroopErrorSection(practiceErrors, 'Пробная', PRACTICE);
+            }
+        }
+
+        function endMainPhase() {
+            gameState.phase = 'done';
+            gameState.isWaiting = false;
+            if (gameState.timeoutId) clearTimeout(gameState.timeoutId);
+            document.removeEventListener('keydown', handleKeyPress);
+
+            var mt = mainCorrect + mainWrong;
+            var accuracy = mt ? Math.round((100 * mainCorrect) / mt) : 0;
+
+            document.getElementById('totalTrials').textContent = String(MAIN);
+            document.getElementById('correctCount').textContent = String(mainCorrect);
+            document.getElementById('wrongCount').textContent = String(mainWrong);
             document.getElementById('accuracy').textContent = accuracy + '%';
+
+            var note = document.getElementById('stroopResultsPracticeNote');
+            var pt = practiceCorrect + practiceWrong;
+            var pp = pt ? Math.round((100 * practiceCorrect) / pt) : 0;
+            if (note) {
+                note.style.display = 'block';
+                note.innerHTML =
+                    '<strong>Пробный блок (справочно):</strong> верно ' +
+                    practiceCorrect +
+                    ' из ' +
+                    PRACTICE +
+                    ' (' +
+                    pp +
+                    '%). Эти попытки не входят в итоговую статистику эксперимента.';
+            }
 
             showScreen('results-screen');
 
@@ -642,10 +854,18 @@
                         JSON.stringify({
                             at: new Date().toISOString(),
                             fromCourse: true,
-                            totalTrials: gameState.totalTrials,
-                            correctCount: gameState.correct,
-                            wrongCount: gameState.wrong,
-                            trials: gameState.trialLog
+                            practice: {
+                                totalTrials: PRACTICE,
+                                correctCount: practiceCorrect,
+                                wrongCount: practiceWrong,
+                                trials: practiceLog
+                            },
+                            main: {
+                                totalTrials: MAIN,
+                                correctCount: mainCorrect,
+                                wrongCount: mainWrong,
+                                trials: mainLog
+                            }
                         })
                     );
                 } catch (e) {}

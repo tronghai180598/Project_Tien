@@ -1,8 +1,9 @@
 var ASST_N = 20;
 var CAQ_N = 24;
 var POST_N = 5;
-var STROOP_N = 20;
+var STROOP_N = 25;
 var GNG_MAIN_N = 10;
+var SCHULTE_TABLES_N = 5;
 
 function mean(arr) {
   var xs = arr.filter(function (x) {
@@ -26,9 +27,17 @@ function normalizeBundle(obj) {
   return obj;
 }
 
-function stroopMeanRt(st) {
-  if (!st || !Array.isArray(st.trials)) return "";
-  var rts = st.trials
+function stroopTrialsForStats(rawSt) {
+  if (!rawSt) return [];
+  if (rawSt.main && Array.isArray(rawSt.main.trials)) return rawSt.main.trials;
+  if (Array.isArray(rawSt.trials)) return rawSt.trials;
+  return [];
+}
+
+function stroopMeanRt(rawSt) {
+  var trials = stroopTrialsForStats(rawSt);
+  if (!trials.length) return "";
+  var rts = trials
     .filter(function (tr) {
       return !tr.timeout && tr.reactionMs != null;
     })
@@ -78,10 +87,12 @@ function flattenBundle(b) {
 
   var s4 = b.stage4;
   var rawSt = b._raw && b._raw.stroop;
-  var st = rawSt && rawSt.trials ? rawSt : s4 ? { trials: [] } : null;
   if (s4) {
     r.stroop_correct = s4.correct_count != null ? s4.correct_count : "";
     r.stroop_wrong = s4.wrong_count != null ? s4.wrong_count : "";
+  } else if (rawSt && rawSt.main) {
+    r.stroop_correct = rawSt.main.correctCount != null ? rawSt.main.correctCount : "";
+    r.stroop_wrong = rawSt.main.wrongCount != null ? rawSt.main.wrongCount : "";
   } else if (rawSt) {
     r.stroop_correct = rawSt.correctCount != null ? rawSt.correctCount : "";
     r.stroop_wrong = rawSt.wrongCount != null ? rawSt.wrongCount : "";
@@ -89,12 +100,17 @@ function flattenBundle(b) {
     r.stroop_correct = "";
     r.stroop_wrong = "";
   }
-  r.stroop_mean_rt_ms = stroopMeanRt(st || rawSt);
+  r.stroop_mean_rt_ms = stroopMeanRt(rawSt);
 
   for (var si = 1; si <= STROOP_N; si++) {
     r["stroop_t" + si + "_ms"] = "";
   }
-  var trials = (st && st.trials) || (rawSt && rawSt.trials) || [];
+  var trials = stroopTrialsForStats(rawSt);
+  if ((!trials || trials.length === 0) && s4 && Array.isArray(s4.reaction_times)) {
+    trials = s4.reaction_times.map(function (rt) {
+      return { reactionMs: rt, timeout: rt == null };
+    });
+  }
   if (Array.isArray(trials)) {
     trials.forEach(function (tr, idx) {
       if (idx < STROOP_N) {
@@ -104,44 +120,38 @@ function flattenBundle(b) {
   }
 
   var s6 = b.stage6;
-  var rawG = b._raw && b._raw.gng;
-  var mainT =
-    rawG && rawG.main && rawG.main.trials
-      ? rawG.main.trials
-      : s6 && s6.click_details
-      ? s6.click_details
-      : [];
-  if (s6) {
-    r.gng_main_correct = s6.correct_count != null ? s6.correct_count : "";
-    r.gng_main_wrong = s6.wrong_count != null ? s6.wrong_count : "";
-  } else if (rawG && rawG.main) {
-    r.gng_main_correct = rawG.main.correctCount != null ? rawG.main.correctCount : "";
-    r.gng_main_wrong = rawG.main.wrongCount != null ? rawG.main.wrongCount : "";
-  } else {
-    r.gng_main_correct = "";
-    r.gng_main_wrong = "";
-  }
-  r.gng_mean_rt_ms = mean(
-    (Array.isArray(mainT) ? mainT : []).map(function (t) {
-      return safeNum(t.reactionMs != null ? t.reactionMs : t.time_ms);
-    })
-  );
-
+  var rawSch = b._raw && b._raw.schulte;
+  r.gng_main_correct = "";
+  r.gng_main_wrong = "";
+  r.gng_mean_rt_ms = "";
   for (var gi = 1; gi <= GNG_MAIN_N; gi++) {
     r["gng_m" + gi + "_digit"] = "";
     r["gng_m" + gi + "_ms"] = "";
     r["gng_m" + gi + "_ok"] = "";
   }
-  if (Array.isArray(mainT)) {
-    mainT.forEach(function (tr, idx) {
-      if (idx < GNG_MAIN_N) {
-        var dig = tr.digit != null ? tr.digit : tr.showed;
-        r["gng_m" + (idx + 1) + "_digit"] = dig != null ? String(dig) : "";
-        var ms = tr.reactionMs != null ? tr.reactionMs : tr.time_ms;
-        r["gng_m" + (idx + 1) + "_ms"] = ms != null ? ms : "";
-        r["gng_m" + (idx + 1) + "_ok"] = tr.correct ? "1" : tr.correct === false ? "0" : "";
+  for (var sti = 1; sti <= SCHULTE_TABLES_N; sti++) {
+    r["schulte_t" + sti + "_ms"] = "";
+  }
+  r.schulte_total_ms = "";
+  r.schulte_wrong_clicks = "";
+  function fillSchulteFromTables(tablesArr) {
+    if (!Array.isArray(tablesArr)) return;
+    tablesArr.forEach(function (row, idx) {
+      if (idx < SCHULTE_TABLES_N && row && row.durationMs != null) {
+        r["schulte_t" + (idx + 1) + "_ms"] = row.durationMs;
       }
     });
+  }
+  if (s6 && Array.isArray(s6.schulte_table_times_ms)) {
+    s6.schulte_table_times_ms.forEach(function (ms, idx) {
+      if (idx < SCHULTE_TABLES_N) r["schulte_t" + (idx + 1) + "_ms"] = ms != null ? ms : "";
+    });
+    r.schulte_total_ms = s6.schulte_total_ms != null ? s6.schulte_total_ms : "";
+    r.schulte_wrong_clicks = s6.schulte_wrong_clicks != null ? s6.schulte_wrong_clicks : "";
+  } else if (rawSch && Array.isArray(rawSch.tables)) {
+    fillSchulteFromTables(rawSch.tables);
+    r.schulte_total_ms = rawSch.totalDurationMs != null ? rawSch.totalDurationMs : "";
+    r.schulte_wrong_clicks = rawSch.wrongClicksTotal != null ? rawSch.wrongClicksTotal : "";
   }
 
   var s7 = b.stage7;
@@ -208,7 +218,14 @@ function buildColumns(rows) {
     "crt_q3_correct",
     "stroop_correct",
     "stroop_wrong",
-    "stroop_mean_rt_ms"
+    "stroop_mean_rt_ms",
+    "schulte_t1_ms",
+    "schulte_t2_ms",
+    "schulte_t3_ms",
+    "schulte_t4_ms",
+    "schulte_t5_ms",
+    "schulte_total_ms",
+    "schulte_wrong_clicks"
   ];
   var rest = Object.keys(set).filter(function (k) {
     return preferred.indexOf(k) < 0;
