@@ -494,6 +494,12 @@
         var s1 = b.stage1 || {};
         r.stage1_branch = s1.videoBranch != null ? s1.videoBranch : "";
         r.stage1_shorts_done = s1.allShortsWatched ? "1" : s1.allShortsWatched === false ? "0" : "";
+        r.stage1_impatience =
+          s1.impatience_after_video != null && s1.impatience_after_video !== ""
+            ? String(s1.impatience_after_video)
+            : "";
+        r.stage1_impatience_at =
+          s1.impatience_answered_at != null ? String(s1.impatience_answered_at) : "";
         r.max_unlocked_stage =
           s1.maxUnlockedStage != null ? String(s1.maxUnlockedStage) : "";
 
@@ -653,6 +659,8 @@
           "exported_at",
           "stage1_branch",
           "stage1_shorts_done",
+          "stage1_impatience",
+          "stage1_impatience_at",
           "max_unlocked_stage",
           "crt_correct",
           "crt_wrong",
@@ -733,8 +741,22 @@
           genderCounts[g] = (genderCounts[g] || 0) + 1;
         });
 
+        var impYes = rows.filter(function (r) {
+          return r.stage1_impatience === "yes";
+        }).length;
+        var impNo = rows.filter(function (r) {
+          return r.stage1_impatience === "no";
+        }).length;
+        var impEmpty = rows.filter(function (r) {
+          return !r.stage1_impatience || r.stage1_impatience === "";
+        }).length;
+
         var items = [
           { label: "Участников (строк)", value: n },
+          {
+            label: "Нетерпение после видео: Да (1) / Нет (2) / пусто",
+            value: impYes + " / " + impNo + " / " + impEmpty
+          },
           {
             label: "С анкетой (есть пол/возраст)",
             value: withS7.length
@@ -955,7 +977,14 @@
         var avg = s1.avg_watch_ms != null ? formatSecondsFromMs(s1.avg_watch_ms) : "—";
         var shortWatch = s1.short_watch_ms != null ? formatSecondsFromMs(s1.short_watch_ms) : "—";
         var longWatch = s1.long_watch_ms != null ? formatSecondsFromMs(s1.long_watch_ms) : "—";
-        var impatience = s1.impatience_after_video ? (s1.impatience_after_video === "yes" ? "Да" : s1.impatience_after_video === "no" ? "Нет" : String(s1.impatience_after_video)) : "—";
+        var impatience = s1.impatience_after_video
+          ? s1.impatience_after_video === "yes"
+            ? "1 — Да"
+            : s1.impatience_after_video === "no"
+            ? "2 — Нет"
+            : String(s1.impatience_after_video)
+          : "—";
+        var impAt = s1.impatience_answered_at ? escapeHtml(String(s1.impatience_answered_at)) : "—";
         return (
           "<p><strong>Ветка:</strong> " +
           escapeHtml(branchRu) +
@@ -975,8 +1004,11 @@
           "<p><strong>Время просмотра длинного видео:</strong> " +
           escapeHtml(String(longWatch)) +
           "</p>" +
-          "<p><strong>Чувствуете ли нетерпение пропустить перерыв:</strong> " +
+          "<p><strong>Чувствуете ли вы нетерпение и желание пропустить перерыв:</strong> " +
           escapeHtml(String(impatience)) +
+          "</p>" +
+          "<p><strong>Время ответа (UTC):</strong> " +
+          impAt +
           "</p>" +
           '<p class="detail-muted">Время в секундах (с). Для короткой ветки: среднее = суммарное время ÷ N, где N — все ролики в ленте (см. «Число роликов в серии» выше).</p>'
         );
@@ -1295,13 +1327,25 @@
         var genders = toBarRows(mapToItems(countBy(rows, "s7_gender", "Unknown")), null);
         var ages = toBarRows(buildAgeDistribution(rows), null);
         var branches = toBarRows(mapToItems(countBy(rows, "stage1_branch", "Unknown")), null);
+        var impatienceItems = mapToItems(countBy(rows, "stage1_impatience", "(пусто)")).map(function (it) {
+          var lab = it.label;
+          if (lab === "yes") lab = "Да (1)";
+          else if (lab === "no") lab = "Нет (2)";
+          return { label: lab, value: it.value };
+        });
+        var impatienceBars = toBarRows(impatienceItems, null);
 
         grid.innerHTML =
           renderVizCard("Средние результаты", accuracy, "Средние баллы по всем участникам") +
           renderVizCard("Среднее время реакции", reaction, "Чем меньше с (секунд), тем быстрее реакция") +
           renderVizCard("Распределение пола", genders, "По заполненной анкете stage 7") +
           renderVizCard("Распределение возраста", ages, "Возрастные группы участников") +
-          renderVizCard("Ветка видео stage 1", branches, "Short vs Long");
+          renderVizCard("Ветка видео stage 1", branches, "Short vs Long") +
+          renderVizCard(
+            "Нетерпение / пропустить перерыв (этап 1)",
+            impatienceBars,
+            "Ответ после просмотра видео: Да (1) или Нет (2)"
+          );
 
         document.getElementById("visualPanel").hidden = false;
         renderParticipantGrid();

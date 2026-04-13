@@ -266,12 +266,6 @@
       max-width: 720px;
       margin: 0 auto;
     }
-    .long-video-intro {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.45;
-      margin: 0 0 0.75rem;
-    }
     .long-video-slot {
       aspect-ratio: 16 / 9;
       border: 2px dashed var(--border);
@@ -357,6 +351,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      contain: layout style;
     }
     .short-video-stack .short-feed-video {
       position: relative;
@@ -387,6 +382,24 @@
       object-position: center center;
       border-radius: 8px;
       background: #000;
+    }
+    .short-feed-video.short-feed--buffering {
+      position: relative;
+    }
+    .short-feed-video.short-feed--buffering::after {
+      content: "Загрузка…";
+      pointer-events: none;
+      position: absolute;
+      top: 0.4rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.65);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
     }
     .stage1-short-goto-stage2 {
       margin-top: 0.75rem;
@@ -1430,9 +1443,6 @@
           hidden
         >
           <div class="long-video-wrap">
-            <p class="long-video-intro">
-              Длиный ролик: файл <code>long_video/long.mp4</code> (папка <code>long_video</code> рядом со страницей).
-            </p>
             <div class="long-video-slot long-video-slot--media" role="region" aria-label="Длиный видеоролик">
               <video
                 id="stage1-long-video"
@@ -1459,10 +1469,12 @@
         <div class="stage1-post-video" id="stage1-post-video" hidden>
           <p class="stage1-post-video-q">Чувствуете ли вы нетерпение и желание пропустить перерыв?</p>
           <div class="stage1-post-video-opts" role="radiogroup" aria-label="Ответ на вопрос после просмотра видео">
-            <label><input type="radio" name="stage1_post_video" value="yes" /> Да</label>
-            <label><input type="radio" name="stage1_post_video" value="no" /> Нет</label>
+            <label><input type="radio" name="stage1_post_video" value="yes" /> 1. Да</label>
+            <label><input type="radio" name="stage1_post_video" value="no" /> 2. Нет</label>
           </div>
-          <button type="button" class="btn-primary" id="stage1-post-video-submit">Перейти ко второму этапу</button>
+          <button type="button" class="btn-primary" id="stage1-post-video-submit" disabled>
+            Перейти ко второму этапу
+          </button>
           <p class="prestart-feedback" id="stage1-post-video-feedback" style="margin-top:0.5rem;"></p>
         </div>
       </div>
@@ -2329,13 +2341,8 @@
         } catch (err) {}
       }
 
-      function branchDisplayName(branch) {
-        return branch === "short" ? "короткого видео" : "длинного видео";
-      }
-
       function showStage1PostVideoQuestion(branch) {
         var box = document.getElementById("stage1-post-video");
-        var feedback = document.getElementById("stage1-post-video-feedback");
         if (!box) return;
         box.hidden = false;
         box.setAttribute("data-branch", branch || "");
@@ -2343,11 +2350,24 @@
         box.querySelectorAll('input[name="stage1_post_video"]').forEach(function (el) {
           el.checked = !!stored && el.value === stored;
         });
-        if (feedback) {
-          feedback.className = "prestart-feedback";
-          feedback.textContent =
-            "Ответьте на вопрос после просмотра " + branchDisplayName(branch || getStage1Branch()) + ".";
-        }
+      }
+
+      /** Нужен ответ на вопрос после просмотра (короткая серия или длинный ролик), но ещё не сохранён. */
+      function needsStage1PostVideoQuestion() {
+        if (getStage1PostVideoAnswer()) return false;
+        var br = getStage1Branch();
+        if (!br) return false;
+        if (br === "short" && hasStage1ShortsCompleted()) return true;
+        if (br === "long" && hasStage1LongCompleted()) return true;
+        return false;
+      }
+
+      function syncStage1PostVideoSubmitEnabled() {
+        var box = document.getElementById("stage1-post-video");
+        var btn = document.getElementById("stage1-post-video-submit");
+        if (!box || !btn) return;
+        var sel = box.querySelector('input[name="stage1_post_video"]:checked');
+        btn.disabled = !sel;
       }
 
       function hideStage1PostVideoQuestion() {
@@ -2362,10 +2382,26 @@
         var fb = document.getElementById("stage1-post-video-feedback");
         if (!box || !btn || !fb) return;
 
-        if (getMaxUnlocked() > 1 && getStage1PostVideoAnswer()) {
+        function wireRadios() {
+          box.querySelectorAll('input[name="stage1_post_video"]').forEach(function (el) {
+            el.addEventListener("change", syncStage1PostVideoSubmitEnabled);
+          });
+        }
+        wireRadios();
+
+        var maxU = getMaxUnlocked();
+        var answered = getStage1PostVideoAnswer();
+        if (maxU > 1 && answered) {
           showStage1PostVideoQuestion(getStage1Branch());
           fb.className = "prestart-feedback ok";
           fb.textContent = "Ответ уже сохранён. Второй этап открыт.";
+          btn.disabled = false;
+        } else if (needsStage1PostVideoQuestion()) {
+          showStage1PostVideoQuestion(getStage1Branch());
+          fb.className = "prestart-feedback";
+          fb.textContent =
+            "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
+          syncStage1PostVideoSubmitEnabled();
         } else {
           hideStage1PostVideoQuestion();
         }
@@ -2374,11 +2410,12 @@
           var sel = box.querySelector('input[name="stage1_post_video"]:checked');
           if (!sel) {
             fb.className = "prestart-feedback warn";
-            fb.textContent = "Выберите один вариант ответа: «Да» или «Нет».";
+            fb.textContent = "Выберите один вариант: 1 — Да или 2 — Нет.";
             return;
           }
           var answer = sel.value === "yes" ? "yes" : "no";
           setStage1PostVideoAnswer(answer);
+          if (getStage1Branch() === "long") finalizeStage1LongWatch();
           fb.className = "prestart-feedback ok";
           fb.textContent = "Ответ сохранён. Переходим ко второму этапу…";
           setMaxUnlocked(Math.max(getMaxUnlocked(), 2));
@@ -2577,6 +2614,7 @@
             } else {
               disabled = true;
             }
+            if (!disabled && (fromShort || fromLong) && !getStage1PostVideoAnswer()) disabled = true;
           }
           if (s === 2) {
             if (max < 2) disabled = true;
@@ -2603,6 +2641,11 @@
                   "title",
                   "Сначала просмотрите все " + STAGE1_SHORT_FEED_COUNT + " коротких роликов."
                 );
+              } else if (fromShort2 && hasStage1ShortsCompleted() && !getStage1PostVideoAnswer()) {
+                btn.setAttribute(
+                  "title",
+                  "Сначала ответьте на вопрос после просмотра: 1 — Да или 2 — Нет."
+                );
               } else {
                 btn.removeAttribute("title");
               }
@@ -2616,6 +2659,11 @@
                 btn.setAttribute(
                   "title",
                   "Сначала досмотрите длиный ролик до конца."
+                );
+              } else if (!getStage1PostVideoAnswer()) {
+                btn.setAttribute(
+                  "title",
+                  "Сначала ответьте на вопрос после просмотра: 1 — Да или 2 — Нет."
                 );
               } else {
                 btn.removeAttribute("title");
@@ -2946,13 +2994,45 @@
         var VIDEO_UI_THROTTLE_MS = 200;
         var lastPlayheadSec = 0;
 
+        /** Heuristic: Save-Data / 2G / very low downlink — avoid extra seeks and long pre-buffer. */
+        function isLikelySlowNetwork() {
+          try {
+            var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (!c) return false;
+            if (c.saveData) return true;
+            var et = String(c.effectiveType || "").toLowerCase();
+            if (et === "slow-2g" || et === "2g") return true;
+            var dl = typeof c.downlink === "number" ? c.downlink : null;
+            if (dl !== null && dl > 0 && dl < 1.5) return true;
+          } catch (eC) {}
+          return false;
+        }
+
         function showShortsFinishedUI() {
           if (shortsFinishUIShown) return;
           exitStage1ShortFullscreen();
           shortsFinishUIShown = true;
-          gotoStage2Btn.hidden = false;
+          gotoStage2Btn.hidden = true;
           nextHint.hidden = true;
           markStage1ShortsCompleted();
+          showStage1PostVideoQuestion("short");
+          var fb = document.getElementById("stage1-post-video-feedback");
+          if (fb) {
+            fb.className = "prestart-feedback";
+            fb.textContent =
+              "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
+          }
+          var postBtn = document.getElementById("stage1-post-video-submit");
+          if (postBtn) postBtn.disabled = true;
+          syncStage1PostVideoSubmitEnabled();
+          var postBox = document.getElementById("stage1-post-video");
+          if (postBox && typeof postBox.scrollIntoView === "function") {
+            try {
+              postBox.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            } catch (eSc) {
+              postBox.scrollIntoView(true);
+            }
+          }
           updateCompleteButtonsState();
         }
 
@@ -2975,6 +3055,7 @@
           }
           var done = false;
           var tid;
+          var timeoutMs = isLikelySlowNetwork() ? 15000 : 8000;
           function run() {
             if (done) return;
             done = true;
@@ -2985,7 +3066,7 @@
             el.removeEventListener("canplay", run);
             cb();
           }
-          tid = setTimeout(run, 8000);
+          tid = setTimeout(run, timeoutMs);
           el.addEventListener("loadeddata", run);
           el.addEventListener("canplay", run);
         }
@@ -3012,6 +3093,15 @@
           v.addEventListener("loadedmetadata", syncNextHint);
           v.addEventListener("play", syncNextHint);
           v.addEventListener("error", onShortError);
+          v.addEventListener("waiting", function () {
+            v.classList.add("short-feed--buffering");
+          });
+          v.addEventListener("playing", function () {
+            v.classList.remove("short-feed--buffering");
+          });
+          v.addEventListener("stalled", function () {
+            v.classList.add("short-feed--buffering");
+          });
         }
 
         function createFreshVideo() {
@@ -3025,15 +3115,19 @@
           try {
             v.playsInline = true;
           } catch (ePl) {}
-          v.preload = "auto";
-          v.setAttribute("preload", "auto");
+          v.preload = "metadata";
+          v.setAttribute("preload", "metadata");
           mount.appendChild(v);
           video = v;
           attachVideoListeners(video);
         }
 
-        /** Tiny seek helps some WebKit builds repaint the first frame before play(). */
+        /** Tiny seek helps some WebKit builds repaint the first frame before play(). Skip on slow links (extra decode + seek). */
         function primeVideoSurface(el, then) {
+          if (isLikelySlowNetwork()) {
+            requestAnimationFrame(then);
+            return;
+          }
           requestAnimationFrame(function () {
             try {
               if (el.readyState >= 2 && el.duration && isFinite(el.duration) && el.duration > 0.15) {
@@ -3291,7 +3385,19 @@
         if (hasStage1ShortsCompleted()) {
           shortsFinishUIShown = true;
           loadIndex(SHORT_TOTAL - 1, { keepDoneUI: true, autoplay: false });
-          gotoStage2Btn.hidden = false;
+          gotoStage2Btn.hidden = true;
+          if (!getStage1PostVideoAnswer()) {
+            showStage1PostVideoQuestion("short");
+            var fb0 = document.getElementById("stage1-post-video-feedback");
+            if (fb0) {
+              fb0.className = "prestart-feedback";
+              fb0.textContent =
+                "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
+            }
+            var postBtn0 = document.getElementById("stage1-post-video-submit");
+            if (postBtn0) postBtn0.disabled = true;
+            syncStage1PostVideoSubmitEnabled();
+          }
           updateCompleteButtonsState();
         } else if (getStage1Branch() === "short") {
           loadIndex(0);
@@ -3320,7 +3426,27 @@
         } catch (eSrc) {}
         function refreshLongStage2Button() {
           if (longBtn) {
-            longBtn.hidden = !hasStage1LongCompleted();
+            longBtn.hidden = true;
+          }
+          if (hasStage1LongCompleted() && !getStage1PostVideoAnswer()) {
+            showStage1PostVideoQuestion("long");
+            var fbL = document.getElementById("stage1-post-video-feedback");
+            if (fbL) {
+              fbL.className = "prestart-feedback";
+              fbL.textContent =
+                "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
+            }
+            var postBtnL = document.getElementById("stage1-post-video-submit");
+            if (postBtnL) postBtnL.disabled = true;
+            syncStage1PostVideoSubmitEnabled();
+            var postBoxL = document.getElementById("stage1-post-video");
+            if (postBoxL && typeof postBoxL.scrollIntoView === "function") {
+              try {
+                postBoxL.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              } catch (eSc) {
+                postBoxL.scrollIntoView(true);
+              }
+            }
           }
           updateCompleteButtonsState();
         }
@@ -3442,6 +3568,7 @@
         bindStage1BranchPicker();
         bindStage1ShortFeed();
         bindStage1LongVideo();
+        bindStage1PostVideoQuestion();
         syncStage1BranchUI();
         bindCRT();
         bindSchulteGame();
@@ -4129,6 +4256,7 @@
               if (!brc) return;
               if (brc === "short" && !hasStage1ShortsCompleted()) return;
               if (brc === "long" && !hasStage1LongCompleted()) return;
+              if (!getStage1PostVideoAnswer()) return;
               if (brc === "long") finalizeStage1LongWatch();
             }
             if (s === 7) {
