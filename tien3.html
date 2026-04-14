@@ -408,28 +408,54 @@
       align-self: center;
       box-sizing: border-box;
     }
-    .stage1-post-video {
-      margin-top: 0.9rem;
-      padding: 0.9rem;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #faf9f7;
-      max-width: min(100%, 420px);
+    .end-impatience-panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20000;
+      padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom, 0));
+      background: linear-gradient(to top, #faf9f7 85%, rgba(250, 249, 247, 0.96));
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
     }
-    .stage1-post-video-q {
-      margin: 0 0 0.55rem;
+    .end-impatience-inner {
+      max-width: 40rem;
+      margin: 0 auto;
+    }
+    .end-impatience-q {
+      margin: 0 0 0.4rem;
       font-weight: 600;
+      font-size: 0.95rem;
+      color: #2c1810;
     }
-    .stage1-post-video-opts {
+    .end-impatience-hint {
+      margin: 0 0 0.65rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .end-impatience-btns {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 0.55rem;
-    }
-    .stage1-post-video-opts label {
-      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
       align-items: center;
-      gap: 0.45rem;
-      cursor: pointer;
+    }
+    .end-impatience-btns .btn-primary {
+      min-width: 7rem;
+    }
+    .end-impatience-feedback {
+      margin: 0.55rem 0 0;
+      font-size: 0.82rem;
+    }
+    .end-impatience-feedback--wait {
+      color: var(--muted);
+    }
+    .end-impatience-feedback--ok {
+      color: #1b5e20;
+    }
+    .end-impatience-feedback--warn {
+      color: #c62828;
     }
     .short-slide-badge {
       position: absolute;
@@ -1354,6 +1380,29 @@
       <button type="button" class="btn-ghost" id="resetProgress">Сбросить прогресс (для проверки)</button>
     </div>
 
+    <div
+      id="end-impatience-panel"
+      class="end-impatience-panel"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="end-impatience-q"
+    >
+      <div class="end-impatience-inner">
+        <p id="end-impatience-q" class="end-impatience-q">
+          Чувствуете ли вы нетерпение и желание пропустить перерыв?
+        </p>
+        <p class="end-impatience-hint">
+          Выберите вариант 1 (Да) или 2 (Нет) — после выбора ответ будет сохранён, данные отправятся на сервер (если доступно), и страница сбросится для следующего участника.
+        </p>
+        <div class="end-impatience-btns">
+          <button type="button" class="btn-primary" id="end-impatience-yes">1. Да</button>
+          <button type="button" class="btn-primary" id="end-impatience-no">2. Нет</button>
+        </div>
+        <p class="end-impatience-feedback" id="end-impatience-feedback" hidden></p>
+      </div>
+    </div>
+
   </div>
 
   <template id="tpl-stage1-inner">
@@ -1394,11 +1443,11 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео по очереди, 40 роликов (часть номеров из 1–72 не включается)">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–70 по очереди (35 и 55 пропущены)">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
                       <div class="short-video-stack" id="stage1-short-stack" aria-live="polite"></div>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 40</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 70</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1458,17 +1507,6 @@
               Перейти ко второму этапу
             </button>
           </div>
-        </div>
-        <div class="stage1-post-video" id="stage1-post-video" hidden>
-          <p class="stage1-post-video-q">Чувствуете ли вы нетерпение и желание пропустить перерыв?</p>
-          <div class="stage1-post-video-opts" role="radiogroup" aria-label="Ответ на вопрос после просмотра видео">
-            <label><input type="radio" name="stage1_post_video" value="yes" /> 1. Да</label>
-            <label><input type="radio" name="stage1_post_video" value="no" /> 2. Нет</label>
-          </div>
-          <button type="button" class="btn-primary" id="stage1-post-video-submit" disabled>
-            Перейти ко второму этапу
-          </button>
-          <p class="prestart-feedback" id="stage1-post-video-feedback" style="margin-top:0.5rem;"></p>
         </div>
       </div>
     </div>
@@ -1778,11 +1816,9 @@
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       var STAGE1_LONG_DONE_KEY = "courseStage1LongCompleted";
       /** Number of clips: files short_video/N.mp4 for N in 1..72 except omitted numbers below. */
-      var STAGE1_SHORT_FEED_COUNT = 40;
-      /** Номера файлов short_video/*.mp4, не включаемые в ленту (в т.ч. 1–5, 16, 35, 55 и пр.). */
-      var STAGE1_SHORT_SKIP_FILE_NOS = [
-        1, 2, 3, 4, 5, 11, 16, 18, 22, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 48, 49, 51, 55, 57, 58, 60, 61, 62, 63, 64
-      ];
+      var STAGE1_SHORT_FEED_COUNT = 70;
+      /** Номера файлов short_video/*.mp4, не включаемые в ленту (55 — слишком большой для GitHub; 35 — исключён по заданию). */
+      var STAGE1_SHORT_SKIP_FILE_NOS = [35, 55];
 
       function shortClipFileNoFromSlot(slot0) {
         if (slot0 < 0) return 1;
@@ -1796,7 +1832,7 @@
         return f;
       }
       /** Long branch: single file in folder long_video (same origin as the page). */
-      var STAGE1_LONG_VIDEO_SRC = "long_video/long1.mp4";
+      var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
       /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
       var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
@@ -2267,6 +2303,7 @@
             long_watch_ms: longMs,
             video_count: stage1VideoCount,
             avg_watch_ms: stage1AvgWatchMs,
+            /** Да/нет на вопрос о нетерпении; заполняется в конце после этапа 7 (не после видео этапа 1). */
             impatience_after_video: stage1PostVideo.value || "",
             impatience_answered_at: stage1PostVideo.at || null
           },
@@ -2336,87 +2373,89 @@
         } catch (err) {}
       }
 
-      function showStage1PostVideoQuestion(branch) {
-        var box = document.getElementById("stage1-post-video");
-        if (!box) return;
-        box.hidden = false;
-        box.setAttribute("data-branch", branch || "");
-        var stored = getStage1PostVideoAnswer();
-        box.querySelectorAll('input[name="stage1_post_video"]').forEach(function (el) {
-          el.checked = !!stored && el.value === stored;
-        });
-      }
+      /** После «Завершить седьмой этап» ждём ответ на вопрос в нижней панели (sessionStorage — восстановление после F5). */
+      var END_IMPATIENCE_PENDING_KEY = "courseEndImpatiencePending";
 
-      /** Нужен ответ на вопрос после просмотра (короткая серия или длинный ролик), но ещё не сохранён. */
-      function needsStage1PostVideoQuestion() {
-        if (getStage1PostVideoAnswer()) return false;
-        var br = getStage1Branch();
-        if (!br) return false;
-        if (br === "short" && hasStage1ShortsCompleted()) return true;
-        if (br === "long" && hasStage1LongCompleted()) return true;
-        return false;
-      }
-
-      function syncStage1PostVideoSubmitEnabled() {
-        var box = document.getElementById("stage1-post-video");
-        var btn = document.getElementById("stage1-post-video-submit");
-        if (!box || !btn) return;
-        var sel = box.querySelector('input[name="stage1_post_video"]:checked');
-        btn.disabled = !sel;
-      }
-
-      function hideStage1PostVideoQuestion() {
-        var box = document.getElementById("stage1-post-video");
-        if (!box) return;
-        box.hidden = true;
-      }
-
-      function bindStage1PostVideoQuestion() {
-        var box = document.getElementById("stage1-post-video");
-        var btn = document.getElementById("stage1-post-video-submit");
-        var fb = document.getElementById("stage1-post-video-feedback");
-        if (!box || !btn || !fb) return;
-
-        function wireRadios() {
-          box.querySelectorAll('input[name="stage1_post_video"]').forEach(function (el) {
-            el.addEventListener("change", syncStage1PostVideoSubmitEnabled);
-          });
+      function showEndImpatiencePanel() {
+        var p = document.getElementById("end-impatience-panel");
+        if (p) p.hidden = false;
+        var b7 = document.querySelector('.btn-complete[data-stage="7"]');
+        if (b7) b7.disabled = true;
+        var fb = document.getElementById("end-impatience-feedback");
+        if (fb) {
+          fb.hidden = true;
+          fb.textContent = "";
         }
-        wireRadios();
+      }
 
-        var maxU = getMaxUnlocked();
-        var answered = getStage1PostVideoAnswer();
-        if (maxU > 1 && answered) {
-          showStage1PostVideoQuestion(getStage1Branch());
-          fb.className = "prestart-feedback ok";
-          fb.textContent = "Ответ уже сохранён. Второй этап открыт.";
-          btn.disabled = false;
-        } else if (needsStage1PostVideoQuestion()) {
-          showStage1PostVideoQuestion(getStage1Branch());
-          fb.className = "prestart-feedback";
-          fb.textContent =
-            "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
-          syncStage1PostVideoSubmitEnabled();
-        } else {
-          hideStage1PostVideoQuestion();
+      function hideEndImpatiencePanel() {
+        var p = document.getElementById("end-impatience-panel");
+        if (p) p.hidden = true;
+        try {
+          sessionStorage.removeItem(END_IMPATIENCE_PENDING_KEY);
+        } catch (e) {}
+      }
+
+      function maybeRestoreEndImpatiencePending() {
+        try {
+          if (sessionStorage.getItem(END_IMPATIENCE_PENDING_KEY) !== "1") return;
+        } catch (e) {
+          return;
         }
+        showEndImpatiencePanel();
+      }
 
-        btn.addEventListener("click", function () {
-          var sel = box.querySelector('input[name="stage1_post_video"]:checked');
-          if (!sel) {
-            fb.className = "prestart-feedback warn";
-            fb.textContent = "Выберите один вариант: 1 — Да или 2 — Нет.";
-            return;
+      function finishEndImpatience(answer) {
+        var yes = document.getElementById("end-impatience-yes");
+        var no = document.getElementById("end-impatience-no");
+        var fb = document.getElementById("end-impatience-feedback");
+        if (yes) yes.disabled = true;
+        if (no) no.disabled = true;
+        setStage1PostVideoAnswer(answer);
+        if (fb) {
+          fb.hidden = false;
+          fb.className = "end-impatience-feedback end-impatience-feedback--wait";
+          fb.textContent = "Отправка данных…";
+        }
+        submitExperimentToCloud(function (ok, err) {
+          hideEndImpatiencePanel();
+          if (yes) yes.disabled = false;
+          if (no) no.disabled = false;
+          if (fb) {
+            fb.hidden = true;
+            fb.textContent = "";
           }
-          var answer = sel.value === "yes" ? "yes" : "no";
-          setStage1PostVideoAnswer(answer);
-          if (getStage1Branch() === "long") finalizeStage1LongWatch();
-          fb.className = "prestart-feedback ok";
-          fb.textContent = "Ответ сохранён. Переходим ко второму этапу…";
-          setMaxUnlocked(Math.max(getMaxUnlocked(), 2));
-          pendingExpandStageAfterRender = 2;
+          clearLocalExperimentStorageAndTimers();
+          clearPrestartFormFields();
+          var fbDone = document.getElementById("prestartFeedback");
+          if (fbDone) {
+            fbDone.className = "prestart-feedback ok";
+            fbDone.textContent = ok
+              ? "Спасибо за участие! Данные отправлены. Следующий участник может заполнить профиль заново."
+              : "Спасибо за участие! Данные сохранены локально." + (err ? " (" + err + ")" : "");
+          }
+          try {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } catch (eScroll) {
+            window.scrollTo(0, 0);
+          }
           render();
         });
+      }
+
+      function bindEndImpatiencePanel() {
+        var yes = document.getElementById("end-impatience-yes");
+        var no = document.getElementById("end-impatience-no");
+        if (yes) {
+          yes.addEventListener("click", function () {
+            finishEndImpatience("yes");
+          });
+        }
+        if (no) {
+          no.addEventListener("click", function () {
+            finishEndImpatience("no");
+          });
+        }
       }
 
       function getStage1Branch() {
@@ -2609,7 +2648,6 @@
             } else {
               disabled = true;
             }
-            if (!disabled && (fromShort || fromLong) && !getStage1PostVideoAnswer()) disabled = true;
           }
           if (s === 2) {
             if (max < 2) disabled = true;
@@ -2619,6 +2657,11 @@
             }
           }
           btn.disabled = disabled;
+          try {
+            if (s === 7 && sessionStorage.getItem(END_IMPATIENCE_PENDING_KEY) === "1") {
+              btn.disabled = true;
+            }
+          } catch (eP) {}
           if (s === 1 && max === 1) {
             var br2 = getStage1Branch();
             var fromShort2 = btn.classList.contains("stage1-complete-from-short");
@@ -2636,11 +2679,6 @@
                   "title",
                   "Сначала просмотрите все " + STAGE1_SHORT_FEED_COUNT + " коротких роликов."
                 );
-              } else if (fromShort2 && hasStage1ShortsCompleted() && !getStage1PostVideoAnswer()) {
-                btn.setAttribute(
-                  "title",
-                  "Сначала ответьте на вопрос после просмотра: 1 — Да или 2 — Нет."
-                );
               } else {
                 btn.removeAttribute("title");
               }
@@ -2654,11 +2692,6 @@
                 btn.setAttribute(
                   "title",
                   "Сначала досмотрите длиный ролик до конца."
-                );
-              } else if (!getStage1PostVideoAnswer()) {
-                btn.setAttribute(
-                  "title",
-                  "Сначала ответьте на вопрос после просмотра: 1 — Да или 2 — Нет."
                 );
               } else {
                 btn.removeAttribute("title");
@@ -3007,27 +3040,9 @@
           if (shortsFinishUIShown) return;
           exitStage1ShortFullscreen();
           shortsFinishUIShown = true;
-          gotoStage2Btn.hidden = true;
+          gotoStage2Btn.hidden = false;
           nextHint.hidden = true;
           markStage1ShortsCompleted();
-          showStage1PostVideoQuestion("short");
-          var fb = document.getElementById("stage1-post-video-feedback");
-          if (fb) {
-            fb.className = "prestart-feedback";
-            fb.textContent =
-              "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
-          }
-          var postBtn = document.getElementById("stage1-post-video-submit");
-          if (postBtn) postBtn.disabled = true;
-          syncStage1PostVideoSubmitEnabled();
-          var postBox = document.getElementById("stage1-post-video");
-          if (postBox && typeof postBox.scrollIntoView === "function") {
-            try {
-              postBox.scrollIntoView({ block: "nearest", behavior: "smooth" });
-            } catch (eSc) {
-              postBox.scrollIntoView(true);
-            }
-          }
           updateCompleteButtonsState();
         }
 
@@ -3380,19 +3395,7 @@
         if (hasStage1ShortsCompleted()) {
           shortsFinishUIShown = true;
           loadIndex(SHORT_TOTAL - 1, { keepDoneUI: true, autoplay: false });
-          gotoStage2Btn.hidden = true;
-          if (!getStage1PostVideoAnswer()) {
-            showStage1PostVideoQuestion("short");
-            var fb0 = document.getElementById("stage1-post-video-feedback");
-            if (fb0) {
-              fb0.className = "prestart-feedback";
-              fb0.textContent =
-                "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
-            }
-            var postBtn0 = document.getElementById("stage1-post-video-submit");
-            if (postBtn0) postBtn0.disabled = true;
-            syncStage1PostVideoSubmitEnabled();
-          }
+          gotoStage2Btn.hidden = false;
           updateCompleteButtonsState();
         } else if (getStage1Branch() === "short") {
           loadIndex(0);
@@ -3421,27 +3424,7 @@
         } catch (eSrc) {}
         function refreshLongStage2Button() {
           if (longBtn) {
-            longBtn.hidden = true;
-          }
-          if (hasStage1LongCompleted() && !getStage1PostVideoAnswer()) {
-            showStage1PostVideoQuestion("long");
-            var fbL = document.getElementById("stage1-post-video-feedback");
-            if (fbL) {
-              fbL.className = "prestart-feedback";
-              fbL.textContent =
-                "Выберите вариант 1 (Да) или 2 (Нет), затем нажмите «Перейти ко второму этапу».";
-            }
-            var postBtnL = document.getElementById("stage1-post-video-submit");
-            if (postBtnL) postBtnL.disabled = true;
-            syncStage1PostVideoSubmitEnabled();
-            var postBoxL = document.getElementById("stage1-post-video");
-            if (postBoxL && typeof postBoxL.scrollIntoView === "function") {
-              try {
-                postBoxL.scrollIntoView({ block: "nearest", behavior: "smooth" });
-              } catch (eSc) {
-                postBoxL.scrollIntoView(true);
-              }
-            }
+            longBtn.hidden = !hasStage1LongCompleted();
           }
           updateCompleteButtonsState();
         }
@@ -3563,7 +3546,6 @@
         bindStage1BranchPicker();
         bindStage1ShortFeed();
         bindStage1LongVideo();
-        bindStage1PostVideoQuestion();
         syncStage1BranchUI();
         bindCRT();
         bindSchulteGame();
@@ -3593,6 +3575,7 @@
               }
             }
             maybeStartSchulteAfterStage5();
+            maybeRestoreEndImpatiencePending();
           });
         });
       }
@@ -4236,6 +4219,9 @@
           localStorage.removeItem("stage7FormAnswer");
           localStorage.removeItem(PRESTART_PROFILE_KEY);
         } catch (err) {}
+        try {
+          sessionStorage.removeItem(END_IMPATIENCE_PENDING_KEY);
+        } catch (eSe) {}
         assignFreshParticipantId();
       }
 
@@ -4251,24 +4237,23 @@
               if (!brc) return;
               if (brc === "short" && !hasStage1ShortsCompleted()) return;
               if (brc === "long" && !hasStage1LongCompleted()) return;
-              if (!getStage1PostVideoAnswer()) return;
               if (brc === "long") finalizeStage1LongWatch();
             }
             if (s === 7) {
-              clearLocalExperimentStorageAndTimers();
-              clearPrestartFormFields();
-              var fbDone = document.getElementById("prestartFeedback");
-              if (fbDone) {
-                fbDone.className = "prestart-feedback ok";
-                fbDone.textContent =
-                  "Спасибо за участие! Локальные данные очищены — следующий участник может заполнить профиль заново.";
-              }
               try {
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                sessionStorage.setItem(END_IMPATIENCE_PENDING_KEY, "1");
+              } catch (eS) {}
+              showEndImpatiencePanel();
+              try {
+                window.scrollTo({
+                  top: document.documentElement.scrollHeight,
+                  behavior: "smooth"
+                });
               } catch (eScroll) {
-                window.scrollTo(0, 0);
+                try {
+                  window.scrollTo(0, document.documentElement.scrollHeight);
+                } catch (e2) {}
               }
-              render();
               return;
             }
             if (s < 7) {
@@ -4284,6 +4269,7 @@
       }
 
       document.getElementById("resetProgress").addEventListener("click", function () {
+        hideEndImpatiencePanel();
         clearLocalExperimentStorageAndTimers();
         clearPrestartFormFields();
         syncPrestartPanelState();
@@ -4297,6 +4283,7 @@
 
       getOrCreateParticipantId();
       bindPrestartForm();
+      bindEndImpatiencePanel();
       render();
     })();
   </script>
