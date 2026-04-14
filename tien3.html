@@ -1394,11 +1394,11 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–70 по очереди (35 и 55 пропущены)">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео по очереди, 40 роликов (часть номеров из 1–72 не включается)">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
                       <div class="short-video-stack" id="stage1-short-stack" aria-live="polite"></div>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 70</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 40</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1778,9 +1778,11 @@
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       var STAGE1_LONG_DONE_KEY = "courseStage1LongCompleted";
       /** Number of clips: files short_video/N.mp4 for N in 1..72 except omitted numbers below. */
-      var STAGE1_SHORT_FEED_COUNT = 70;
-      /** Номера файлов short_video/*.mp4, не включаемые в ленту (55 — слишком большой для GitHub; 35 — исключён по заданию). */
-      var STAGE1_SHORT_SKIP_FILE_NOS = [35, 55];
+      var STAGE1_SHORT_FEED_COUNT = 40;
+      /** Номера файлов short_video/*.mp4, не включаемые в ленту (в т.ч. 1–5, 16, 35, 55 и пр.). */
+      var STAGE1_SHORT_SKIP_FILE_NOS = [
+        1, 2, 3, 4, 5, 11, 16, 18, 22, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 48, 49, 51, 55, 57, 58, 60, 61, 62, 63, 64
+      ];
 
       function shortClipFileNoFromSlot(slot0) {
         if (slot0 < 0) return 1;
@@ -1794,7 +1796,7 @@
         return f;
       }
       /** Long branch: single file in folder long_video (same origin as the page). */
-      var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
+      var STAGE1_LONG_VIDEO_SRC = "long_video/long1.mp4";
       /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
       var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
