@@ -3114,6 +3114,23 @@
         }
 
         function createFreshVideo() {
+          /**
+           * Same <video> node across clips on phones: Safari keeps unmuted playback when
+           * changing src after the user has already started the feed, so no extra tap per clip.
+           * Desktop still gets a new node each time (prior WebKit paint quirks).
+           */
+          if (isStage1TouchFullscreenDevice() && video != null && video.parentNode === mount) {
+            try {
+              video.pause();
+            } catch (eP) {}
+            try {
+              video.removeAttribute("src");
+            } catch (eR) {}
+            try {
+              video.innerHTML = "";
+            } catch (eI) {}
+            return;
+          }
           removeVideoNode();
           var v = document.createElement("video");
           v.id = "stage1-short-video";
@@ -3182,7 +3199,10 @@
           markStage1ShortCompletedVideo(shortClipFileNoFromSlot(current));
           if (Date.now() < ignoreEndedUntil) return;
           if (current < SHORT_TOTAL - 1) {
-            loadIndex(current + 1);
+            loadIndex(
+              current + 1,
+              isStage1TouchFullscreenDevice() ? { afterSameSessionPlay: true } : {}
+            );
           } else {
             showShortsFinishedUI();
           }
@@ -3198,7 +3218,10 @@
           nextHint.hidden = true;
           if (current < SHORT_TOTAL - 1) {
             setTimeout(function () {
-              loadIndex(current + 1);
+              loadIndex(
+                current + 1,
+                isStage1TouchFullscreenDevice() ? { afterSameSessionPlay: true } : {}
+              );
             }, 2000);
           } else {
             showShortsFinishedUI();
@@ -3251,14 +3274,7 @@
               var pSwipe = video.play();
               if (pSwipe && typeof pSwipe.catch === "function") {
                 pSwipe.catch(function () {
-                  try {
-                    video.muted = true;
-                  } catch (eM) {}
-                  try {
-                    return video.play();
-                  } catch (e2) {
-                    return Promise.resolve();
-                  }
+                  /* Do not switch to muted here — that caused silent video until the next tap. */
                 });
               }
             } catch (eSwipePlay) {}
@@ -3316,9 +3332,14 @@
                   nudgeVideoPaint(video);
                   restoreScrollAfterClip();
                 }
+                var skipMutedFallback =
+                  opts.swipeAutoplay === true || opts.afterSameSessionPlay === true;
                 if (playP && typeof playP.then === "function") {
                   playP
                     .catch(function () {
+                      if (skipMutedFallback) {
+                        return Promise.resolve();
+                      }
                       try {
                         video.muted = true;
                       } catch (eM) {}
@@ -3331,7 +3352,9 @@
                     .then(afterPlayOk, restoreScrollAfterClip);
                 } else {
                   try {
-                    video.muted = true;
+                    if (!skipMutedFallback) {
+                      video.muted = true;
+                    }
                     video.play();
                   } catch (e3) {}
                   afterPlayOk();
