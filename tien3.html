@@ -2046,32 +2046,21 @@
       /** Длительность перерыва на этапах 3 и 5 (секунды). */
       var STAGE_BREAK_SECONDS = 20;
       var BREAK_TICK_SRC = "tich_tac.mp3";
-      var breakTickAudio = null;
 
-      function getBreakTickAudio() {
-        if (!breakTickAudio) {
-          breakTickAudio = new Audio(BREAK_TICK_SRC);
-          breakTickAudio.preload = "auto";
-        }
-        return breakTickAudio;
-      }
-
+      /**
+       * New Audio() each tick: one shared HTMLAudioElement often goes silent on mobile after
+       * many plays (e.g. after этап 3), while этап 5 still calls play().
+       */
       function playBreakTickSound() {
         try {
-          var a = getBreakTickAudio();
-          a.currentTime = 0;
+          var a = new Audio(BREAK_TICK_SRC);
           var p = a.play();
           if (p && typeof p.catch === "function") p.catch(function () {});
         } catch (err) {}
       }
 
       function stopBreakTickSound() {
-        try {
-          if (breakTickAudio) {
-            breakTickAudio.pause();
-            breakTickAudio.currentTime = 0;
-          }
-        } catch (err) {}
+        /* Ticks use short-lived Audio instances; timers cleared in clearStage3/5BreakTimer. */
       }
 
       function clearStage3BreakTimer() {
@@ -2091,18 +2080,20 @@
       }
 
       function notifyStageOpened(sid) {
-        setTimeout(function () {
-          var st = document.querySelector('.stage[data-stage="' + sid + '"]');
-          if (!st || !st.classList.contains("is-open")) return;
-          if (sid === "3") maybeStartStage3Timer();
-          if (sid === "5") maybeStartStage5Timer();
-          if (sid === "2") crtOnStage2Open();
-          if (sid === "1") {
-            requestAnimationFrame(function () {
-              tryEnterStage1ShortFullscreen();
-            });
-          }
-        }, 0);
+        var st = document.querySelector('.stage[data-stage="' + sid + '"]');
+        if (!st || !st.classList.contains("is-open")) return;
+        /**
+         * Start break timers in the same turn as the accordion tap / expand — not in setTimeout(0).
+         * Otherwise the first tick’s play() is not user-gated on iOS and stage 5 often stays silent.
+         */
+        if (sid === "3") maybeStartStage3Timer();
+        if (sid === "5") maybeStartStage5Timer();
+        if (sid === "2") crtOnStage2Open();
+        if (sid === "1") {
+          requestAnimationFrame(function () {
+            tryEnterStage1ShortFullscreen();
+          });
+        }
       }
 
       function expandStageByNumber(numStr) {
@@ -3509,6 +3500,8 @@
       function render() {
         exitStage1ShortFullscreen();
         migrateStage1BranchStorage();
+        clearStage3BreakTimer();
+        clearStage5BreakTimer();
         var maxUnlocked = getMaxUnlocked();
         var root = document.getElementById("stages");
         root.innerHTML = "";
@@ -3840,6 +3833,17 @@
         });
       }
 
+      /** Short feedback when tapping a number in stage 6 (Schulte); same origin as the page. */
+      var SCHULTE_CELL_TAP_SRC = "amthanh.mp3";
+
+      function playSchulteCellTapSound() {
+        try {
+          var a = new Audio(SCHULTE_CELL_TAP_SRC);
+          var p = a.play();
+          if (p && typeof p.catch === "function") p.catch(function () {});
+        } catch (err) {}
+      }
+
       /** Таблицы Шульте 5×5 (источник: методика «Внимание. Таблицы Шульте», таблицы №1–5). */
       var SCHULTE_TABLES = [
         [
@@ -3970,6 +3974,7 @@
           var btn = e.currentTarget;
           var v = parseInt(btn.getAttribute("data-val"), 10);
           if (!isActive || !isFinite(v)) return;
+          playSchulteCellTapSound();
           if (v !== nextExpected) {
             wrongClicks++;
             wrongInTable++;
