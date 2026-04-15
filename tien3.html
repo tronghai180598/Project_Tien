@@ -1443,11 +1443,11 @@
                 aria-label="Короткий видеоролик"
               >
                 <div class="short-feed-wrap">
-                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео 1–70 по очереди (35 и 55 пропущены)">
+                  <div class="short-feed short-feed-one" id="stage1-short-feed" aria-label="Короткие видео по очереди (41 ролик)">
                     <div class="short-slide-inner short-one-inner" id="stage1-short-touch">
                       <div class="short-video-stack" id="stage1-short-stack" aria-live="polite"></div>
                       <p class="short-video-missing" id="stage1-short-miss" hidden></p>
-                      <span class="short-slide-badge" id="stage1-short-badge">1 / 70</span>
+                      <span class="short-slide-badge" id="stage1-short-badge">1 / 41</span>
                       <button
                         type="button"
                         class="short-next-hint"
@@ -1815,24 +1815,23 @@
       var PRESTART_PROFILE_KEY = "coursePrestartProfileV1";
       var STAGE1_METRICS_KEY = "courseStage1MetricsV1";
       var STAGE1_LONG_DONE_KEY = "courseStage1LongCompleted";
-      /** Number of clips: files short_video/N.mp4 for N in 1..72 except omitted numbers below. */
-      var STAGE1_SHORT_FEED_COUNT = 70;
-      /** Номера файлов short_video/*.mp4, не включаемые в ленту (55 — слишком большой для GitHub; 35 — исключён по заданию). */
-      var STAGE1_SHORT_SKIP_FILE_NOS = [35, 55];
+      /**
+       * Ordered clip list: only `short_video/{n}.mp4` that exist on the server.
+       * Update this array when you add/remove files (keep playback order).
+       */
+      var STAGE1_SHORT_CLIP_FILE_NOS = [
+        1, 2, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15, 17, 19, 20, 23, 24, 25, 26, 27, 28, 30, 31, 32, 35, 45, 47, 50, 52, 53, 54, 56, 59, 65, 66, 67, 68, 69, 70, 71, 72
+      ];
 
       function shortClipFileNoFromSlot(slot0) {
-        if (slot0 < 0) return 1;
-        var remaining = slot0 + 1;
-        var f = 0;
-        while (remaining > 0) {
-          f++;
-          if (STAGE1_SHORT_SKIP_FILE_NOS.indexOf(f) >= 0) continue;
-          remaining--;
-        }
-        return f;
+        var a = STAGE1_SHORT_CLIP_FILE_NOS;
+        if (!a.length) return 1;
+        if (slot0 < 0) return a[0];
+        if (slot0 >= a.length) return a[a.length - 1];
+        return a[slot0];
       }
       /** Long branch: single file in folder long_video (same origin as the page). */
-      var STAGE1_LONG_VIDEO_SRC = "long_video/long.mp4";
+      var STAGE1_LONG_VIDEO_SRC = "long_video/long1.mp4";
       /** After render(), open this stage and scroll to its heading (e.g. next stage after «complete»). */
       var pendingExpandStageAfterRender = null;
       var crtOnStage2Open = function () {};
@@ -2285,7 +2284,7 @@
         var stage1TotalWatchMs = branch === "short" ? shortTotalMs : branch === "long" ? longMs : 0;
         /** Average watch time = total time watched ÷ N, where N is the number of clips in the short series (not «how many ended»). */
         var stage1VideoCount =
-          branch === "short" ? STAGE1_SHORT_FEED_COUNT : branch === "long" ? 1 : 0;
+          branch === "short" ? STAGE1_SHORT_CLIP_FILE_NOS.length : branch === "long" ? 1 : 0;
         var stage1AvgWatchMs = stage1VideoCount > 0 ? Math.round(stage1TotalWatchMs / stage1VideoCount) : null;
 
         return {
@@ -2677,7 +2676,7 @@
               } else if (fromShort2 && !hasStage1ShortsCompleted()) {
                 btn.setAttribute(
                   "title",
-                  "Сначала просмотрите все " + STAGE1_SHORT_FEED_COUNT + " коротких роликов."
+                  "Сначала просмотрите все " + STAGE1_SHORT_CLIP_FILE_NOS.length + " коротких роликов."
                 );
               } else {
                 btn.removeAttribute("title");
@@ -3012,7 +3011,7 @@
         if (!mount || !feed || !touchEl || !miss || !badge || !nextHint || !gotoStage2Btn) return;
 
         var video = null;
-        var SHORT_TOTAL = STAGE1_SHORT_FEED_COUNT;
+        var SHORT_TOTAL = STAGE1_SHORT_CLIP_FILE_NOS.length;
         var current = 0;
         var NEAR_END_SEC = 3.5;
         var SWIPE_MIN = 52;
@@ -3223,8 +3222,13 @@
           nextHint.hidden = true;
 
           createFreshVideo();
+          /**
+           * Swipe navigation finishes in a microtask/async chain; mobile browsers then treat
+           * programmatic play() as non-gestural and block unmuted autoplay. Start muted so
+           * play() succeeds; participant can enable sound via native controls.
+           */
           try {
-            video.muted = false;
+            video.muted = opts.swipeAutoplay === true;
           } catch (eMu) {}
 
           var clipUrl = "short_video/" + shortClipFileNoFromSlot(current) + ".mp4";
@@ -3319,12 +3323,12 @@
           }
         }
 
-        function goNext() {
-          if (current < SHORT_TOTAL - 1) loadIndex(current + 1);
+        function goNext(navOpts) {
+          if (current < SHORT_TOTAL - 1) loadIndex(current + 1, navOpts || {});
         }
 
-        function goPrev() {
-          if (current > 0) loadIndex(current - 1);
+        function goPrev(navOpts) {
+          if (current > 0) loadIndex(current - 1, navOpts || {});
         }
 
         nextHint.addEventListener("mousedown", function (e) {
@@ -3375,8 +3379,8 @@
           var dy = touchY0 - e.changedTouches[0].clientY;
           touchY0 = null;
           if (!isStage1ShortFullscreenOpen()) return;
-          if (dy > SWIPE_MIN) goNext();
-          else if (dy < -SWIPE_MIN) goPrev();
+          if (dy > SWIPE_MIN) goNext({ swipeAutoplay: true });
+          else if (dy < -SWIPE_MIN) goPrev({ swipeAutoplay: true });
         }
         touchEl.addEventListener("touchend", onShortTouchEnd, { passive: true });
         touchEl.addEventListener(
