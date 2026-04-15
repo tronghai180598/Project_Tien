@@ -3222,13 +3222,8 @@
           nextHint.hidden = true;
 
           createFreshVideo();
-          /**
-           * Swipe navigation finishes in a microtask/async chain; mobile browsers then treat
-           * programmatic play() as non-gestural and block unmuted autoplay. Start muted so
-           * play() succeeds; participant can enable sound via native controls.
-           */
           try {
-            video.muted = opts.swipeAutoplay === true;
+            video.muted = false;
           } catch (eMu) {}
 
           var clipUrl = "short_video/" + shortClipFileNoFromSlot(current) + ".mp4";
@@ -3245,6 +3240,29 @@
             video.load();
           } catch (eLd1) {}
           badge.textContent = current + 1 + " / " + SHORT_TOTAL;
+
+          /**
+           * iOS/Safari: unmuted play() only counts as user-initiated if it runs in the same
+           * turn as the touch (e.g. touchend → goNext → loadIndex). Call play() immediately
+           * after load(); the promise may settle later but audio is still allowed.
+           */
+          if (opts.autoplay !== false && opts.swipeAutoplay === true) {
+            try {
+              var pSwipe = video.play();
+              if (pSwipe && typeof pSwipe.catch === "function") {
+                pSwipe.catch(function () {
+                  try {
+                    video.muted = true;
+                  } catch (eM) {}
+                  try {
+                    return video.play();
+                  } catch (e2) {
+                    return Promise.resolve();
+                  }
+                });
+              }
+            } catch (eSwipePlay) {}
+          }
 
           if (opts.autoplay === false) {
             if (keepDone) {
@@ -3337,7 +3355,7 @@
         nextHint.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          goNext();
+          goNext(isStage1TouchFullscreenDevice() ? { swipeAutoplay: true } : {});
         });
 
         var touchY0 = null;
@@ -3353,6 +3371,20 @@
             var t = e.targetTouches[0];
             touchY0 = t.clientY;
             swipeTrack = { x0: t.clientX, y0: t.clientY };
+            if (isStage1TouchFullscreenDevice()) {
+              var vTouch = document.getElementById("stage1-short-video");
+              if (vTouch) {
+                try {
+                  vTouch.muted = false;
+                } catch (eM0) {}
+                try {
+                  var pTouch = vTouch.play();
+                  if (pTouch && typeof pTouch.catch === "function") {
+                    pTouch.catch(function () {});
+                  }
+                } catch (ePlay0) {}
+              }
+            }
           },
           { passive: true }
         );
