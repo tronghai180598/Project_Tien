@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Задача Струпа - Интерактивная</title>
     <style>
+        :root {
+            /* Единый «синий» Струпа — как заголовки/акценты страницы (#667eea), не отдельный #4444ff */
+            --stroop-siniy: #667eea;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -220,14 +225,14 @@
             cursor: not-allowed;
         }
 
-        /* .color-button.red {
+        .color-button.red {
             border-color: #ff4444;
             color: #ff4444;
         }
 
         .color-button.blue {
-            border-color: #4444ff;
-            color: #4444ff;
+            border-color: var(--stroop-siniy);
+            color: var(--stroop-siniy);
         }
 
         .color-button.yellow {
@@ -238,7 +243,7 @@
         .color-button.green {
             border-color: #44aa44;
             color: #44aa44;
-        } */
+        }
 
         /* Results Screen */
         .results-screen {
@@ -389,7 +394,7 @@
                     <div>🔴 Красный</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: К</div>
                 </div>
-                <div class="color-item" style="background-color: #4444ff; color: white;">
+                <div class="color-item" style="background-color: #667eea; color: white;">
                     <div>🔵 Синий</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: С</div>
                 </div>
@@ -468,7 +473,7 @@
         const WORDS = ['Красный', 'Синий', 'Жёлтый', 'Зелёный'];
         const COLORS = {
             'Красный': '#ff4444',
-            'Синий': '#4444ff',
+            'Синий': '#667eea',
             'Жёлтый': '#ffcc00',
             'Зелёный': '#44aa44'
         };
