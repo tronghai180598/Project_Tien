@@ -411,7 +411,7 @@
       <div class="participant-grid" id="participantGrid" role="list"></div>
       <p class="viz-section-title">Сводные графики</p>
       <p class="viz-note" style="margin: 0 0 0.5rem">
-        Столбцы — средние баллы и время. Ниже — <strong>круговые диаграммы (%)</strong> по категориям (доля участников; в сумме 100%).
+        Столбцы — средние баллы и время. Круги: <strong>средние по выборке</strong> (доли от суммы нормированных баллов или времён), затем <strong>участники</strong> (пол, возраст и т.д.; в сумме 100%).
       </p>
       <div class="viz-grid" id="visualGrid"></div>
     </div>
@@ -1495,7 +1495,17 @@
           acc += pct;
           var c = PIE_COLORS[colorIdx % PIE_COLORS.length];
           colorIdx++;
-          segments.push({ label: String(it.label), value: v, pct: pct, color: c });
+          var disp =
+            it.display != null && String(it.display).trim() !== ""
+              ? String(it.display)
+              : String(v);
+          segments.push({
+            label: String(it.label),
+            value: v,
+            pct: pct,
+            color: c,
+            display: disp
+          });
           parts.push(c + " " + start + "% " + acc + "%");
         });
         return {
@@ -1505,7 +1515,45 @@
         };
       }
 
-      function renderPieCard(title, items, note) {
+      /** Веса = среднее / max по каждому показателю; доли в круге — доля от суммы этих весов (сумма 100%). */
+      function buildAccuracyMeanPieItems(rows) {
+        var raw = buildAccuracyItems(rows);
+        var out = [];
+        raw.forEach(function (x) {
+          var v = safeNum(x.value);
+          var m = safeNum(x.max);
+          if (m == null || m <= 0) return;
+          if (v == null || !isFinite(v)) return;
+          var w = Math.max(0, v / m);
+          out.push({
+            label: x.label,
+            value: w,
+            display: x.display != null ? String(x.display) : String(v)
+          });
+        });
+        return out;
+      }
+
+      /** Веса = средние времена (мс); доли — % от суммы трёх средних (одна шкала времени). */
+      function buildReactionMeanPieItems(rows) {
+        var raw = buildReactionItems(rows);
+        var out = [];
+        raw.forEach(function (x) {
+          var v = safeNum(x.value);
+          if (v == null || v <= 0 || !isFinite(v)) return;
+          out.push({
+            label: x.label,
+            value: v,
+            display: x.display != null ? String(x.display) : formatSecondsFromMs(v)
+          });
+        });
+        return out;
+      }
+
+      /**
+       * @param {string|false|undefined} footerOverride — undefined: «Участников…» = pie.total; false: без строки; string: свой текст
+       */
+      function renderPieCard(title, items, note, footerOverride) {
         var pie = buildPieSegments(items);
         var body;
         if (!pie.segments.length) {
@@ -1514,6 +1562,7 @@
           var legend = pie.segments
             .map(function (s) {
               var pctStr = (Math.round(s.pct * 10) / 10).toFixed(1).replace(/\.0$/, "");
+              var valStr = s.display != null ? s.display : String(s.value);
               return (
                 '<div class="viz-pie-legend-row">' +
                 '<span class="viz-pie-swatch" style="background:' +
@@ -1525,7 +1574,7 @@
                 escapeHtml(s.label) +
                 "</span>" +
                 '<span class="viz-pie-legend-val">' +
-                s.value +
+                escapeHtml(valStr) +
                 ' <span class="viz-pie-pct">(' +
                 pctStr +
                 "%)</span></span>" +
@@ -1533,6 +1582,14 @@
               );
             })
             .join("");
+          var footerLine = "";
+          if (footerOverride === false) {
+            footerLine = "";
+          } else if (typeof footerOverride === "string") {
+            footerLine = '<div class="viz-pie-total">' + footerOverride + "</div>";
+          } else {
+            footerLine = '<div class="viz-pie-total">Участников в расчёте: ' + pie.total + "</div>";
+          }
           body =
             '<div class="viz-pie-row">' +
             '<div class="viz-pie-donut-wrap">' +
@@ -1547,9 +1604,7 @@
             legend +
             "</div>" +
             "</div>" +
-            '<div class="viz-pie-total">Участников в расчёте: ' +
-            pie.total +
-            "</div>";
+            footerLine;
         }
         var noteHtml = note ? '<div class="viz-note">' + escapeHtml(note) + "</div>" : "";
         return (
@@ -1592,9 +1647,41 @@
           else if (lab === "no") lab = "Нет (2)";
           return { label: lab, value: it.value };
         });
+
+        var accMeanPie = buildAccuracyMeanPieItems(rows);
+        var accSumW = accMeanPie.reduce(function (s, it) {
+          return s + (safeNum(it.value) || 0);
+        }, 0);
+        var accPieFooter =
+          "Σ норм. весов (среднее÷макс): " +
+          (accMeanPie.length ? (Math.round(accSumW * 1000) / 1000).toFixed(2) : "—") +
+          " у.е. Доли сегментов в сумме 100%.";
+
+        var reactMeanPie = buildReactionMeanPieItems(rows);
+        var reactSumMs = reactMeanPie.reduce(function (s, it) {
+          return s + (safeNum(it.value) || 0);
+        }, 0);
+        var reactPieFooter =
+          "Σ трёх средних времён: " +
+          (reactMeanPie.length ? (reactSumMs / 1000).toFixed(2) + " s" : "—") +
+          ". Сегменты — доля каждого в этой сумме (100%).";
+
         grid.innerHTML =
           renderVizCard("Средние результаты", accuracy, "Средние баллы по всем участникам") +
           renderVizCard("Среднее время реакции", reaction, "Чем меньше с (секунд), тем быстрее реакция") +
+          '<p class="viz-section-sub" style="grid-column: 1 / -1">Круговые: средние CRT / Струп / Шульте (%)</p>' +
+          renderPieCard(
+            "Средние результаты (CRT, Струп)",
+            accMeanPie,
+            "Вес сегмента = среднее÷максимум по шкале (CRT ÷3, верные и неверные Струпа ÷25). Процент — доля этого веса в сумме трёх весов.",
+            accPieFooter
+          ) +
+          renderPieCard(
+            "Среднее время реакции (Струп RT, Σ Струп, Шульте)",
+            reactMeanPie,
+            "Процент — доля среднего времени (мс) в сумме трёх средних по выборке; шкала одна (секунды).",
+            reactPieFooter
+          ) +
           '<p class="viz-section-sub" style="grid-column: 1 / -1">Круговые диаграммы — доля участников (%)</p>' +
           renderPieCard("Пол", genders, "По анкете (stage 7). Каждый сегмент — % от числа участников в таблице.") +
           renderPieCard("Возраст (группы)", ages, "Распределение по корзинам возраста.") +
