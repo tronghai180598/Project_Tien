@@ -141,6 +141,85 @@
       font-size: 0.74rem;
       color: var(--muted);
     }
+    .viz-card-pie h3 { margin-bottom: 0.65rem; }
+    .viz-pie-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem 1rem;
+    }
+    .viz-pie-donut-wrap {
+      position: relative;
+      width: 128px;
+      height: 128px;
+      flex-shrink: 0;
+    }
+    .viz-pie-chart {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+    .viz-pie-hole {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 54%;
+      height: 54%;
+      border-radius: 50%;
+      background: #faf9f7;
+      box-shadow: inset 0 0 0 1px var(--border);
+      pointer-events: none;
+    }
+    .viz-pie-legend {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+    }
+    .viz-pie-legend-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 0.4rem 0.5rem;
+      align-items: baseline;
+    }
+    .viz-pie-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-top: 0.15rem;
+    }
+    .viz-pie-legend-label {
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .viz-pie-legend-val {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      text-align: right;
+    }
+    .viz-pie-pct { color: var(--text); font-weight: 600; }
+    .viz-pie-total {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .viz-pie-empty {
+      padding: 1rem 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .viz-section-sub {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0.85rem 0 0.45rem;
+    }
     .table-scroll {
       overflow: auto;
       max-height: 65vh;
@@ -331,6 +410,9 @@
       <p class="viz-section-title">Участники</p>
       <div class="participant-grid" id="participantGrid" role="list"></div>
       <p class="viz-section-title">Сводные графики</p>
+      <p class="viz-note" style="margin: 0 0 0.5rem">
+        Столбцы — средние баллы и время. Ниже — <strong>круговые диаграммы (%)</strong> по категориям (доля участников; в сумме 100%).
+      </p>
       <div class="viz-grid" id="visualGrid"></div>
     </div>
 
@@ -1392,6 +1474,94 @@
         return '<div class="viz-card"><h3>' + title + '</h3><div class="viz-bars">' + bars + "</div>" + noteHtml + "</div>";
       }
 
+      var PIE_COLORS = ["#3f7f5f", "#6fb28f", "#4a7ab0", "#c9a227", "#9b6bb5", "#d97b6c", "#5c6bc0", "#8d6e63", "#00796b"];
+
+      function buildPieSegments(items) {
+        var total = 0;
+        items.forEach(function (it) {
+          var v = safeNum(it.value);
+          if (v != null && v > 0) total += v;
+        });
+        if (total <= 0) return { segments: [], total: 0, gradient: "" };
+        var acc = 0;
+        var segments = [];
+        var parts = [];
+        var colorIdx = 0;
+        items.forEach(function (it) {
+          var v = safeNum(it.value);
+          if (v == null || v <= 0) return;
+          var pct = (v / total) * 100;
+          var start = acc;
+          acc += pct;
+          var c = PIE_COLORS[colorIdx % PIE_COLORS.length];
+          colorIdx++;
+          segments.push({ label: String(it.label), value: v, pct: pct, color: c });
+          parts.push(c + " " + start + "% " + acc + "%");
+        });
+        return {
+          segments: segments,
+          total: total,
+          gradient: parts.length ? "conic-gradient(" + parts.join(", ") + ")" : ""
+        };
+      }
+
+      function renderPieCard(title, items, note) {
+        var pie = buildPieSegments(items);
+        var body;
+        if (!pie.segments.length) {
+          body = '<div class="viz-pie-empty">Нет данных</div>';
+        } else {
+          var legend = pie.segments
+            .map(function (s) {
+              var pctStr = (Math.round(s.pct * 10) / 10).toFixed(1).replace(/\.0$/, "");
+              return (
+                '<div class="viz-pie-legend-row">' +
+                '<span class="viz-pie-swatch" style="background:' +
+                s.color +
+                '"></span>' +
+                '<span class="viz-pie-legend-label" title="' +
+                escapeHtml(s.label).replace(/"/g, "&quot;") +
+                '">' +
+                escapeHtml(s.label) +
+                "</span>" +
+                '<span class="viz-pie-legend-val">' +
+                s.value +
+                ' <span class="viz-pie-pct">(' +
+                pctStr +
+                "%)</span></span>" +
+                "</div>"
+              );
+            })
+            .join("");
+          body =
+            '<div class="viz-pie-row">' +
+            '<div class="viz-pie-donut-wrap">' +
+            '<div class="viz-pie-chart" style="background:' +
+            pie.gradient +
+            '" role="img" aria-label="' +
+            escapeHtml(title) +
+            '"></div>' +
+            '<div class="viz-pie-hole"></div>' +
+            "</div>" +
+            '<div class="viz-pie-legend">' +
+            legend +
+            "</div>" +
+            "</div>" +
+            '<div class="viz-pie-total">Участников в расчёте: ' +
+            pie.total +
+            "</div>";
+        }
+        var noteHtml = note ? '<div class="viz-note">' + escapeHtml(note) + "</div>" : "";
+        return (
+          '<div class="viz-card viz-card-pie"><h3>' +
+          escapeHtml(title) +
+          "</h3>" +
+          body +
+          noteHtml +
+          "</div>"
+        );
+      }
+
       function renderVisuals(rows) {
         var grid = document.getElementById("visualGrid");
         if (!rows.length) {
@@ -1413,27 +1583,26 @@
         });
 
         var reaction = toBarRows(buildReactionItems(rows), null);
-        var genders = toBarRows(mapToItems(countBy(rows, "s7_gender", "Unknown")), null);
-        var ages = toBarRows(buildAgeDistribution(rows), null);
-        var branches = toBarRows(mapToItems(countBy(rows, "stage1_branch", "Unknown")), null);
+        var genders = mapToItems(countBy(rows, "s7_gender", "Unknown"));
+        var ages = buildAgeDistribution(rows);
+        var branches = mapToItems(countBy(rows, "stage1_branch", "Unknown"));
         var impatienceItems = mapToItems(countBy(rows, "stage1_impatience", "(пусто)")).map(function (it) {
           var lab = it.label;
           if (lab === "yes") lab = "Да (1)";
           else if (lab === "no") lab = "Нет (2)";
           return { label: lab, value: it.value };
         });
-        var impatienceBars = toBarRows(impatienceItems, null);
-
         grid.innerHTML =
           renderVizCard("Средние результаты", accuracy, "Средние баллы по всем участникам") +
           renderVizCard("Среднее время реакции", reaction, "Чем меньше с (секунд), тем быстрее реакция") +
-          renderVizCard("Распределение пола", genders, "По заполненной анкете stage 7") +
-          renderVizCard("Распределение возраста", ages, "Возрастные группы участников") +
-          renderVizCard("Ветка видео stage 1", branches, "Short vs Long") +
-          renderVizCard(
-            "Нетерпение / пропустить перерыв (после этапа 7)",
-            impatienceBars,
-            "Кнопки 1 — Да, 2 — Нет. «Пусто» — нет поля в сохранённых данных (например, только отправка анкеты без финального шага)."
+          '<p class="viz-section-sub" style="grid-column: 1 / -1">Круговые диаграммы — доля участников (%)</p>' +
+          renderPieCard("Пол", genders, "По анкете (stage 7). Каждый сегмент — % от числа участников в таблице.") +
+          renderPieCard("Возраст (группы)", ages, "Распределение по корзинам возраста.") +
+          renderPieCard("Ветка видео (этап 1)", branches, "Short vs Long и др.") +
+          renderPieCard(
+            "Нетерпение после этапа 7",
+            impatienceItems,
+            "Да / Нет / пусто — доля ответов. «(пусто)» — нет поля в данных."
           );
 
         document.getElementById("visualPanel").hidden = false;
