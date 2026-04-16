@@ -484,6 +484,28 @@
         return mean(rts);
       }
 
+      /** Сумма времён реакции основной серии Струпа; таймаут = 1000 ms. */
+      function stroopTotalResponseMs(s4, rawSt) {
+        if (s4 && s4.total_response_time_ms != null) return s4.total_response_time_ms;
+        if (rawSt && rawSt.main && rawSt.main.totalResponseTimeMs != null) return rawSt.main.totalResponseTimeMs;
+        var trials = stroopTrialsForStats(rawSt);
+        if (!trials.length && s4 && Array.isArray(s4.reaction_times)) {
+          var sumLegacy = 0;
+          s4.reaction_times.forEach(function (rt) {
+            if (rt == null) sumLegacy += 1000;
+            else sumLegacy += rt;
+          });
+          return sumLegacy;
+        }
+        if (!trials.length) return "";
+        var sum = 0;
+        trials.forEach(function (tr) {
+          if (tr.timeout) sum += 1000;
+          else if (tr.reactionMs != null) sum += tr.reactionMs;
+        });
+        return sum;
+      }
+
       function flattenBundle(b) {
         var r = {};
         r.server_row_id = b.server_row_id != null ? String(b.server_row_id) : "";
@@ -494,12 +516,22 @@
         var s1 = b.stage1 || {};
         r.stage1_branch = s1.videoBranch != null ? s1.videoBranch : "";
         r.stage1_shorts_done = s1.allShortsWatched ? "1" : s1.allShortsWatched === false ? "0" : "";
-        r.stage1_impatience =
-          s1.impatience_after_video != null && s1.impatience_after_video !== ""
-            ? String(s1.impatience_after_video)
-            : "";
-        r.stage1_impatience_at =
-          s1.impatience_answered_at != null ? String(s1.impatience_answered_at) : "";
+        (function () {
+          var iv =
+            s1.impatience_after_video != null && String(s1.impatience_after_video).trim() !== ""
+              ? String(s1.impatience_after_video).trim()
+              : "";
+          if (!iv && b._raw && b._raw.stage1Metrics && b._raw.stage1Metrics.postVideo) {
+            var pv = b._raw.stage1Metrics.postVideo.value;
+            if (pv != null && String(pv).trim() !== "") iv = String(pv).trim();
+          }
+          r.stage1_impatience = iv;
+          var iat = s1.impatience_answered_at != null ? String(s1.impatience_answered_at) : "";
+          if (!iat && b._raw && b._raw.stage1Metrics && b._raw.stage1Metrics.postVideo && b._raw.stage1Metrics.postVideo.at) {
+            iat = String(b._raw.stage1Metrics.postVideo.at);
+          }
+          r.stage1_impatience_at = iat;
+        })();
         r.max_unlocked_stage =
           s1.maxUnlockedStage != null ? String(s1.maxUnlockedStage) : "";
 
@@ -547,6 +579,8 @@
           r.stroop_wrong = "";
         }
         r.stroop_mean_rt_ms = stroopMeanRt(rawSt);
+        var stroopTotalMs = stroopTotalResponseMs(s4, rawSt);
+        r.stroop_total_response_ms = stroopTotalMs !== "" ? stroopTotalMs : "";
 
         for (var si = 1; si <= STROOP_N; si++) {
           r["stroop_t" + si + "_ms"] = "";
@@ -676,6 +710,7 @@
           "stroop_correct",
           "stroop_wrong",
           "stroop_mean_rt_ms",
+          "stroop_total_response_ms",
           "schulte_t1_ms",
           "schulte_t2_ms",
           "schulte_t3_ms",
@@ -754,8 +789,10 @@
         var items = [
           { label: "Участников (строк)", value: n },
           {
-            label: "Нетерпение после видео: Да (1) / Нет (2) / пусто",
-            value: impYes + " / " + impNo + " / " + impEmpty
+            label:
+              "Нетерпение / пропустить перерыв (вопрос после этапа 7): Да (1) — Нет (2)" +
+              (impEmpty > 0 ? " · без ответа в данных: " + impEmpty : ""),
+            value: impYes + " — " + impNo
           },
           {
             label: "С анкетой (есть пол/возраст)",
@@ -770,8 +807,24 @@
             value: mean(crtScores)
           },
           {
-            label: "С данными Струпа",
+            label: "С данными Струпа (этап 4 курса; задача в отдельной вкладке)",
             value: withStroop.length
+          },
+          {
+            label: "Среднее неверных Струп (из 25)",
+            value: mean(withStroop.map(function (x) { return safeNum(x.stroop_wrong); }))
+          },
+          {
+            label: "Средняя сумма времён реакций Струп (сек)",
+            value: (function () {
+              var xs = withStroop.map(function (x) {
+                return safeNum(x.stroop_total_response_ms);
+              }).filter(function (n) { return n != null; });
+              if (!xs.length) return "";
+              var s = 0;
+              xs.forEach(function (n) { s += n; });
+              return Math.round((s / xs.length / 1000) * 100) / 100;
+            })()
           },
           {
             label: "С данными Шульте (этап 6)",
@@ -860,14 +913,26 @@
       function buildAccuracyItems(rows) {
         var crt = meanFromRows(rows, "crt_correct");
         var stroop = meanFromRows(rows, "stroop_correct");
+        var stroopW = meanFromRows(rows, "stroop_wrong");
         return [
           { label: "CRT /3", value: crt === "" ? 0 : crt, display: crt === "" ? "—" : crt, max: 3 },
-          { label: "Stroop /25", value: stroop === "" ? 0 : stroop, display: stroop === "" ? "—" : stroop, max: 25 }
+          { label: "Stroop верных /25", value: stroop === "" ? 0 : stroop, display: stroop === "" ? "—" : stroop, max: 25 },
+          {
+            label: "Stroop неверных /25",
+            value: stroopW === "" ? 0 : stroopW,
+            display: stroopW === "" ? "—" : stroopW,
+            max: 25
+          }
         ];
       }
 
       function buildReactionItems(rows) {
         var st = meanFromRows(rows, "stroop_mean_rt_ms");
+        var stroopSumMean = mean(
+          rows.map(function (r) {
+            return safeNum(r.stroop_total_response_ms);
+          })
+        );
         var schulteMeanMs = mean(
           rows.map(function (r) {
             return safeNum(r.schulte_total_ms);
@@ -878,6 +943,11 @@
             label: "Stroop RT",
             value: st === "" ? 0 : st,
             display: st === "" ? "—" : formatSecondsFromMs(st)
+          },
+          {
+            label: "Stroop Σ времени реакций",
+            value: stroopSumMean === "" ? 0 : stroopSumMean,
+            display: stroopSumMean === "" ? "—" : formatSecondsFromMs(stroopSumMean)
           },
           {
             label: "Шульте сумм. время",
@@ -977,14 +1047,24 @@
         var avg = s1.avg_watch_ms != null ? formatSecondsFromMs(s1.avg_watch_ms) : "—";
         var shortWatch = s1.short_watch_ms != null ? formatSecondsFromMs(s1.short_watch_ms) : "—";
         var longWatch = s1.long_watch_ms != null ? formatSecondsFromMs(s1.long_watch_ms) : "—";
-        var impatience = s1.impatience_after_video
-          ? s1.impatience_after_video === "yes"
+        var impRaw =
+          s1.impatience_after_video != null && String(s1.impatience_after_video).trim() !== ""
+            ? String(s1.impatience_after_video).trim()
+            : b._raw && b._raw.stage1Metrics && b._raw.stage1Metrics.postVideo && b._raw.stage1Metrics.postVideo.value
+            ? String(b._raw.stage1Metrics.postVideo.value).trim()
+            : "";
+        var impatience = impRaw
+          ? impRaw === "yes"
             ? "1 — Да"
-            : s1.impatience_after_video === "no"
+            : impRaw === "no"
             ? "2 — Нет"
-            : String(s1.impatience_after_video)
+            : impRaw
           : "—";
-        var impAt = s1.impatience_answered_at ? escapeHtml(String(s1.impatience_answered_at)) : "—";
+        var impAtTs = s1.impatience_answered_at;
+        if (!impAtTs && b._raw && b._raw.stage1Metrics && b._raw.stage1Metrics.postVideo && b._raw.stage1Metrics.postVideo.at) {
+          impAtTs = b._raw.stage1Metrics.postVideo.at;
+        }
+        var impAt = impAtTs ? escapeHtml(String(impAtTs)) : "—";
         return (
           "<p><strong>Ветка:</strong> " +
           escapeHtml(branchRu) +
@@ -1100,11 +1180,19 @@
         var avg = meanMsFromNumbers(rts);
         var bad = wrongTrialIndicesOneBased(trials);
         var badStr = bad.length ? bad.join(", ") : "нет";
+        var totalMs = stroopTotalResponseMs(s4, rawSt);
+        var totalStr =
+          totalMs !== "" && totalMs != null
+            ? escapeHtml(formatSecondsFromMs(totalMs)) + " (сумма времён реакций; таймаут = 1 с)"
+            : "—";
         return (
           "<p><strong>Верных:</strong> " +
           escapeHtml(String(correct)) +
           " &nbsp; <strong>Неверных:</strong> " +
           escapeHtml(String(wrong)) +
+          "</p>" +
+          "<p><strong>Суммарное время реакций (основная серия):</strong> " +
+          totalStr +
           "</p>" +
           "<p><strong>Неверные попытки (№):</strong> " +
           escapeHtml(badStr) +
@@ -1313,14 +1401,15 @@
           return;
         }
 
-        var accuracy = toBarRows(
-          buildAccuracyItems(rows).map(function (x) {
-            return { label: x.label, value: x.value, display: x.display };
-          }),
-          20
-        );
-        accuracy.forEach(function (it) {
-          if (it.label.indexOf("CRT") === 0) it.pct = Math.min(100, it.pct * (20 / 3));
+        var accuracy = buildAccuracyItems(rows).map(function (x) {
+          var m = x.max != null ? x.max : 1;
+          var v = safeNum(x.value);
+          var ratio = v == null ? 0 : Math.max(0, Math.min(1, v / m));
+          return {
+            label: x.label,
+            value: x.display != null ? String(x.display) : v == null ? "—" : String(v),
+            pct: Math.round(ratio * 1000) / 10
+          };
         });
 
         var reaction = toBarRows(buildReactionItems(rows), null);
@@ -1342,9 +1431,9 @@
           renderVizCard("Распределение возраста", ages, "Возрастные группы участников") +
           renderVizCard("Ветка видео stage 1", branches, "Short vs Long") +
           renderVizCard(
-            "Нетерпение / пропустить перерыв (этап 1)",
+            "Нетерпение / пропустить перерыв (после этапа 7)",
             impatienceBars,
-            "Ответ после просмотра видео: Да (1) или Нет (2)"
+            "Кнопки 1 — Да, 2 — Нет. «Пусто» — нет поля в сохранённых данных (например, только отправка анкеты без финального шага)."
           );
 
         document.getElementById("visualPanel").hidden = false;

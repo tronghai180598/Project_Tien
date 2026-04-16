@@ -1194,6 +1194,24 @@
       color: #1a3d24;
     }
     .s7-req { color: #c62828; font-weight: 700; }
+    .s7-caq-instruction {
+      margin: 0 0 1rem;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      background: #faf9f7;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .s7-caq-instruction p {
+      margin: 0.55rem 0 0;
+    }
+    .s7-caq-instruction p:first-child {
+      margin-top: 0;
+    }
+    .s7-caq-instruction strong {
+      font-weight: 600;
+    }
     .s7-section-title {
       font-size: 1.05rem;
       font-weight: 600;
@@ -1741,6 +1759,18 @@
         </fieldset>
 
         <h3 class="s7-section-title">Опросник когнитивных затруднений (CFQ) <span class="s7-req">*</span></h3>
+        <div class="s7-caq-instruction" role="region" aria-label="Инструкция к опроснику CFQ">
+          <p><strong>Инструкция</strong></p>
+          <p>
+            Вам будет предложен ряд вопросов о незначительных ошибках, которые время от времени может совершать любой человек, а некоторые ошибки
+            чаще, чем другие.
+          </p>
+          <p>Нам хотелось бы узнать, как часто за последние шесть месяцев с вами происходили предложенные события.</p>
+          <p>
+            Отвечайте искренне. Не задумывайтесь подолгу над ответами. Помните, что правильных или неправильных ответов в данном случае быть не
+            может. Первый пришедший в голову ответ является верным.
+          </p>
+        </div>
         <p class="s7-intro" style="margin-top: 0">
           Для каждого утверждения выберите один ответ в строке — столбцы: очень часто … никогда (как в
           <a href="https://docs.google.com/forms/d/e/1FAIpQLSeAWlgfsEnwYxLBEDdmJPsLSm7ybOa5zLnledmVEVeOZZBjEw/viewform" target="_blank" rel="noopener noreferrer">форме</a>).
@@ -2221,9 +2251,20 @@
             stroop.main && stroop.main.wrongCount != null
               ? stroop.main.wrongCount
               : stroop.wrongCount;
+          var s4TotalResponseMs = null;
+          if (stroop.main && stroop.main.totalResponseTimeMs != null) {
+            s4TotalResponseMs = stroop.main.totalResponseTimeMs;
+          } else {
+            s4TotalResponseMs = 0;
+            stroopMainTrials.forEach(function (t) {
+              if (t.timeout) s4TotalResponseMs += 1000;
+              else if (t.reactionMs != null) s4TotalResponseMs += t.reactionMs;
+            });
+          }
           stage4 = {
             correct_count: s4Correct,
             wrong_count: s4Wrong,
+            total_response_time_ms: s4TotalResponseMs,
             reaction_times: stroopMainTrials.map(function (t) {
               return t.timeout ? null : t.reactionMs != null ? t.reactionMs : null;
             }),

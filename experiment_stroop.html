@@ -848,6 +848,12 @@
             showScreen('results-screen');
 
             if (isCourseStroopFlow()) {
+                var mainTotalResponseMs = 0;
+                for (var ti = 0; ti < mainLog.length; ti++) {
+                    var mx = mainLog[ti];
+                    if (mx.timeout) mainTotalResponseMs += 1000;
+                    else if (mx.reactionMs != null) mainTotalResponseMs += mx.reactionMs;
+                }
                 try {
                     localStorage.setItem(
                         STROOP_METRICS_KEY,
@@ -864,6 +870,7 @@
                                 totalTrials: MAIN,
                                 correctCount: mainCorrect,
                                 wrongCount: mainWrong,
+                                totalResponseTimeMs: mainTotalResponseMs,
                                 trials: mainLog
                             }
                         })

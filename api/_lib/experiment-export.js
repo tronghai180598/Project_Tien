@@ -27,6 +27,27 @@ function normalizeBundle(obj) {
   return obj;
 }
 
+/** «Нетерпение» задаётся после этапа 7; в JSON лежит в stage1.impatience_after_video или в _raw.stage1Metrics.postVideo. */
+function impatienceValueFromBundle(b) {
+  var s1 = b && b.stage1;
+  if (s1 && s1.impatience_after_video != null && String(s1.impatience_after_video).trim() !== "") {
+    return String(s1.impatience_after_video).trim();
+  }
+  var m = b && b._raw && b._raw.stage1Metrics;
+  if (m && m.postVideo && m.postVideo.value != null && String(m.postVideo.value).trim() !== "") {
+    return String(m.postVideo.value).trim();
+  }
+  return "";
+}
+
+function impatienceAtFromBundle(b) {
+  var s1 = b && b.stage1;
+  if (s1 && s1.impatience_answered_at != null) return String(s1.impatience_answered_at);
+  var m = b && b._raw && b._raw.stage1Metrics;
+  if (m && m.postVideo && m.postVideo.at != null) return String(m.postVideo.at);
+  return "";
+}
+
 function stroopTrialsForStats(rawSt) {
   if (!rawSt) return [];
   if (rawSt.main && Array.isArray(rawSt.main.trials)) return rawSt.main.trials;
@@ -47,6 +68,28 @@ function stroopMeanRt(rawSt) {
   return mean(rts);
 }
 
+/** Sum of main-series reaction times; timeouts count as 1000 ms (Stroop trial limit). */
+function stroopTotalResponseMs(s4, rawSt) {
+  if (s4 && s4.total_response_time_ms != null) return s4.total_response_time_ms;
+  if (rawSt && rawSt.main && rawSt.main.totalResponseTimeMs != null) return rawSt.main.totalResponseTimeMs;
+  var trials = stroopTrialsForStats(rawSt);
+  if (!trials.length && s4 && Array.isArray(s4.reaction_times)) {
+    var sumLegacy = 0;
+    s4.reaction_times.forEach(function (rt) {
+      if (rt == null) sumLegacy += 1000;
+      else sumLegacy += rt;
+    });
+    return sumLegacy;
+  }
+  if (!trials.length) return "";
+  var sum = 0;
+  trials.forEach(function (tr) {
+    if (tr.timeout) sum += 1000;
+    else if (tr.reactionMs != null) sum += tr.reactionMs;
+  });
+  return sum;
+}
+
 function flattenBundle(b) {
   var r = {};
   r.server_row_id = b.server_row_id != null ? String(b.server_row_id) : "";
@@ -57,6 +100,8 @@ function flattenBundle(b) {
   var s1 = b.stage1 || {};
   r.stage1_branch = s1.videoBranch != null ? s1.videoBranch : "";
   r.stage1_shorts_done = s1.allShortsWatched ? "1" : s1.allShortsWatched === false ? "0" : "";
+  r.stage1_impatience = impatienceValueFromBundle(b);
+  r.stage1_impatience_at = impatienceAtFromBundle(b);
   r.max_unlocked_stage = s1.maxUnlockedStage != null ? String(s1.maxUnlockedStage) : "";
 
   var s2 = b.stage2;
@@ -101,6 +146,8 @@ function flattenBundle(b) {
     r.stroop_wrong = "";
   }
   r.stroop_mean_rt_ms = stroopMeanRt(rawSt);
+  var totalResp = stroopTotalResponseMs(s4, rawSt);
+  r.stroop_total_response_ms = totalResp !== "" ? totalResp : "";
 
   for (var si = 1; si <= STROOP_N; si++) {
     r["stroop_t" + si + "_ms"] = "";
@@ -204,6 +251,8 @@ function buildColumns(rows) {
     "exported_at",
     "stage1_branch",
     "stage1_shorts_done",
+    "stage1_impatience",
+    "stage1_impatience_at",
     "max_unlocked_stage",
     "crt_correct",
     "crt_wrong",
@@ -219,6 +268,7 @@ function buildColumns(rows) {
     "stroop_correct",
     "stroop_wrong",
     "stroop_mean_rt_ms",
+    "stroop_total_response_ms",
     "schulte_t1_ms",
     "schulte_t2_ms",
     "schulte_t3_ms",
