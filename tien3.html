@@ -1826,6 +1826,10 @@
         <button type="button" class="btn-primary btn-complete" data-stage="4">Завершить четвёртый этап</button>
         <span class="hint">Когда закончите материалы четвёртого этапа, нажмите, чтобы открыть этап 5.</span>
       </div>
+      <p class="hint stroop-gate-hint" id="stroopGateHint" hidden>
+        Сначала по ссылке выше откройте страницу задачи Струпа и завершите основную серию (25 попыток). После возврата сюда кнопка «Завершить четвёртый этап»
+        станет доступна.
+      </p>
     </div>
   </template>
 
@@ -1836,6 +1840,22 @@
       var STAGE1_BRANCH_KEY = "courseStage1VideoBranch";
       var CRT_METRICS_KEY = "courseCRTMetricsLast";
       var STROOP_METRICS_KEY = "courseStroopMetricsLast";
+      /** Основная серия Струпа в experiment_stroop.html — 25 попыток. */
+      var STROOP_MAIN_TRIALS_REQUIRED = 25;
+
+      function hasStroopMainCompleted() {
+        try {
+          var raw = localStorage.getItem(STROOP_METRICS_KEY);
+          if (!raw) return false;
+          var st = JSON.parse(raw);
+          if (st && st.main && Array.isArray(st.main.trials) && st.main.trials.length >= STROOP_MAIN_TRIALS_REQUIRED) {
+            return true;
+          }
+          return false;
+        } catch (err) {
+          return false;
+        }
+      }
       var SCHULTE_METRICS_KEY = "courseSchulteMetricsStage6";
       /** После «Завершить пятый этап» — автоматически 3‑2‑1 и старт таблиц Шульте. */
       var pendingSchulteCountdownAfterStage5 = false;
@@ -2076,37 +2096,53 @@
       /** Длительность перерыва на этапах 3 и 5 (секунды). */
       var STAGE_BREAK_SECONDS = 20;
       var BREAK_TICK_SRC = "tich_tac.mp3";
+      /** One clip for break countdown only — pause when 20 s ends or timer cleared (avoids overlapping ticks). */
+      var breakTickAudio = null;
 
-      /**
-       * New Audio() each tick: one shared HTMLAudioElement often goes silent on mobile after
-       * many plays (e.g. after этап 3), while этап 5 still calls play().
-       */
+      function getBreakTickAudio() {
+        if (!breakTickAudio) {
+          breakTickAudio = new Audio(BREAK_TICK_SRC);
+          breakTickAudio.preload = "auto";
+        }
+        return breakTickAudio;
+      }
+
       function playBreakTickSound() {
         try {
-          var a = new Audio(BREAK_TICK_SRC);
+          var a = getBreakTickAudio();
+          try {
+            a.currentTime = 0;
+          } catch (eCt) {}
           var p = a.play();
           if (p && typeof p.catch === "function") p.catch(function () {});
         } catch (err) {}
       }
 
       function stopBreakTickSound() {
-        /* Ticks use short-lived Audio instances; timers cleared in clearStage3/5BreakTimer. */
+        try {
+          if (breakTickAudio) {
+            breakTickAudio.pause();
+            try {
+              breakTickAudio.currentTime = 0;
+            } catch (eR) {}
+          }
+        } catch (err) {}
       }
 
       function clearStage3BreakTimer() {
         if (stage3Break.intervalId) {
           clearInterval(stage3Break.intervalId);
           stage3Break.intervalId = null;
-          stopBreakTickSound();
         }
+        stopBreakTickSound();
       }
 
       function clearStage5BreakTimer() {
         if (stage5Break.intervalId) {
           clearInterval(stage5Break.intervalId);
           stage5Break.intervalId = null;
-          stopBreakTickSound();
         }
+        stopBreakTickSound();
       }
 
       function notifyStageOpened(sid) {
@@ -2687,6 +2723,9 @@
               disabled = !(crtScoreEl && !crtScoreEl.hidden);
             }
           }
+          if (s === 4 && max === 4 && !hasStroopMainCompleted()) {
+            disabled = true;
+          }
           btn.disabled = disabled;
           try {
             if (s === 7 && sessionStorage.getItem(END_IMPATIENCE_PENDING_KEY) === "1") {
@@ -2730,10 +2769,19 @@
             } else {
               btn.removeAttribute("title");
             }
+          } else if (s === 4 && max === 4 && !hasStroopMainCompleted()) {
+            btn.setAttribute(
+              "title",
+              "Сначала по ссылке выше откройте и завершите задачу Струпа (основная серия, 25 попыток)."
+            );
           } else {
             btn.removeAttribute("title");
           }
         });
+        var gh = document.getElementById("stroopGateHint");
+        if (gh) {
+          gh.hidden = getMaxUnlocked() !== 4 || hasStroopMainCompleted();
+        }
       }
 
       function fillPrestartFormFromStorage() {
@@ -4344,6 +4392,7 @@
               if (brc === "long" && !hasStage1LongCompleted()) return;
               if (brc === "long") finalizeStage1LongWatch();
             }
+            if (s === 4 && !hasStroopMainCompleted()) return;
             if (s === 7) {
               try {
                 sessionStorage.setItem(END_IMPATIENCE_PENDING_KEY, "1");
@@ -4384,6 +4433,14 @@
           window.scrollTo(0, 0);
         }
         render();
+      });
+
+      window.addEventListener("pageshow", function (ev) {
+        if (ev.persisted) {
+          try {
+            updateCompleteButtonsState();
+          } catch (ePs) {}
+        }
       });
 
       getOrCreateParticipantId();
