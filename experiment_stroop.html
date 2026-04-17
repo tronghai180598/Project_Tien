@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Задача Струпа - Интерактивная</title>
     <style>
+        /* Одна палитра для текста стимула, кнопок и блока инструкции — меняйте только здесь */
         :root {
-            /* Единый «синий» Струпа — как заголовки/акценты страницы (#667eea), не отдельный #4444ff */
-            --stroop-siniy: #667eea;
+            --stroop-krasniy: #ff4444;
+            --stroop-siniy: #0832ef;
+            --stroop-zhyolyy: #ffcc00;
+            --stroop-zelenyy: #44aa44;
         }
 
         * {
@@ -63,7 +66,7 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, hsl(229, 97%, 50%) 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -76,7 +79,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 20px rgba(3, 48, 250, 0.4);
         }
 
         .btn:active {
@@ -89,7 +92,7 @@
         }
 
         .instructions-screen h2 {
-            color: #667eea;
+            color: #0631ef;
             margin-bottom: 20px;
             font-size: 1.8em;
         }
@@ -135,7 +138,7 @@
         }
 
         .progress-fill {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #032ff3 0%, #764ba2 100%);
             height: 100%;
             width: 0%;
             transition: width 0.3s;
@@ -193,7 +196,7 @@
         }
 
         .keys-hint strong {
-            color: #667eea;
+            color: #042eeb;
         }
 
         .color-button {
@@ -225,24 +228,25 @@
             cursor: not-allowed;
         }
 
+        /* Рамка кнопок — чёрная; буквы К/С/Ж/З — цвета стимулов как раньше */
         .color-button.red {
-            border-color: #ff4444;
-            color: #ff4444;
+            border-color: #000;
+            color: var(--stroop-krasniy);
         }
 
         .color-button.blue {
-            border-color: var(--stroop-siniy);
+            border-color: #000;
             color: var(--stroop-siniy);
         }
 
         .color-button.yellow {
-            border-color: #ffaa00;
-            color: #ffaa00;
+            border-color: #000;
+            color: var(--stroop-zhyolyy);
         }
 
         .color-button.green {
-            border-color: #44aa44;
-            color: #44aa44;
+            border-color: #000;
+            color: var(--stroop-zelenyy);
         }
 
         /* Results Screen */
@@ -251,7 +255,7 @@
         }
 
         .results-screen h2 {
-            color: #667eea;
+            color: hsl(229, 96%, 46%);
             margin-bottom: 30px;
             font-size: 2em;
         }
@@ -273,13 +277,13 @@
         }
 
         .result-item .value {
-            color: #667eea;
+            color: #0531f3;
             font-weight: bold;
             font-size: 1.5em;
         }
 
         .accuracy {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0632f4 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             border-radius: 15px;
@@ -302,7 +306,7 @@
         }
 
         .stroop-practice-break h3 {
-            color: #667eea;
+            color: #0730e9;
             margin: 0 0 0.75rem;
             font-size: 1.2em;
         }
@@ -384,26 +388,26 @@
             <h2>Инструкция задачи</h2>
             <div class="instruction-text">
                 <p>В данной задаче вы будете смотреть разные названия цветов, которые напечатаны разными цветами.</p>
-                <p style="margin-top: 15px;">Вы должны реагировать на <strong>печатный цвет</strong> слова, а не на само слово.</p>
+                <p style="margin-top: 15px;">Вы должны реагировать на <strong>цвет текста</strong>, а не на само слово.</p>
                 <p style="margin-top: 15px; color: #f44336; font-weight: bold;">Например: если видите слово "Красный" напечатанное синим цветом, вы должны нажать клавишу "С" (Синий), а не "К" (Красный).</p>
             </div>
 
-            <h3 style="color: #667eea; margin: 25px 0 15px 0;">Используйте эти клавиши:</h3>
+            <h3 style="color: #0832ef; margin: 25px 0 15px 0;">Используйте эти клавиши:</h3>
             <div class="color-guide">
-                <div class="color-item" style="background-color: #ff4444; color: white;">
-                    <div>🔴 Красный</div>
+                <div class="color-item" style="background-color: var(--stroop-krasniy); color: white;">
+                    <div>Красный</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: К</div>
                 </div>
-                <div class="color-item" style="background-color: #667eea; color: white;">
-                    <div>🔵 Синий</div>
+                <div class="color-item" style="background-color: var(--stroop-siniy); color: white;">
+                    <div>Синий</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: С</div>
                 </div>
-                <div class="color-item" style="background-color: #ffcc00; color: #333;">
-                    <div>🟡 Жёлтый</div>
+                <div class="color-item" style="background-color: var(--stroop-zhyolyy); color: #333;">
+                    <div>Жёлтый</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: Ж</div>
                 </div>
-                <div class="color-item" style="background-color: #44aa44; color: white;">
-                    <div>🟢 Зелёный</div>
+                <div class="color-item" style="background-color: var(--stroop-zelenyy); color: white;">
+                    <div>Зелёный</div>
                     <div style="font-size: 1.3em; margin-top: 10px;">Клавиша: З</div>
                 </div>
             </div>
@@ -431,10 +435,10 @@
                 <div class="word-display" id="wordDisplay"></div>
                 <div class="feedback" id="feedback"></div>
                 <div class="keys-hint" id="keysHint" role="group" aria-label="Выбор цвета (касание или клавиши)">
-                    <button type="button" class="color-button red" id="btnRed" data-color="Красный">🔴 К</button>
-                    <button type="button" class="color-button blue" id="btnBlue" data-color="Синий">🔵 С</button>
-                    <button type="button" class="color-button yellow" id="btnYellow" data-color="Жёлтый">🟡 Ж</button>
-                    <button type="button" class="color-button green" id="btnGreen" data-color="Зелёный">🟢 З</button>
+                    <button type="button" class="color-button red" id="btnRed" data-color="Красный">К</button>
+                    <button type="button" class="color-button blue" id="btnBlue" data-color="Синий">С</button>
+                    <button type="button" class="color-button yellow" id="btnYellow" data-color="Жёлтый">Ж</button>
+                    <button type="button" class="color-button green" id="btnGreen" data-color="Зелёный">З</button>
                 </div>
             </div>
             <div class="stroop-practice-break" id="stroopPracticeBreak" hidden>
@@ -471,12 +475,24 @@
 
     <script>
         const WORDS = ['Красный', 'Синий', 'Жёлтый', 'Зелёный'];
-        const COLORS = {
-            'Красный': '#ff4444',
-            'Синий': '#667eea',
-            'Жёлтый': '#ffcc00',
-            'Зелёный': '#44aa44'
-        };
+
+        /** Цвет чернил = те же CSS-переменные, что у кнопок (.color-button.*) и инструкции */
+        function getStroopColorsFromCss() {
+            var s = getComputedStyle(document.documentElement);
+            function v(name, fallback) {
+                var x = s.getPropertyValue(name);
+                x = x && String(x).trim();
+                return x || fallback;
+            }
+            return {
+                Красный: v("--stroop-krasniy", "#ff4444"),
+                Синий: v("--stroop-siniy", "#0832ef"),
+                Жёлтый: v("--stroop-zhyolyy", "#ffcc00"),
+                Зелёный: v("--stroop-zelenyy", "#44aa44")
+            };
+        }
+        const COLORS = getStroopColorsFromCss();
+
         const KEY_MAP = {
             'к': 'Красный',
             'К': 'Красный',
