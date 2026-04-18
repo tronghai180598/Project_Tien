@@ -3933,17 +3933,6 @@
         });
       }
 
-      /** Short feedback when tapping a number in stage 6 (Schulte); same origin as the page. */
-      var SCHULTE_CELL_TAP_SRC = "amthanh.mp3";
-
-      function playSchulteCellTapSound() {
-        try {
-          var a = new Audio(SCHULTE_CELL_TAP_SRC);
-          var p = a.play();
-          if (p && typeof p.catch === "function") p.catch(function () {});
-        } catch (err) {}
-      }
-
       /** Таблицы Шульте 5×5 (источник: методика «Внимание. Таблицы Шульте», таблицы №1–5). */
       var SCHULTE_TABLES = [
         [
@@ -4074,7 +4063,6 @@
           var btn = e.currentTarget;
           var v = parseInt(btn.getAttribute("data-val"), 10);
           if (!isActive || !isFinite(v)) return;
-          playSchulteCellTapSound();
           if (v !== nextExpected) {
             wrongClicks++;
             wrongInTable++;
